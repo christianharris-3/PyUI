@@ -1,0 +1,6 @@
+done-when clicking on a text box, then clicking again outside, the textbox slects like one click has been dragged to the second click
+-add textboxes into table
+-add sliders
+done-textbox buttons dont reset text scale
+-make the textbox cursor look better/be correct height
+done-make the table autoscale each column to the largest width in that column
