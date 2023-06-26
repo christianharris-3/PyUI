@@ -1102,8 +1102,8 @@ class GUI_ITEM:
         self.starty = y
         self.startanchor = list(anchor)
         self.startobjanchor = list(objanchor)
-        if self.center and self.startobjanchor == [0,0]: self.startobjanchor[0]='w/2'
-        if self.centery and self.startobjanchor == [0,0]: self.startobjanchor[1]='h/2'
+        if self.center and self.startobjanchor[0] == 0: self.startobjanchor[0]='w/2'
+        if self.centery and self.startobjanchor[1] == 0: self.startobjanchor[1]='h/2'
 
         self.width = width
         self.height = height

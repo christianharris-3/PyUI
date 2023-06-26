@@ -42,13 +42,13 @@ def decrease(row):
             ui.tables[0].data[row][1] = 'U'
         ui.tables[0].refresh(ui)
 
-ui.makebutton(600,600,'',800,ui.menuback,img='settings',layer=2,menu='tickmenu',runcommandat=2)
+ui.makebutton(600,600,'',800,ui.menuback,img='settings',layer=2,menu='tickmenu',runcommandat=2,center=True)
 ##ui.makebutton(700,600,'',100,ui.menuback,img=pygame.image.load('helm.png'),layer=2)
 ui.makebutton(1050,600,'',100,cheese,img='arrow up stick=0.3 point=0.3',horizontalspacing=10,verticalspacing=10,clickdownsize=3,toggleable=True)
 ui.makebutton(880,560,'',72,cheese,img='skip rounded=0.05 offset=-0.2 left',textcol=(173,216,230),col=(41,41,41),width=160,height=160,roundedcorners=80,horizontalspacing=10,verticalspacing=10,clickdownsize=3,border=6,bordercol=(173,216,230),ID='move menu around lol')
 #ui.makebutton(
 
-ui.makebutton(150,70,'go to a big tick',50,lambda: ui.movemenu('tickmenu'),width=150)
+ui.makebutton(150,70,'go to a big tick',50,lambda: ui.movemenu('tickmenu'),width=150,center=True)
 ui.makebutton(400,200,'Crash',100,stop,roundedcorners=10)
 ui.makebutton(400,350,'Settings',50,lambda: ui.movemenu('settings','left'),ID='settingsbutton')
 ui.makebutton(100,400,'back',50,ui.menuback,'settings')
