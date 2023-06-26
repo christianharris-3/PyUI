@@ -930,17 +930,6 @@ class UI:
                  dragable=dragable,colorkey=colorkey,
                  behindmenu=behindmenu,isolated=isolated,darken=darken)
         self.windowedmenunames = [a.menu for a in self.windowedmenus]
-    def makerect(self,x,y,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,menuexceptions=[],width=-1,height=-1,
-                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,
-                 border=-1,scalesize=True,scalex=True,scaley=True,
-                 runcommandat=0,col=-1,dragable=False):
-        if maxwidth == -1: maxwidth = width
-        if backingcol == -1: backingcol = bordercol
-        obj = RECT(self,x,y,command=emptyfunction,menu=menu,ID=ID ,layer=layer,roundedcorners=roundedcorners,menuexceptions=menuexceptions,width=width,height=height,
-                 anchor=anchor,objanchor=objanchor,center=center,centery=centery,
-                 border=border,scalesize=scalesize,scalex=scalex,scaley=scaley,
-                 runcommandat=runcommandat,col=col,dragable=dragable)
-        return obj
         
     def animate(self):
         self.queuedmenumove[0]-=1
@@ -1424,6 +1413,7 @@ class TEXTBOX(GUI_ITEM):
         self.refreshscroller(ui)
         self.refreshcords(ui)
         self.resetcords(ui)
+        self.refresh(ui)
     def setvars(self):
         self.scroller=0
         self.selected = False
@@ -1949,11 +1939,12 @@ class SLIDER(GUI_ITEM):
         else:
             self.button = ui.makebutton(self.x,self.y,self.text,self.textsize,self.command,self.menu,self.ID+'button',self.layer+0.01,self.roundedcorners,self.menuexceptions,width=self.slidersize,height=self.slidersize,img=self.img,dragable=self.dragable,clickdownsize=int(self.slidersize/15),col=shiftcolor(self.col,-30),runcommandat=self.runcommandat)
         if self.direction == 'vertical': self.button.startobjanchor = [self.button.width/2,self.button.height/2]
-        else: self.button.startobjanchor = ['w/2','h/2']
+        else: self.button.startobjanchor = [self.button.width*0.7,self.button.height/2]
         self.button.onsliderbox = True
         self.button.layer = self.layer+0.1
         self.refreshbutton(ui)
     def refreshbuttoncords(self,ui):
+##        print(self.x,self.y)
         self.slidercenter = (self.x+self.leftborder+(self.width-self.leftborder-self.rightborder)*((self.slider-self.minp)/(self.maxp-self.minp)),self.y+self.height/2)
         self.button.startx = self.slidercenter[0]-self.x-self.leftborder
         self.button.starty = 0
@@ -1967,13 +1958,11 @@ class SLIDER(GUI_ITEM):
         self.button.scalesize = self.scalesize
         self.button.resetcords(ui,False)
         self.button.refreshcords(ui)
+##        print(self.button.x,self.button.startx,self.slidercenter)
         self.button.onslider=True
     def refreshbutton(self,ui):
         self.refreshscale(ui)
-        self.button.startanchor = [self.x*self.dirscale[0],self.y*self.dirscale[1]+self.height/2*self.scale]
-        if self.direction == 'vertical':
-            self.button.startanchor = [self.x*self.dirscale[0]+self.width/2*self.scale,self.y*self.dirscale[1]]
-
+        self.button.startanchor = [self.x*self.dirscale[0]+min(self.width,self.height)/2*self.scale,self.y*self.dirscale[1]+min(self.width,self.height)/2*self.scale]
         self.button.gentext(ui)
         self.refreshbuttoncords(ui)
         
@@ -2132,12 +2121,6 @@ class ANIMATION:
             ui.IDs[self.animateID].refreshcords(ui)
         if type(ui.IDs[self.animateID]) == WINDOWEDMENU:
             ui.IDs[self.animateID].darken = ui.IDs[self.animateID].truedarken
-
-class RECT(GUI_ITEM):
-    def render(self,screen,ui):
-        self.draw(screen,ui)
-    def draw(self,screen,ui):
-        pygame.draw.rect(screen,self.backingcol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
         
         
     

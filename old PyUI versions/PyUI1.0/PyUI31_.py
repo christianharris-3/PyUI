@@ -1,13 +1,6 @@
 import pygame,random,math,time,copy,ctypes
 pygame.init()
 
-def resource_path(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
-
 def rectscaler(rect,scale,offset=(0,0)):
     if not type(scale) in [float,int]:
         return pygame.Rect((rect.x-offset[0])*scale.dirscale[0],(rect.y-offset[1])*scale.dirscale[1],rect.w*scale.scale,rect.h*scale.scale)
@@ -45,13 +38,6 @@ def colav(col1,col2,weight):
     return (col1[0]+(col2[0]-col1[0])*weight,col1[1]+(col2[1]-col1[1])*weight,col1[2]+(col2[2]-col1[2])*weight)
 def shiftcolor(col,shift):
     return [max([min([255,a+shift]),0]) for a in col]
-def autoshiftcol(col,default=(150,150,150),editamount=0):
-    if type(col) == int:
-        if col != -1:
-            editamount = col
-        col = default
-        return shiftcolor(col,editamount)
-    return col
 
 def linecross(L1,L2):
     #print(L1,L2)
@@ -231,7 +217,6 @@ class UI:
         self.escapeback = True
         self.backquits = True
         self.scrollwheelscrolls = True
-        self.idmessages = False
         
         self.resizable = True
         self.fullscreenable = True
@@ -245,15 +230,14 @@ class UI:
         
     def scaleset(self,scale):
         self.scale = scale
-        self.dirscale = [self.screenw/self.basescreensize[0],self.screenh/self.basescreensize[1]]
-        #fix this later u lazy melt
-        for a in self.items:
-            if type(TABLE):
-                a.refresh(self)
-                a.resetcords(self)
+        for a in self.buttons:
             a.refresh(self)
-            a.resetcords(self)
-        
+        for a in self.textboxes:
+            a.refresh(self)
+        for a in self.tables:
+            a.refresh(self)
+        for a in self.texts:
+            a.refresh(self)
     def getscreen(self):
         sc = pygame.display.get_surface()
         self.screenw = sc.get_width()
@@ -298,9 +282,38 @@ class UI:
                     self.renderguiobject(a,windowsurf)
             screen.blit(windowsurf,(window.x*self.scale,window.y*self.scale))
     def renderguiobject(self,a,screen):
-        a.render(screen,self)
+        if type(a) == BUTTON:
+            if a.render(screen,self):
+                a.command()
+                if a.bindtoggle != []:
+                    for b in a.bindtoggle:
+                        if b!=a.ID:
+                            self.IDs[b].toggle = False
+                self.mouseheld[a.clicktype][1]-=1
+                
+        elif type(a) == TEXTBOX:
+            a.render(screen,self)
+            if a.selected:
+                self.selectedtextbox = self.textboxes.index(a)
+        elif type(a) == TABLE:
+            a.render(screen,self.scale,self.mpos,self.mprs,self.mouseheld,self.buttondowntimer,self)
+        elif type(a) == SCROLLER or type(a) == SLIDER:
+            a.render(screen,self.scale,self.mpos,self.mprs,self.mouseheld,self.buttondowntimer)
+        else:
+            a.render(self,screen)
     def drawguiobject(self,a,screen):
-        a.draw(screen,self)
+        if type(a) == BUTTON:
+            a.draw(screen,a.col,self.scale)
+        elif type(a) == TEXTBOX:
+            a.draw(screen,self.scale,False)
+        elif type(a) == TABLE:
+            a.draw(screen,self.scale,self.mpos,self.mprs,self.mouseheld,self.buttondowntimer,self)
+        elif type(a) == SCROLLER:
+            a.draw(screen,self.scale,a.scrollercol)
+        elif type(a) == SLIDER:
+            a.draw(screen,self.scale,a.slidercol)
+        else:
+            a.render(self,screen)
             
     def loadtickdata(self):
         mpos = pygame.mouse.get_pos()
@@ -319,8 +332,6 @@ class UI:
                     else: self.capslock = True
                 if event.key == pygame.K_ESCAPE and self.escapeback:
                     self.menuback()
-                if event.key == pygame.K_F5:
-                    self.scaleset(self.scale)
                 if event.key == pygame.K_F11 and self.fullscreenable:
                     self.togglefullscreen(pygame.display.get_surface())
                 if self.selectedtextbox!=-1:
@@ -335,15 +346,15 @@ class UI:
             if event.type == pygame.MOUSEWHEEL:
                 moved = False
                 for a in self.textboxes:
-                    if a.scrolleron and a.selected:
-                        a.scroller.scroll-=(event.y*(a.scroller.maxp-a.scroller.minp)/20)
-                        a.scroller.limitpos(self)
+                    if a.scrolleron and a.selectrect.collidepoint(self.mpos):
+                        a.scroller.scroll-=(event.y*(a.scroller.maxh-a.scroller.minh)/20)
+                        a.scroller.limitpos()
                         moved = True
                 if not moved:
                     for a in self.scrollers:
                         if a.menu == self.activemenu and not a.ontextbox:
-                            a.scroll-=(event.y*(a.maxp-a.minp)/20)
-                            a.limitpos(self)
+                            a.scroll-=(event.y*(a.maxh-a.minh)/20)
+                            a.limitpos()
                             break
         if self.exit:
             events.append(pygame.event.Event(pygame.QUIT))
@@ -351,14 +362,18 @@ class UI:
     def togglefullscreen(self,screen):
         if self.fullscreen: self.fullscreen = False
         else: self.fullscreen = True
-        self.resetscreen(screen)
+        self.resetscreen()
     def resetscreen(self,screen):
         if self.autoscale == 'width':
             self.scaleset(self.screenw/self.basescreensize[0])
         else:
             self.scaleset(self.screenh/self.basescreensize[1])
+        self.dirscale = [self.screenw/self.basescreensize[0],self.screenh/self.basescreensize[1]]
         if self.fullscreen: screen = pygame.display.set_mode((self.screenw,self.screenh),pygame.FULLSCREEN)
-        else: screen = pygame.display.set_mode((self.screenw,self.screenh),pygame.RESIZABLE)       
+        else: screen = pygame.display.set_mode((self.screenw,self.screenh),pygame.RESIZABLE)
+        for a in self.items:
+            if type(a) != SCROLLER:
+                a.resetcords(self)       
         
     def write(self,screen,x,y,text,size,col='default',center=True,font='default',bold=False,antialiasing=True):
         if font=='default': font=self.defaultfont
@@ -588,7 +603,6 @@ class UI:
                 ['pfp', [[[(340, 430), (710, 430)], [(710, 430), (650, 280), (380, 280), (340, 430)]], [[(510, 280), (400, 280), (400, 50), (630, 50), (630, 280), (510, 280)]]]],
                 ['face', [[[(560, 460), (310, 460), (310, 40), (810, 40), (810, 460), (560, 460)], [(560, 460), (560, 430)], [(560, 430), (380, 430), (380, 120), (740, 120), (740, 430), (560, 430)], [(560, 430), (560, 460)]], [[(630, 350), (560, 470), (500, 350)], [(500, 350), (560, 420), (630, 350)]], [[(490, 290), (520, 340), (550, 290)], [(550, 290), (520, 280), (490, 290)]], [[(570, 290), (600, 340), (630, 290)], [(630, 290), (600, 280), (570, 290)]]]],
                 ['face2', [[[(560, 460), (310, 460), (310, 40), (810, 40), (810, 460), (560, 460)], [(560, 460), (560, 430)], [(560, 430), (380, 430), (380, 120), (740, 120), (740, 430), (560, 430)], [(560, 430), (560, 460)]], [[(590, 350), (560, 470), (530, 350)], [(530, 350), (570, 360), (590, 350)]], [[(490, 290), (520, 340), (550, 290)], [(550, 290), (520, 280), (490, 290)]], [[(570, 290), (600, 340), (630, 290)], [(630, 290), (600, 280), (570, 290)]]]],
-                ['heart', [[[(549, 526), (528, 483), (444, 462), (444, 399)], [(444, 399), (444, 357), (486, 315), (549, 357)], [(549, 357), (612, 315), (654, 357), (654, 399)], [(654, 399), (654, 462), (570, 483), (549, 526)]]]],
                 ]
         for a in self.images:
             data.append(a)
@@ -644,17 +658,13 @@ class UI:
                         vals[i] = float(a.split('=')[1])     
         return vals
         
-    def rendertextlined(self,text,size,col='default',backingcol=(150,150,150),font='default',width=-1,bold=False,antialiasing=True,center=False,spacing=0,imgin=False,img='',scale='default',linelimit=10000,getcords=False):
+    def rendertextlined(self,text,size,col='default',backingcol=(150,150,150),font='default',width=-1,bold=False,antialiasing=True,center=False,spacing=0,imgin=False,img='',scale='default',linelimit=10000):
         if font=='default': font=self.defaultfont
         if col == 'default': col = self.defaulttextcol
         if width==-1 and center: center = False
         if scale == 'default': scale = self.scale
         size*=scale
         if width!=-1: width*=scale
-        if text == '' and (img == '' or img == 'none'):
-            if getcords:
-                return pygame.Surface((0,0)),[]
-            return pygame.Surface((0,0))
         imgchr = '@'
         imgnames = []
         imgwidthid = 0
@@ -672,14 +682,13 @@ class UI:
                 imgnames.append(split[0])
         else:
             ntext = text
-            
+        
         lines = ntext.split('\n')
         textgen = pygame.font.SysFont(font,int(size),bold)
         
         textimages = []
         imagesize = [0,0]
         addedlines = 0
-        processedlines = []
         while len(lines)>0 and addedlines < linelimit:
             newline = ''
             if width!=-1:
@@ -712,19 +721,13 @@ class UI:
                     lines[0] = lines[0].replace(imgchr,'{'+imgnames[imgwidthid]+'}',1)
                     if imgwidthid!=len(imgnames)-1:
                         imgwidthid+=1
-            if lines[0] == '':
-                lines[0] = newline
-                newline = ''
             textimages.append(self.rendertext(lines[0],int(size),col,font,bold,antialiasing,backingcol,imgin,img))
             tempsize = (textimages[-1].get_width(),textimages[-1].get_height())
             if tempsize[0]>imagesize[0]: imagesize[0] = tempsize[0]
             imagesize[1]+=tempsize[1]+spacing
-            processedlines.append(lines[0])
             del lines[0]
             if newline!='':
                 lines.insert(0,newline)
-            else:
-                break
             addedlines+=1
         surf = pygame.Surface(imagesize)
         surf.fill(backingcol)
@@ -738,16 +741,49 @@ class UI:
                 surf.blit(a,(int(surf.get_width()/2)-int(a.get_width()/2),yinc))
                 yinc+=a.get_height()+spacing
         surf.set_colorkey(backingcol)
-        if getcords:
-            cords = self.textlinedcordgetter(center,imagesize,textimages,processedlines,textgen,spacing,width)
-            return surf,cords
         return surf
     
-    def textlinedcordgetter(self,center,imagesize,textimages,processedlines,textgen,spacing,width):#text,size,font='default',width=-1,bold=False,center=False,spacing=0):
+    def textlinedcordgetter(self,text,size,font='default',width=-1,bold=False,center=False,spacing=0):
+        if font=='default': font=self.defaultfont
+        if width==-1 and center: center = False
+
+        lines = text.split('\n')
+        for a in range(len(lines)-1):
+            lines[a+1]='\n'+lines[a+1]
+        if text[-2:] == '\n':
+            lines.append('\n')
+        processedlines = []
+        textgen = pygame.font.SysFont(font,int(size),bold)
+        
+        imagesize = [0,0]
+        while len(lines)>0:
+            newline = ''
+            if width!=-1:
+                while textgen.size(lines[0])[0]>width:
+                    split = lines[0].rsplit(' ',1)
+                    if len(split)>1:
+                        slide = split[1]
+                        replace = split[0]+' '
+                        if split[1] == '':
+                            slide = ' '
+                            replace = split[0]
+                    else:
+                        replace = split[0][:len(split[0])-1]
+                        slide = split[0][-1]
+                    lines[0] = replace
+                    newline = slide+newline
+                        
+            tempsize = textgen.size(lines[0])
+            if tempsize[0]>imagesize[0]: imagesize[0] = tempsize[0]
+            imagesize[1]+=tempsize[1]+spacing
+            processedlines.append(lines[0])
+            del lines[0]
+            if newline!='':
+                lines.insert(0,newline)
         rowstart = []
         if center:
             for a in processedlines:
-                rowstart.append(int(width/2)-int(textgen.size(a)[0]/2))
+                rowstart.append(int(imagesize[0]/2)-int(textgen.size(a)[0]/2))
         else: rowstart = [0 for a in range(len(processedlines))]
         yinc = 0
         corddata = []
@@ -776,56 +812,47 @@ class UI:
                 ID = ID.removesuffix(str(adder))
                 adder+=1
                 ID+=str(adder)
-        if self.idmessages: print('adding:',ID)
         self.IDs[ID] = obj
         obj.ID = ID
-        if type(obj) == BUTTON: self.buttons.append(obj)
-        elif type(obj) == TEXTBOX: self.textboxes.append(obj)
-        elif type(obj) == TABLE: self.tables.append(obj)
-        elif type(obj) == TEXT: self.texts.append(obj)
-        elif type(obj) == SCROLLER: self.scrollers.append(obj)
-        elif type(obj) == SLIDER: self.sliders.append(obj)
-        elif type(obj) == WINDOWEDMENU: self.windowedmenus.append(obj)
-        elif type(obj) == ANIMATION: self.animations.append(obj)
-        self.refreshitems()
-    def refreshitems(self):
         self.items = self.buttons+self.textboxes+self.tables+self.texts+self.scrollers+self.sliders+self.windowedmenus
         self.items.sort(key=lambda x: x.layer,reverse=False)
+##        self.edgebind(ID)
         
     def makebutton(self,x,y,text,textsize=50,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,menuexceptions=[],width=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',font='default',bold=False,antialiasing=True,pregenerated=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
-                 runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,maxwidth=-1,
-                 dragable=False,colorkey=(255,255,255),toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=0,horizontalspacing=8,
-                 backingdraw=True,borderdraw=True,animationspeed=5,linelimit=1000):
-        if maxwidth == -1: maxwidth = width
-        if backingcol == -1: backingcol = bordercol
+                 runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,
+                 dragable=False,colorkey=(255,255,255),toggle=False,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=0,horizontalspacing=8,
+                 backingdraw=True,borderdraw=True,linelimit=1000,returnobj=False):
+        
         obj = BUTTON(self,x,y,width,height,menu,ID,layer,roundedcorners,menuexceptions,
                  anchor,objanchor,center,centery,text,textsize,img,font,bold,antialiasing,pregenerated,
                  border,upperborder,lowerborder,rightborder,leftborder,scalesize,scalex,scaley,
-                 command,runcommandat,col,textcol,backingcol,hovercol,clickdownsize,clicktype,textoffsetx,textoffsety,maxwidth,
-                 dragable,colorkey,toggle,toggleable,toggletext,toggleimg,togglecol,togglehovercol,bindtoggle,spacing,verticalspacing,horizontalspacing,animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit)
+                 command,runcommandat,col,textcol,backingcol,hovercol,clickdownsize,clicktype,textoffsetx,textoffsety,
+                 dragable,colorkey,toggle,toggleable,toggletext,toggleimg,togglecol,togglehovercol,bindtoggle,spacing,verticalspacing,horizontalspacing,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit)
+        self.buttons.append(obj)
+        self.addid(ID,obj)
         return obj
-##    def makecheckbox(self,x,y,textsize=80,command=emptyfunction,menu='main',menuexceptions=[],edgebound=(1,0,0,1),text='',col=(255,255,255),bordercol='default',hovercol=-1,textcol='default',img='tick',colorkey=(255,255,255),runcommandat=0,width=-1,height=-1,border=4,clickdownsize=1,verticalspacing=-15,horizontalspacing=-15,roundedcorners=0,clicktype=0,textoffsetx=0,textoffsety=0,toggle=True,togglecol=-1,togglehovercol=-1,toggleable=True,drawifoff=False,bindtoggle=[],dragable=False,center=True,font='default',bold=False,layer=1,ID='tickbox',returnobj=False):
-    def makecheckbox(self,x,y,textsize=80,command=emptyfunction,menu='main',ID='checkbox',text='',layer=1,roundedcorners=0,menuexceptions=[],width=-1,height=-1,
-                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='tick',font='default',bold=False,antialiasing=True,pregenerated=True,
-                 border=4,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
-                 runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,maxwidth=-1,
-                 dragable=False,colorkey=(255,255,255),toggle=True,toggleable=True,toggletext='',toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-15,verticalspacing=0,horizontalspacing=8,
-                 backingdraw=False,borderdraw=True,animationspeed=5,linelimit=1000):
-        obj = BUTTON(self,x,y,width,height,menu,ID,layer,roundedcorners,menuexceptions,
-                 anchor,objanchor,center,centery,text,textsize,img,font,bold,antialiasing,pregenerated,
-                 border,upperborder,lowerborder,rightborder,leftborder,scalesize,scalex,scaley,
-                 command,runcommandat,col,textcol,backingcol,hovercol,clickdownsize,clicktype,textoffsetx,textoffsety,maxwidth,
-                 dragable,colorkey,toggle,toggleable,toggletext,toggleimg,togglecol,togglehovercol,bindtoggle,spacing,verticalspacing,horizontalspacing,animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit)
-        return obj
-    def maketextbox(self,x,y,text='',width=200,lines=1,menu='main',command=emptyfunction,ID='textbox',layer=1,roundedcorners=0,menuexceptions=[],height=-1,
+    def makecheckbox(self,x,y,textsize=80,command=emptyfunction,menu='main',menuexceptions=[],edgebound=(1,0,0,1),text='',col=(255,255,255),bordercol='default',hovercol=-1,textcol='default',img='tick',colorkey=(255,255,255),runcommandat=0,width=-1,height=-1,border=4,clickdownsize=1,verticalspacing=-15,horizontalspacing=-15,roundedcorners=0,clicktype=0,textoffsetx=0,textoffsety=0,toggle=True,togglecol=-1,togglehovercol=-1,toggleable=True,drawifoff=False,bindtoggle=[],dragable=False,center=True,font='default',bold=False,layer=1,ID='tickbox',returnobj=False):
+        if bordercol == 'default':
+            bordercol = [min([255,a+20]) for a in self.defaultcol]
+        if textcol == 'default': textcol = self.defaulttextcol
+        if hovercol == -1: hovercol = col
+        if togglecol == -1: togglecol = col
+        if togglehovercol == -1: togglehovercol = togglecol
+        self.makebutton(x,y,text,textsize,command,menu,menuexceptions,edgebound,col,bordercol,hovercol,textcol,img,colorkey,runcommandat,width,height,border,clickdownsize,verticalspacing,horizontalspacing,roundedcorners,clicktype,textoffsetx,textoffsety,toggle,togglecol,togglehovercol,toggleable,drawifoff,bindtoggle,dragable,center,font,bold,layer,ID,returnobj)
+            
+##    def maketextbox(self,x,y,title,width,lines=1,menu='main',height=-1,border=4,menuexceptions=[],edgebound=(1,0,0,1),titlesize=50,titleheight=-1,titlecenter=True,textsize=40,textcenter=False,titlefont='default',titlebold=False,col='default',backingcol=-1,titlecol='default',textcol='default',
+##                    upperborder=0,lowerborder=0,rightborder=0,leftborder=0,center=True,chrlimit=1000,numsonly=False,enterreturns=False,command=emptyfunction,commandifenter=True,commandifkey=False,selectcol=-1,selectbordersize=2,selectshrinksize=0,roundedcorners=0,clicktype=0,textoffsetx=0,textoffsety=0,
+##                    font='default',bold=False,cursorsize=-1,layer=1,ID='default',returnobj=False):
+        
+    def maketextbox(self,x,y,text,width,lines=1,menu='main',command=emptyfunction,ID='textbox',layer=1,roundedcorners=0,menuexceptions=[],height=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',textsize=50,font='default',bold=False,antialiasing=True,pregenerated=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,
                  colorkey=(255,255,255),spacing=-1,verticalspacing=0,horizontalspacing=8,
                  linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=False,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,
-                 backingdraw=True,borderdraw=True):
+                 backingdraw=True,borderdraw=True,returnobj=False):
         if col == -1: col = self.defaultcol
         if backingcol == -1: backingcol = shiftcolor(col,-20)   
         obj = TEXTBOX(self,x,y,width,height,menu,ID,layer,roundedcorners,menuexceptions,
@@ -835,112 +862,108 @@ class UI:
                  colorkey=colorkey,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,
                  lines=lines,linelimit=linelimit,selectcol=selectcol,selectbordersize=selectbordersize,selectshrinksize=selectshrinksize,cursorsize=cursorsize,textcenter=textcenter,chrlimit=chrlimit,numsonly=numsonly,enterreturns=enterreturns,commandifenter=commandifenter,commandifkey=commandifkey,
                  backingdraw=backingdraw,borderdraw=borderdraw)
+
+##                      x,y,width,height,border,titleheight,roundedcorners,title,titlecenter,titlesize,titlecol,titlefont,titlebold,backingcol,textcenter,textsize,textcol,col,upperborder,lowerborder,rightborder,leftborder,chrlimit,numsonly,enterreturns,command,commandifenter,commandifkey,selectcol,selectbordersize,selectshrinksize,cursorsize,menu,menuexceptions,edgebound,clicktype,titleimage,textoffsetx,textoffsety,font,bold,layer,ID,self)
+        self.textboxes.append(obj)
+        self.addid(ID,obj)
         return obj
             
             
 ##    def maketable(self,x,y,data='empty',titles=[],menu='main',menuexceptions=[],edgebound=(1,0,0,1),rows=5,colomns=3,boxwidth=-1,boxheight=-1,spacing=10,col='default',boxtextcol='default',boxtextsize=40,boxcenter=True,font='default',bold=False,titlefont=-1,titlebold=-1,titleboxcol=-1,titletextcol='default',titletextsize=-1,titlecenter=True,linesize=2,linecol=-1,roundedcorners=0,layer=1,ID='default',returnobj=False):
 
-    def maketable(self,x,y,data='empty',titles=[],menu='main',ID='table',layer=1,roundedcorners=0,menuexceptions=[],width=-1,height=-1,
+    def maketable(self,x,y,width,height,menu='main',ID='table',layer=1,roundedcorners=0,menuexceptions=[],
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,text='',textsize=50,img='none',font='default',bold=False,antialiasing=True,pregenerated=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
                  command=emptyfunction,runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,
                  dragable=False,colorkey=(255,255,255),spacing=-1,verticalspacing=0,horizontalspacing=8,
-                 boxwidth=-1,boxheight=-1,linesize=2,textcenter=True,
+                 data='empty',titles=[],boxwidth=-1,boxheight=-1,linesize=2,
                  backingdraw=True,borderdraw=True):
 
+        
+        
         if col == -1: col = self.defaultcol
         if backingcol == -1: backingcol = shiftcolor(col,-20)
         
+##        if data == 'empty':
+##            data = [['-' for b in range(colomns)] for a in range(rows)]
+##        else:
+##            rows = len(data)
+##            colomns = len(data[0])
+##            
+##        while len(titles)<colomns:
+##            titles.append('Column '+str(len(titles)+1))
         #obj = TABLE(x,y,rows,colomns,data,titles,boxwidth,boxheight,spacing,menu,menuexceptions,boxcol,boxtextcol,boxtextsize,boxcenter,font,bold,titlefont,titlebold,titleboxcol,titletextcol,titletextsize,titlecenter,linesize,linecol,roundedcorners,layer,ID,self)
         obj = TABLE(self,x,y,width,height,menu,ID,layer,roundedcorners,menuexceptions,
                  anchor,objanchor,center,centery,text,textsize,img,font,bold,antialiasing,pregenerated,
                  border,upperborder,lowerborder,rightborder,leftborder,scalesize,scalex,scaley,
                  command,runcommandat,col,textcol,backingcol,hovercol,clickdownsize,clicktype,textoffsetx,textoffsety,
                  colorkey=colorkey,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,
-                 data=data,titles=titles,boxwidth=boxwidth,boxheight=boxheight,linesize=linesize,textcenter=textcenter,
+                 data=data,titles=titles,boxwidth=boxwidth,boxheight=boxheight,linesize=linesize,
                  backingdraw=backingdraw,borderdraw=borderdraw)
+        self.tables.append(obj)
+        self.addid(ID,obj)
         return obj
             
-##    def maketext(self,x,y,text,size,menu='main',menuexceptions=[],edgebound=(1,0,0,1),col='default',center=True,font='default',bold=False,maxwidth=-1,border=4,backingcol='default',backingdraw=0,backingwidth=-1,backingheight=-1,img='none',colorkey=(255,255,255),roundedcorners=0,layer=1,ID='default',antialiasing=True,pregenerated=True,returnobj=False):
-    def maketext(self,x,y,text,textsize=50,menu='main',ID='text',layer=1,roundedcorners=0,menuexceptions=[],width=-1,height=-1,
-                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',font='default',bold=False,antialiasing=True,pregenerated=True,
-                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
-                 command=emptyfunction,runcommandat=0,col=-1,textcol=-1,clicktype=0,backingcol=-1,bordercol=-1,textoffsetx=0,textoffsety=0,
-                 dragable=False,colorkey=(255,255,255),spacing=-1,verticalspacing=3,horizontalspacing=3,maxwidth=-1,animationspeed=5,
-                 textcenter=False,backingdraw=False,borderdraw=False):
-        if col == -1: col = backingcol
-        backingcol = bordercol
-        
-        obj = TEXT(self,x,y,width,height,menu,ID,layer,roundedcorners,menuexceptions,
-                 anchor,objanchor,center,centery,text,textsize,img,font,bold,antialiasing,pregenerated,
-                 border,upperborder,lowerborder,rightborder,leftborder,scalesize,scalex,scaley,
-                 command,runcommandat,col,textcol,backingcol,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,maxwidth=maxwidth,
-                 dragable=dragable,colorkey=colorkey,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,
-                 textcenter=textcenter,backingdraw=backingdraw,borderdraw=borderdraw,animationspeed=animationspeed)
+    def maketext(self,x,y,text,size,menu='main',menuexceptions=[],edgebound=(1,0,0,1),col='default',center=True,font='default',bold=False,maxwidth=-1,border=4,backingcol='default',backingdraw=0,backingwidth=-1,backingheight=-1,img='none',colorkey=(255,255,255),roundedcorners=0,layer=1,ID='default',antialiasing=True,pregenerated=True,returnobj=False):
+        if font == 'default': font = self.defaultfont
+        if col == 'default': col = self.defaulttextcol
+        if backingcol == 'default': backingcol = self.defaultbackingcol
+        if ID == 'default':
+            ID = 'text '+text
+        obj = TEXT(x,y,text,size,menu,menuexceptions,edgebound,col,center,font,bold,maxwidth,border,backingcol,backingdraw,backingwidth,backingheight,img,colorkey,roundedcorners,antialiasing,pregenerated,layer,ID,self)
+        if returnobj:
+            return obj
+        else:
+            self.texts.append(obj)
+            self.addid(ID,obj)
+
+    def makescroller(self,x,y,height,command=emptyfunction,width=15,minh=0,maxh=-1,pageh=100,starth=0,menu='main',menuexceptions=[],edgebound=(1,0,0,1),col='default',scrollercol=-1,hovercol=-1,clickcol=-1,scrollerwidth=11,runcommandat=1,clicktype=0,layer=1,ID='default',returnobj=False):
+        if col == 'default':
+            col = [min([255,a+20]) for a in self.defaultcol]
+        if scrollercol==-1:
+            scrollercol = [max([0,a-30]) for a in col]
+        if hovercol==-1:
+            hovercol = [max([0,a-30]) for a in scrollercol]
+        if clickcol==-1:
+            clickcol = [max([0,a-30]) for a in hovercol]
+        if ID == 'default':
+            ID = 'scroller '
+        if maxh == -1:
+            maxh = height
+        obj = SCROLLER(x,y,menu,menuexceptions,edgebound,command,width,height,col,scrollercol,hovercol,clickcol,scrollerwidth,minh,maxh,pageh,starth,runcommandat,clicktype,layer,ID,self)
+        self.scrollers.append(obj)
+        self.addid(ID,obj)
         return obj
 
-##    def makescroller(self,x,y,height,command=emptyfunction,width=15,minh=0,maxh=-1,pageh=100,starth=0,menu='main',menuexceptions=[],edgebound=(1,0,0,1),col='default',scrollercol=-1,hovercol=-1,clickcol=-1,scrollerwidth=11,runcommandat=1,clicktype=0,layer=1,ID='default',returnobj=False):
-    def makescroller(self,x,y,height,command=emptyfunction,width=15,minp=0,maxp=100,pageheight=15,menu='main',ID='scroller',layer=1,roundedcorners=0,menuexceptions=[],
-                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,
-                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
-                 runcommandat=0,col=-1,backingcol=-1,clicktype=0,
-                 dragable=True,backingdraw=True,borderdraw=True,scrollercol=-1,scrollerwidth=-1,increment=0,startp=0):
-
-        if maxp == -1:
-            maxp = height
-        obj = SCROLLER(self,x,y,width,height,menu,ID,layer,roundedcorners,menuexceptions,
-                 anchor,objanchor,center,centery,
-                 border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,
-                 command=command,runcommandat=runcommandat,col=col,backingcol=backingcol,clicktype=clicktype,
-                 dragable=dragable,backingdraw=backingdraw,borderdraw=borderdraw,
-                 increment=increment,minp=minp,maxp=maxp,startp=startp,pageheight=pageheight)
-        return obj
-
-##    def makeslider(self,x,y,width,height,maxp=100,menu='main',command=emptyfunction,menuexceptions=[],edgebound=(1,0,0,1),col='default',slidercol=-1,sliderbordercol=-1,hovercol=-1,clickcol=-1,clickdownsize=2,bordercol=-1,border=2,slidersize=-1,increment=0,img='none',colorkey=(255,255,255),minp=0,startp=0,style='square',roundedcorners=0,barroundedcorners=-1,dragable=True,runcommandat=1,clicktype=0,layer=1,ID='default',returnobj=False):
-    def makeslider(self,x,y,width,height,maxp=100,menu='main',command=emptyfunction,ID='slider',layer=1,roundedcorners=0,menuexceptions=[],
-                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,
-                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
-                 runcommandat=1,col=-1,backingcol=-1,button='default',
-                 dragable=True,colorkey=(255,255,255),backingdraw=True,borderdraw=True,
-                 slidersize=-1,increment=0,sliderroundedcorners=-1,minp=0,startp=0,direction='horizontal'):
-
+    def makeslider(self,x,y,width,height,maxp=100,menu='main',command=emptyfunction,menuexceptions=[],edgebound=(1,0,0,1),col='default',slidercol=-1,sliderbordercol=-1,hovercol=-1,clickcol=-1,clickdownsize=2,bordercol=-1,border=2,slidersize=-1,increment=0,img='none',colorkey=(255,255,255),minp=0,startp=0,style='square',roundedcorners=0,barroundedcorners=-1,dragable=True,runcommandat=1,clicktype=0,layer=1,ID='default',returnobj=False):
+        if col == 'default':
+            col = self.defaultcol
+        if bordercol==-1:
+            bordercol = [min([255,a+20]) for a in col]
+        if slidercol==-1:
+            slidercol = [max([0,a-30]) for a in col]
+        if sliderbordercol==-1:
+            sliderbordercol = [max([0,a-10]) for a in slidercol]
+        if hovercol==-1:
+            hovercol = [max([0,a-30]) for a in slidercol]
+        if ID == 'default':
+            ID = 'slider '
         if slidersize == -1: slidersize = height*2
-
-        obj = SLIDER(self,x,y,width,height,menu,ID,layer,roundedcorners,menuexceptions,
-                 anchor,objanchor,center,centery,
-                 border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,
-                 command=command,runcommandat=runcommandat,col=col,backingcol=backingcol,
-                 dragable=dragable,colorkey=colorkey,backingdraw=backingdraw,borderdraw=borderdraw,
-                 slidersize=slidersize,increment=increment,sliderroundedcorners=sliderroundedcorners,minp=minp,maxp=maxp,startp=startp,direction=direction,data=button)
-
+        if barroundedcorners == -1: barroundedcorners = roundedcorners
+        obj = SLIDER(x,y,width,height,menu,menuexceptions,edgebound,command,col,bordercol,slidercol,sliderbordercol,hovercol,clickdownsize,border,slidersize,increment,roundedcorners,barroundedcorners,img,colorkey,minp,maxp,startp,dragable,runcommandat,clicktype,layer,ID,self)
+        self.sliders.append(obj)
+        self.addid(ID,obj)
         return obj
 
-##    def makewindowedmenu(self,x,y,width,height,menu,behindmenu,edgebound=(1,0,0,1),col='default',isolated=True,roundedcorners=0,darken=60,colourkey=(243,244,242),ID='default'):
-    def makewindowedmenu(self,x,y,width,height,menu,behindmenu='main',col=-1,
-                 dragable=False,colorkey=(255,255,255),isolated=True,darken=60,ID='windowedmenu',layer=1,roundedcorners=0,
-                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,
-                 scalesize=True,scalex=True,scaley=True,command=emptyfunction,runcommandat=0):
-
-        if col == -1: col = [max([0,a-35]) for a in self.defaultcol]
-
-        obj = WINDOWEDMENU(self,x,y,width,height,menu,ID,layer,roundedcorners,
-                 anchor=anchor,objanchor=objanchor,center=center,centery=centery,
-                 scalesize=scalesize,scalex=scalex,scaley=scaley,
-                 command=emptyfunction,runcommandat=runcommandat,col=col,
-                 dragable=dragable,colorkey=colorkey,
-                 behindmenu=behindmenu,isolated=isolated,darken=darken)
+    def makewindowedmenu(self,x,y,width,height,menu,behindmenu,edgebound=(1,0,0,1),col='default',isolated=True,roundedcorners=0,darken=60,colourkey=(243,244,242),ID='default'):
+        if col == 'default':
+            col = [max([0,a-35]) for a in self.defaultcol]
+        if ID == 'default':
+            ID = menu
+        obj = WINDOWEDMENU(menu,behindmenu,x,y,width,height,col,roundedcorners,colourkey,isolated,darken,edgebound,ID)
+        self.windowedmenus.append(obj)
         self.windowedmenunames = [a.menu for a in self.windowedmenus]
-    def makerect(self,x,y,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,menuexceptions=[],width=-1,height=-1,
-                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,
-                 border=-1,scalesize=True,scalex=True,scaley=True,
-                 runcommandat=0,col=-1,dragable=False):
-        if maxwidth == -1: maxwidth = width
-        if backingcol == -1: backingcol = bordercol
-        obj = RECT(self,x,y,command=emptyfunction,menu=menu,ID=ID ,layer=layer,roundedcorners=roundedcorners,menuexceptions=menuexceptions,width=width,height=height,
-                 anchor=anchor,objanchor=objanchor,center=center,centery=centery,
-                 border=border,scalesize=scalesize,scalex=scalex,scaley=scaley,
-                 runcommandat=runcommandat,col=col,dragable=dragable)
-        return obj
+        self.addid(ID,obj)
         
     def animate(self):
         self.queuedmenumove[0]-=1
@@ -960,7 +983,11 @@ class UI:
         if menu:
             for a in self.items:
                 if ((a.menu == animateID) or (type(a) == WINDOWEDMENU and a.behindmenu == animateID)):
-                    if not(a.ontable or a.ontextbox or a.onslider):
+                    if (type(a) in [TEXTBOX,BUTTON]):
+                        if not a.ontable:
+                            self.makeanimation(a.ID,startpos,endpos,movetype,length,command,runcommandat,queued,False,relativemove,skiptoscreen,acceleration)
+                            runcommandat = -1
+                    else:
                         self.makeanimation(a.ID,startpos,endpos,movetype,length,command,runcommandat,queued,False,relativemove,skiptoscreen,acceleration)
                         runcommandat = -1
         else:
@@ -981,6 +1008,7 @@ class UI:
                     if a.animateID == animateID:
                         wait = max([a.wait+a.length,wait])
             obj = ANIMATION(animateID,startpos,endpos,movetype,length,wait,relativemove,command,runcommandat,skiptoscreen,acceleration,ID)
+            self.animations.append(obj)
             self.addid(ID,obj)
         
                 
@@ -1029,14 +1057,14 @@ class UI:
         if 'flip' in slide: dirr = [dirr[0]*-1,dirr[1]*-1]
         if menufrom in self.windowedmenunames:
             if menuto == self.windowedmenus[self.windowedmenunames.index(menufrom)].behindmenu:
-                self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].ID,'current',dirr,'sinout',length,command=lambda: self.movemenu(menuto,backchainadd=False),runcommandat=length,queued=False,relativemove=True,skiptoscreen=True)
-                self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].ID,'current',[dirr[0]*-1,dirr[1]*-1],'linear',1,command=self.finishmenumove,runcommandat=1,queued=True,relativemove=True)
+                self.makeanimation(menufrom,'current',dirr,'sinout',length,command=lambda: self.movemenu(menuto,backchainadd=False),runcommandat=length,queued=False,relativemove=True,skiptoscreen=True)
+                self.makeanimation(menufrom,'current',[dirr[0]*-1,dirr[1]*-1],'linear',1,command=self.finishmenumove,runcommandat=1,queued=True,relativemove=True)
             else:
                 self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].behindmenu,'current',dirr,'sinout',length,command=lambda: self.slidemenuin(menuto,length,dirr),runcommandat=length,queued=False,menu=True,relativemove=True)
                 self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].behindmenu,'current',[dirr[0]*-1,dirr[1]*-1],'linear',1,menu=True,relativemove=True)
         elif menuto in self.windowedmenunames:
             if menufrom == self.windowedmenus[self.windowedmenunames.index(menuto)].behindmenu:
-                self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menuto)].ID,[dirr[0]*-1,dirr[1]*-1],'current','sinin',length,command=self.finishmenumove,runcommandat=length,queued=True,relativemove=True,skiptoscreen=True)
+                self.makeanimation(menuto,[dirr[0]*-1,dirr[1]*-1],'current','sinin',length,command=self.finishmenumove,runcommandat=length,queued=True,relativemove=True,skiptoscreen=True)
                 self.movemenu(menuto,backchainadd=False)
             else:
                 self.makeanimation(menufrom,'current',dirr,'sinout',length,command=lambda: self.slidemenuin(self.windowedmenus[self.windowedmenunames.index(menuto)].behindmenu,length,dirr,menuto),runcommandat=length,queued=False,menu=True,relativemove=True)
@@ -1054,22 +1082,13 @@ class UI:
     def delete(self,ID,failmessage=True):
         try:
             if type(self.IDs[ID]) == BUTTON: self.buttons.remove(self.IDs[ID])
-            elif type(self.IDs[ID]) == TEXTBOX:
-                self.delete(self.IDs[ID].scroller.ID)
-                self.textboxes.remove(self.IDs[ID])
-            elif type(self.IDs[ID]) == TABLE:
-                for a in self.IDs[ID].tableimages:
-                    for b in a:
-                        self.delete(b[1].ID)
-                self.tables.remove(self.IDs[ID])
+            elif type(self.IDs[ID]) == TEXTBOX: self.textboxes.remove(self.IDs[ID])
+            elif type(self.IDs[ID]) == TABLE: self.tables.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == TEXT: self.texts.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == SCROLLER: self.scrollers.remove(self.IDs[ID])
-            elif type(self.IDs[ID]) == SLIDER:
-                self.delete(self.IDs[ID].button.ID)
-                self.sliders.remove(self.IDs[ID])
+            elif type(self.IDs[ID]) == SLIDER: self.sliders.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == ANIMATION: self.animations.remove(self.IDs[ID])
             del self.IDs[ID]
-            self.refreshitems()
             return True
         except:
             if failmessage: print('failed to delete object:',ID)
@@ -1086,12 +1105,12 @@ class GUI_ITEM:
     def __init__(self,ui,x,y,width,height,menu='main',ID='',layer=1,roundedcorners=0,menuexceptions=[],
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,text='',textsize=50,img='none',font='default',bold=False,antialiasing=True,pregenerated=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
-                 command=emptyfunction,runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,maxwidth=-1,
-                 dragable=False,colorkey=(255,255,255),toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=0,horizontalspacing=8,
-                 lines=1,linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=True,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,
+                 command=emptyfunction,runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,
+                 dragable=False,colorkey=(255,255,255),toggle=False,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=0,horizontalspacing=8,
+                 lines=1,linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=False,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,
                  data='empty',titles=[],boxwidth=-1,boxheight=-1,linesize=2,datatable=[],
-                 backingdraw=True,borderdraw=True,animationspeed=5,scrollercol=-1,scrollerwidth=-1,pageheight=15,
-                 slidercol=-1,sliderbordercol=-1,slidersize=-1,increment=0,sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',
+                 backingdraw=True,borderdraw=True,scrollercol=-1,scrollerwidth=-1,pageheight=15,
+                 slidercol=-1,sliderbordercol=-1,slidersize=-1,increment=0,sliderroundedcorners=-1,minp=0,maxp=100,startp=0,
                  behindmenu='main',isolated=True,darken=60):
         self.center = center
         if centery == -1: centery = center
@@ -1102,8 +1121,6 @@ class GUI_ITEM:
         self.starty = y
         self.startanchor = list(anchor)
         self.startobjanchor = list(objanchor)
-        if self.center and self.startobjanchor == [0,0]: self.startobjanchor[0]='w/2'
-        if self.centery and self.startobjanchor == [0,0]: self.startobjanchor[1]='h/2'
 
         self.width = width
         self.height = height
@@ -1137,19 +1154,28 @@ class GUI_ITEM:
         self.antialiasing = antialiasing
         self.pregenerated = pregenerated
         self.textcenter = textcenter
-        self.maxwidth = maxwidth
 
-        self.col = autoshiftcol(col,ui.defaultcol)
-        self.textcol = autoshiftcol(textcol,ui.defaulttextcol)
-        self.backingcol = autoshiftcol(backingcol,self.col,20)
-        self.bordercol = self.backingcol
-        self.hovercol = autoshiftcol(hovercol,self.col,-20)
-        self.togglecol = autoshiftcol(togglecol,self.col,-50)
-        self.togglehovercol = autoshiftcol(togglehovercol,self.togglecol,-20)
-        self.selectcol = autoshiftcol(selectcol,self.col,20)
-        self.scrollercol = autoshiftcol(scrollercol,self.col,-30)
-        self.slidercol = autoshiftcol(slidercol,self.col,-30)
-        self.sliderbordercol = autoshiftcol(sliderbordercol,self.col,-10)
+        if col == -1: col = ui.defaultcol
+        self.col = col
+        if textcol == -1: textcol = ui.defaulttextcol
+        self.textcol = textcol
+        if backingcol == -1: backingcol = shiftcolor(col,20)
+        self.backingcol = backingcol
+        self.bordercol = backingcol
+        if hovercol == -1: hovercol = shiftcolor(col,-20)
+        self.hovercol = hovercol
+        if togglecol == -1: togglecol = shiftcolor(col,-50)
+        self.togglecol = togglecol
+        if togglehovercol == -1: togglehovercol = shiftcolor(togglecol,-20)
+        self.togglehovercol = togglehovercol
+        if selectcol == -1: selectcol = shiftcolor(col,20)
+        self.selectcol = selectcol
+        if scrollercol == -1: scrollercol = shiftcolor(col,-30)
+        self.scrollercol = scrollercol
+        if slidercol == -1: slidercol = shiftcolor(col,-30)
+        self.slidercol = slidercol
+        if sliderbordercol == -1: sliderbordercol = shiftcolor(col,-10)
+        self.sliderbordercol = sliderbordercol
         self.colorkey = colorkey
         
         self.clickdownsize = clickdownsize
@@ -1167,17 +1193,11 @@ class GUI_ITEM:
         self.toggleable = toggleable
         if toggletext == -1: toggletext = text
         self.toggletext = toggletext
-        if toggleimg == -1: toggleimg = img
         self.toggleimg = toggleimg
         self.bindtoggle = bindtoggle
         
         self.clicktype = clicktype
         self.holding = False
-        self.hovering = False
-        self.animating = False
-        self.animationspeed = animationspeed
-        self.animate = 0
-        self.currentframe = 0
         self.command = command
         self.runcommandat = runcommandat
 
@@ -1198,9 +1218,6 @@ class GUI_ITEM:
         self.linesize = linesize
         self.boxwidth = boxwidth
         self.boxheight = boxheight
-        self.ontable = False
-        self.onslider = False
-        self.ontextbox = False
 
         self.backingdraw = backingdraw
         self.borderdraw = borderdraw
@@ -1214,12 +1231,11 @@ class GUI_ITEM:
         self.slidersize = slidersize
         if sliderroundedcorners == -1: sliderroundedcorners = roundedcorners
         self.sliderroundedcorners = sliderroundedcorners
-        self.direction=direction
 
         self.behindmenu = behindmenu
         self.isolated = isolated
         self.darken = darken
-        
+
         self.reset(ui)
         
     def reset(self,ui):
@@ -1230,36 +1246,20 @@ class GUI_ITEM:
         self.refresh(ui)
         
     def refresh(self,ui):
-        self.refreshscale(ui)
         self.gentext(ui)
+        
         self.refreshcords(ui)
     def gentext(self,ui):
-        if type(self.img) != list: imgs = [self.img]
-        else: imgs = self.img
-
-        self.textimages = []
-        for img in imgs:
-            if type(img) == str:
-                if len(imgs)!=1: txt = img
-                else: txt = self.text
-                self.textimages.append(ui.rendertextlined(txt,self.textsize,self.textcol,self.col,self.font,self.maxwidth,self.bold,self.antialiasing,True,imgin=True,img=img,scale=self.scale,linelimit=self.linelimit))
-            else:
-                self.textimages.append(pygame.transform.scale(img,(self.textsize*self.scale,img.get_width()*self.textsize/img.get_height()*self.scale)))
-                self.textimages[-1].set_colorkey(self.colorkey)
-        self.textimage = self.textimages[0]
-        if len(self.textimages) != 1:
-            self.animating = True
+        if type(self.img) == str:
+            self.textimage = ui.rendertextlined(self.text,self.textsize,self.textcol,self.col,self.font,self.width,self.bold,self.antialiasing,True,imgin=True,img=self.img,scale=self.scale,linelimit=self.linelimit)
+        else:
+            self.textimage = self.img
+            self.textimage = pygame.transform.scale(self.img,(self.textsize,self.img.get_width()*self.textsize/self.img.get_height()))
         self.child_gentext(ui)
-    def animatetext(self,ui):
-        if self.animating:
-            self.animate+=1
-            if self.animate%self.animationspeed == 0:
-                self.currentframe+=1
-                if self.currentframe == len(self.textimages):
-                    self.currentframe = 0
-                self.textimage = self.textimages[self.currentframe]
-    def resetcords(self,ui,scalereset=True):
-        if scalereset: self.refreshscale(ui)
+    def resetcords(self,ui):
+        self.refreshscale(ui)
+        if self.center: self.startobjanchor[0]=self.width/2
+        if self.centery: self.startobjanchor[1]=self.height/2
         self.anchor = self.startanchor[:]
         global returnedexecvalue
         if type(self.anchor[0]) == str:
@@ -1276,15 +1276,14 @@ class GUI_ITEM:
         if type(self.objanchor[1]) == str:
             exec('returnedexecvalue='+self.objanchor[1].replace('h',str(self.height)),globals())
             self.objanchor[1] = returnedexecvalue
-        self.x = int(self.anchor[0]+self.startx*self.scale-self.objanchor[0]*self.scale)/self.dirscale[0]
-        self.y = int(self.anchor[1]+self.starty*self.scale-self.objanchor[1]*self.scale)/self.dirscale[1]
+        self.x = int(self.anchor[0]/self.dirscale[0]+self.startx-self.objanchor[0]/self.dirscale[0])
+        self.y = int(self.anchor[1]/self.dirscale[1]+self.starty-self.objanchor[1]/self.dirscale[1])
         self.refreshcords(ui)
 
     def refreshcords(self,ui):
+        self.colliderect = pygame.Rect(self.x,self.y,self.width,self.height)
         self.refreshscale(ui)
         self.child_refreshcords(ui)
-        self.centerx = self.x+self.width/2
-        self.centery = self.y+self.height/2
         
     def refreshscale(self,ui):
         self.scale = ui.scale
@@ -1296,11 +1295,9 @@ class GUI_ITEM:
         pass
     def child_gentext(self,_):
         pass
-    def child_refreshcords(self,_):
-        pass
     def getclickedon(self,ui,rect='default',runcom=True,drag=True):
         if rect == 'default':
-            rect = pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale)
+            rect = self.colliderect
         self.clickedon = -1
         self.hovering = False
         mpos = [ui.mpos[0]*ui.scale,ui.mpos[1]*ui.scale]
@@ -1309,32 +1306,30 @@ class GUI_ITEM:
                 if ui.mouseheld[self.clicktype][1] == ui.buttondowntimer:
                     self.clickedon = 0
                     self.holding = True
-                    self.holdingcords = [(mpos[0])-rect.x,(mpos[1])-rect.y]
+                    self.holdingcords = [(mpos[0]/self.dirscale[0]-self.x)*self.dirscale[0],(mpos[1]/self.dirscale[1]-self.y)*self.dirscale[1]]
                     if self.runcommandat<2 and runcom:
+                        self.command()
                         if self.toggleable:
                             if self.toggle: self.toggle = False
                             else: self.toggle = True
-                        self.command()
+                        return True
             else:
                 self.hovering = True
         if ui.mprs[self.clicktype] and self.holding:
-            if self.clickedon!=0:
-                self.clickedon = 1
+            self.clickedon = 1
             if self.dragable and drag:
                 self.x = (mpos[0]-self.holdingcords[0])/self.dirscale[0]
                 self.y = (mpos[1]-self.holdingcords[1])/self.dirscale[1]
-                self.centerx = self.x+self.width/2
-                self.centery = self.y+self.height/2
             if self.runcommandat == 1 and runcom:
                 self.command()
         elif not ui.mprs[self.clicktype]:
-            if self.holding:
+            if self.holding and self.runcommandat>0 and runcom:
                 self.clickedon = 2
-                if rect.collidepoint(mpos) and self.runcommandat>0 and runcom:
+                if rect.collidepoint(mpos):
+                    self.command()
                     if self.toggleable and self.runcommandat!=1:
                         if self.toggle: self.toggle = False
                         else: self.toggle = True
-                    self.command()
             self.holding = False
         return False
 
@@ -1352,86 +1347,64 @@ class GUI_ITEM:
     
 class BUTTON(GUI_ITEM):
     def refresh(self,ui):
-        if not self.ontable:
-            self.refreshcords(ui)
+        self.refreshcords(ui)
         self.gentext(ui)
     def child_gentext(self,ui):
-        if (self.img != self.toggleimg) or (self.text != self.toggletext):
-            if type(self.img) != list: imgs = [self.toggleimg]
-            else: imgs = self.toggleimg
-            
-            self.toggletextimages = []
-            for img in imgs:
-                if type(img) == str:
-                    if len(imgs)!=1: txt = img
-                    else: txt = self.toggletext
-                    self.toggletextimages.append(ui.rendertextlined(self.toggletext,self.textsize,self.textcol,self.togglecol,self.font,self.maxwidth,self.bold,True,imgin=True,img=self.toggleimg,scale=self.scale,linelimit=self.linelimit))
-                else:
-                    self.toggletextimages.append(pygame.transform.scale(img,(self.textsize,img.get_width()*self.textsize/img.get_height())))
-                    self.toggletextimages[-1].set_colorkey(self.colorkey)
-            self.toggletextimage = self.toggletextimages[0]
-            if len(self.toggletextimages) != 1:
-                self.animating = True
+        if type(self.toggleimg) == str:
+            self.toggletextimage = ui.rendertextlined(self.toggletext,self.textsize,self.textcol,self.togglecol,self.font,self.width,self.bold,True,imgin=True,img=self.toggleimg,scale=self.scale)
         else:
-            self.toggletextimages = self.textimages
-            self.toggletextimage = self.toggletextimages[0]
-        
+            self.toggletextimage = self.toggleimg
+            self.toggletextimage = pygame.transform.scale(self.toggleimg,(self.textsize,self.toggleimg.get_width()*self.textsize/self.toggleimg.get_height()))
     def autoscale(self,ui):
         self.gentext(ui)
-        imgsizes = [a.get_size() for a in self.textimages]+[a.get_size() for a in self.toggletextimages]
         if self.width == -1:
-            self.width = max([a[0] for a in imgsizes])/ui.scale+self.horizontalspacing*2+self.leftborder+self.rightborder
+            self.width = max([self.textimage.get_width(),self.toggletextimage.get_width()])/ui.scale+self.horizontalspacing*2+self.leftborder+self.rightborder
         if self.height == -1:
-            self.height = max([a[1] for a in imgsizes])/ui.scale+self.verticalspacing*2+self.upperborder+self.lowerborder
+            self.height = max([self.textimage.get_height(),self.toggletextimage.get_height()])/ui.scale+self.verticalspacing*2+self.upperborder+self.lowerborder
     def child_refreshcords(self,ui):
         self.colliderect = pygame.Rect(self.x+self.leftborder,self.y+self.upperborder,self.width-self.leftborder-self.rightborder,self.height-self.upperborder-self.lowerborder)
     def render(self,screen,ui):
-        self.animatetext(ui)
         self.innerrect = pygame.Rect(self.x*self.dirscale[0]+(self.leftborder+self.clickdownsize*self.holding)*self.scale,self.y*self.dirscale[1]+(self.upperborder+self.clickdownsize*self.holding)*self.scale,(self.width-self.leftborder-self.rightborder-self.clickdownsize*self.holding*2)*self.scale,(self.height-self.upperborder-self.lowerborder-self.clickdownsize*self.holding*2)*self.scale)
-        self.getclickedon(ui,self.innerrect)
+        self.getclickedon(ui,pygame.Rect(self.innerrect))
         if self.clickedon > -1:
-            if self.clickedon == 0: ui.mouseheld[self.clicktype][1]-=1
             for a in self.bindtoggle:
                 if a!=self.ID:
-                    ui.IDs[a].toggle = False
-        if not self.onslider:
-            self.draw(screen,ui)
-    def draw(self,screen,ui):
+                    ui.IDs[a].toggle = Fales
+        self.draw(ui,screen)
+    def draw(self,ui,screen):
         col = self.col
-        if not self.toggle: col = self.togglecol
+        if self.toggle: col = self.togglecol
         innerrect = pygame.Rect(self.x*self.dirscale[0]+(self.leftborder+self.clickdownsize*self.holding)*self.scale,self.y*self.dirscale[1]+(self.upperborder+self.clickdownsize*self.holding)*self.scale,(self.width-self.leftborder-self.rightborder-self.clickdownsize*self.holding*2)*self.scale,(self.height-self.upperborder-self.lowerborder-self.clickdownsize*self.holding*2)*self.scale)
         if self.holding or self.hovering:
-            if not self.toggle: col = self.togglehovercol
+            if self.toggle: col = self.togglehovercol
             else: col = self.hovercol
+        
         if self.borderdraw:
-            if self.backingdraw: pygame.draw.rect(screen,self.backingcol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-            else: pygame.draw.rect(screen,self.backingcol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),int((self.border+self.clickdownsize*self.holding)*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            if self.backingdraw: pygame.draw.rect(screen,self.backingcol,rectscaler(pygame.Rect(self.x,self.y,self.width,self.height),self),border_radius=int(self.roundedcorners*self.scale))
+            else: pygame.draw.rect(screen,self.backingcol,rectscaler(pygame.Rect(self.x,self.y,self.width,self.height),self),(self.border+self.clickdownsize*self.holding)*self.scale,border_radius=int(self.roundedcorners*self.scale))
         if self.backingdraw: pygame.draw.rect(screen,col,innerrect,border_radius=int((self.roundedcorners-self.border)*self.scale))
-        if self.toggle:
-            screen.blit(self.textimage,(self.x*self.dirscale[0]+((self.width-self.leftborder-self.rightborder)/2+self.leftborder+self.textoffsetx)*self.scale-self.textimage.get_width()/2,self.y*self.dirscale[1]+((self.height-self.upperborder-self.lowerborder)/2+self.upperborder+self.textoffsety)*self.scale-self.textimage.get_height()/2))
+        if not self.toggle:
+            screen.blit(self.textimage,(self.x*self.dirscale[0]+((innerrect.width/2+self.leftborder+self.clickdownsize*self.holding)+self.textoffsetx)*self.scale-self.textimage.get_width()/2,self.y*self.dirscale[1]+((innerrect.height/2+self.upperborder+self.clickdownsize*self.holding)+self.textoffsetx)*self.scale-self.textimage.get_height()/2))
         else:
-            screen.blit(self.toggletextimage,(self.x*self.dirscale[0]+((self.width-self.leftborder-self.rightborder)/2+self.leftborder+self.textoffsetx)*self.scale-self.toggletextimage.get_width()/2,self.y*self.dirscale[1]+((self.height-self.upperborder-self.lowerborder)/2+self.upperborder+self.textoffsety)*self.scale-self.toggletextimage.get_height()/2))
+            screen.blit(self.toggletextimage,(self.x*self.dirscale[0]+((innerrect.width/2+self.leftborder+self.clickdownsize*self.holding)+self.textoffsetx)*self.scale-self.toggletextimage.get_width()/2,self.y*self.dirscale[1]+((innerrect.height/2+self.upperborder+self.clickdownsize*self.holding)+self.textoffsetx)*self.scale-self.toggletextimage.get_height()/2))
 
 class TEXTBOX(GUI_ITEM):
+    scroller=0
+    selected = False
+    textselected = [False,0,0]
+    clickstartedinbound = False
+    typingcursor=0
+    typeline=0
+    scrolleron=False
     def reset(self,ui):
-        self.setvars()
         self.autoscale(ui)
-        self.resetcords(ui)
         self.resetscroller(ui)
         self.refreshscale(ui)
         self.gentext(ui,False)
         self.refreshcursor()
-        self.refreshscroller(ui)
         self.refreshcords(ui)
         self.resetcords(ui)
-    def setvars(self):
-        self.scroller=0
-        self.selected = False
-        self.textselected = [False,0,0]
-        self.clickstartedinbound = False
-        self.typingcursor=0
-        self.typeline=0
-        self.scrolleron=False
+        self.refresh(ui)
     def autoscale(self,ui):
         heightgetter = ui.rendertext('Tg',self.textsize,self.textcol,self.font,self.bold)
         if self.height == -1:
@@ -1526,53 +1499,52 @@ class TEXTBOX(GUI_ITEM):
     def resetscroller(self,ui):
         self.scroll = 0
         if self.scroller != 0:
-            ui.delete(self.scroller.ID,False)
-        self.scroller = ui.makescroller(self.x+self.width-15-self.rightborder/2,self.y+self.upperborder,self.height-self.upperborder-self.lowerborder,emptyfunction,15,0,self.height-self.upperborder-self.lowerborder,self.height,menu=self.menu,roundedcorners=self.roundedcorners,col=self.col)
+            ui.delete(self.scroller.ID)
+        self.scroller = ui.makescroller(self.x+self.width-15-self.rightborder/2,self.y+self.upperborder,self.height-self.upperborder-self.lowerborder,emptyfunction,15,0,self.height-self.upperborder-self.lowerborder,self.height,menu=self.menu,returnobj=True)
         self.scroller.ontextbox = True
         self.scroller.layer = self.layer+0.01
         self.scrolleron = False
         
     def refresh(self,ui):
-        self.refreshscale(ui)
         self.gentext(ui)
         self.refreshcursor()
-        self.refreshscroller(ui)
         
-        self.scroller.maxp = self.textimage.get_height()/self.scale+self.upperborder+self.lowerborder
-        self.scroller.refresh(ui)
-        if (self.scroller.maxp-self.scroller.minp)>self.scroller.pageheight:
+        self.scroller.maxh = self.textimage.get_height()/ui.scale+self.border*2
+        self.scroller.refresh()
+        if (self.scroller.maxh-self.scroller.minh)>self.scroller.pageh:
             self.scrolleron = True
-            if self.scroller.scroll>self.scroller.maxp-self.scroller.pageheight:
-                self.scroller.scroll = self.scroller.maxp-self.scroller.pageheight
+            if self.scroller.scroll>self.scroller.maxh-self.scroller.pageh:
+                self.scroller.scroll = self.scroller.maxh-self.scroller.pageh
         else:
             self.scrolleron = False
-        self.scroller.refresh(ui)
+        self.scroller.refresh()
         self.refreshcords(ui)
            
     def gentext(self,ui,refcurse=True):
-        self.textimage,self.chrcorddatalined = ui.rendertextlined(self.text,self.textsize,self.textcol,self.col,self.font,self.width-self.horizontalspacing*2-self.leftborder-self.rightborder-self.scrolleron*self.scroller.width,self.bold,center=self.textcenter,scale=self.scale,linelimit=self.linelimit,getcords=True)
-        for l in self.chrcorddatalined:
-            for a in l:
-                a[1] = (a[1][0]/self.scale,a[1][1]/self.scale)
-                a[2] = (a[2][0]/self.scale,a[2][1]/self.scale)
+        self.chrcorddatalined = ui.textlinedcordgetter(self.text,self.textsize,self.font,self.width-self.border*2-self.leftborder-self.rightborder-self.scrolleron*self.scroller.width,self.bold,center=self.textcenter)
         self.chrcorddata = []
         for a in self.chrcorddatalined:
             self.chrcorddata+=a
+        self.textimage = ui.rendertextlined(self.text,self.textsize*ui.scale,self.textcol,self.col,self.font,(self.width-self.border*2-self.leftborder-self.rightborder-self.scrolleron*self.scroller.width)*self.scale,self.bold,center=self.textcenter,linelimit=self.linelimit)
         self.textimagerect = self.textimage.get_rect()
         self.textimagerect.width/=ui.scale
         self.textimagerect.height/=ui.scale
+        if self.textcenter: self.textimagerect.center = (self.x+self.textoffsetx+(self.leftborder+self.rightborder)/2-self.scrolleron*self.scroller.width/2,self.y+self.titleheight/2+self.border+self.textimagerect.height/2+self.textoffsety+self.upperborder)
+        else:
+            self.textimagerect.x = self.x+self.leftborder+self.textoffsetx+self.horizontalspacing
+            self.textimagerect.y = self.y+self.upperborder+self.textoffsety+self.verticalspacing
         if refcurse: self.refreshcursor()
       
     def refreshcursor(self):
         if self.typingcursor>len(self.chrcorddata)-1: self.typingcursor=len(self.chrcorddata)-1
         elif self.typingcursor<-1: self.typingcursor = -1
-        if self.typingcursor != -1: self.linecenter = [self.chrcorddata[self.typingcursor][1][0]+self.chrcorddata[self.typingcursor][2][0]/2+self.horizontalspacing,self.chrcorddata[self.typingcursor][1][1]]
-        elif len(self.chrcorddata)>0: self.linecenter = [self.chrcorddata[self.typingcursor+1][1][0]-self.chrcorddata[self.typingcursor+1][2][0]/2+self.horizontalspacing,self.chrcorddata[self.typingcursor+1][1][1]]
+        if self.textcenter: imageoffset = ((self.width-self.border*2)/2-self.textimagerect.width/2)
+        else: imageoffset = 0
+        if self.typingcursor != -1: self.linecenter = [self.chrcorddata[self.typingcursor][1][0]+self.chrcorddata[self.typingcursor][2][0]/2+imageoffset+self.horizontalspacing/2,self.chrcorddata[self.typingcursor][1][1]]
+        elif len(self.chrcorddata)>0: self.linecenter = [self.chrcorddata[self.typingcursor+1][1][0]-self.chrcorddata[self.typingcursor+1][2][0]/2+imageoffset+self.horizontalspacing/2,self.chrcorddata[self.typingcursor+1][1][1]]
         else:
-            if self.textcenter: self.linecenter = [self.width/2-self.leftborder,self.textsize*0.3]
-            else: self.linecenter = [self.horizontalspacing,self.textsize*0.3]
-    def refreshscroller(self,ui):
-        inc = 0
+            self.linecenter = [imageoffset+self.horizontalspacing/2,self.textsize*0.3]
+        inc = 0      
         if self.linecenter[1]-self.scroller.scroll>self.height-self.upperborder-self.lowerborder:
             inc = self.textsize
         if self.linecenter[1]-self.scroller.scroll<0:
@@ -1586,55 +1558,53 @@ class TEXTBOX(GUI_ITEM):
             if count>20:
                 break
         if self.scrolleron:
-            self.scroller.limitpos(ui)
+            self.scroller.limitpos()
         else:
-            self.scroller.scroll = self.scroller.minp
+            self.scroller.scroll = self.scroller.minh
     def child_refreshcords(self,ui):
-        if self.scroller != 0:
-            self.rect = pygame.Rect(self.x,self.y,self.width,self.height)
-            self.innerrect = pygame.Rect(self.x+self.leftborder,self.y+self.upperborder,self.width-self.rightborder-self.leftborder-self.scrolleron*self.scroller.width,self.height-self.upperborder-self.lowerborder)
-            self.textimagerect = self.textimage.get_rect()     
-            if self.textcenter:
-                self.textimagerect.x = (self.width-self.horizontalspacing*2-self.scrolleron*self.scroller.width-self.leftborder-self.rightborder)/2+self.textoffsetx+self.horizontalspacing-self.textimagerect.width/2/self.scale
-                self.textimagerect.y = self.verticalspacing+self.textimagerect.height/2+self.textoffsety-self.textimagerect.height/2
-            else:
-                self.textimagerect.x = self.textoffsetx+self.horizontalspacing
-                self.textimagerect.y = self.textoffsety+self.verticalspacing
+        self.rect = pygame.Rect(self.x,self.y,self.width,self.height)
+        self.innerrect = pygame.Rect(self.x+self.leftborder,self.y+self.upperborder,self.width-self.rightborder-self.leftborder-self.scrolleron*self.scroller.width,self.height-self.upperborder-self.lowerborder)
+        self.textimagerect = self.textimage.get_rect()
+        if self.textcenter: self.textimagerect.center = (self.textoffsetx+self.horizontalspacing-self.scrolleron*self.scroller.width/2,self.verticalspacing+self.textimagerect.height/2+self.textoffsety)
+        else:
+            self.textimagerect.x = self.textoffsetx+self.horizontalspacing
+            self.textimagerect.y = self.textoffsety+self.verticalspacing
             
     def render(self,screen,ui):
         self.typeline+=1
-        self.selectrect = pygame.Rect(self.x*self.dirscale[0]+(self.leftborder-self.selectbordersize)*self.scale,self.y*self.dirscale[1]+(self.upperborder-self.selectbordersize)*self.scale,(self.width-(self.leftborder+self.rightborder)+self.selectbordersize*2-self.scrolleron*self.scroller.width)*self.scale,(self.height-(self.upperborder+self.lowerborder)+self.selectbordersize*2)*self.scale)
+        self.selectrect = pygame.Rect(self.x+self.leftborder-self.selectbordersize,self.y+self.upperborder-self.selectbordersize,self.width-(self.leftborder+self.rightborder)+self.selectbordersize*2-self.scrolleron*self.scroller.width,self.height-(self.upperborder+self.lowerborder)+self.selectbordersize*2)
         if self.typeline == 80:
-            self.typeline = 0 
-        self.getclickedon(ui,self.selectrect,False,False)
-        self.draw(screen,ui)
-        mpos = [ui.mpos[0]*ui.scale,ui.mpos[1]*ui.scale]
-        if self.clickedon == 0:
-            self.typingcursor = min([max([self.findclickloc(mpos)+1,0]),len(self.chrcorddata)])-1
-            self.textselected[2] = self.typingcursor+1
-            if len(self.chrcorddata)!=0: self.textselected[0] = True
-            self.textselected[1] = self.typingcursor+1
-            self.refreshcursor()
-            self.selected = True
-            self.clickstartedinbound = True
-            ui.selectedtextbox = ui.textboxes.index(self)
-        elif self.selected:
+            self.typeline = 0
+        if self.innerrect.collidepoint(ui.mpos) and ui.mprs[self.clicktype]:
+            self.selectrect = pygame.Rect(self.x+self.leftborder-self.selectbordersize+self.selectshrinksize,self.y+self.upperborder-self.selectbordersize+self.selectshrinksize,self.width-(self.leftborder+self.rightborder)+self.selectbordersize*2-self.scrolleron*self.scroller.width-self.selectshrinksize*2,self.height-(self.upperborder+self.lowerborder)+self.selectbordersize*2-self.selectshrinksize*2)
+            self.draw(screen,ui,True)
+            if ui.mouseheld[self.clicktype][1] == ui.buttondowntimer:
+                self.typingcursor = min([max([self.findclickloc(ui.mpos)+1,0]),len(self.chrcorddata)])-1
+                self.textselected[2] = self.typingcursor+1
+                if len(self.chrcorddata)!=0: self.textselected[0] = True
+                self.textselected[1] = self.typingcursor+1
+                self.refreshcursor()
+                self.selected = True
+                self.clickstartedinbound = True
+                return True
+        else:
             if ui.mprs[self.clicktype] and ui.mouseheld[self.clicktype][1] == ui.buttondowntimer:
                 self.clickstartedinbound = False
                 self.selected = False
-            if not self.selectrect.collidepoint(mpos) and ui.mprs[self.clicktype] and not ui.mouseheld[self.clicktype]:
+            if not self.rect.collidepoint(ui.mpos) and ui.mprs[self.clicktype] and not ui.mouseheld[self.clicktype]:
                 self.selected = False
                 self.textselected = [False,0,0]
-
+            self.draw(screen,ui,False)
+            
         if ui.mprs[self.clicktype] and ui.mouseheld[self.clicktype][1] != ui.buttondowntimer and self.clickstartedinbound:
-            self.textselected[2] = min([max([self.findclickloc(mpos)+1,0]),len(self.chrcorddata)])
+            self.textselected[2] = min([max([self.findclickloc(ui.mpos)+1,0]),len(self.chrcorddata)])
             if self.scrolleron:
-                if mpos[1]<self.y*self.dirscale[1]+self.upperborder*self.scale:
-                    self.scroller.scroll+=(mpos[1]-(self.y*self.dirscale[1]+self.upperborder*self.scale))/10
-                    self.scroller.limitpos(ui)
-                elif mpos[1]>self.y*self.dirscale[1]+(self.height-self.lowerborder)*self.scale:
-                    self.scroller.scroll+=(mpos[1]-(self.y*self.dirscale[1]+(self.height-self.lowerborder)*self.scale))/10
-                    self.scroller.limitpos(ui)
+                if ui.mpos[1]<self.y+self.upperborder:
+                    self.scroller.scroll+=(ui.mpos[1]-(self.y+self.upperborder))/10
+                    self.scroller.limitpos()
+                elif ui.mpos[1]>self.y+self.height-self.lowerborder:
+                    self.scroller.scroll+=(ui.mpos[1]-(self.y+self.height-self.lowerborder))/10
+                    self.scroller.limitpos()
         if not ui.mprs[self.clicktype]:
             self.clickstartedinbound = False
         return False
@@ -1643,7 +1613,7 @@ class TEXTBOX(GUI_ITEM):
         if len(self.chrcorddata)==0:
             return -1
         else:
-            if relativempos == -1: self.relativempos = ((mpos[0]-(self.x*self.dirscale[0]+(self.leftborder+self.horizontalspacing)*self.scale))/self.scale,(mpos[1]-(self.y*self.dirscale[1]+(self.upperborder+self.verticalspacing-self.scroller.scroll)*self.scale))/self.scale)
+            if relativempos == -1: self.relativempos = (mpos[0]-(self.x+self.leftborder+self.horizontalspacing),mpos[1]-(self.y+self.upperborder+self.verticalspacing-self.scroller.scroll))
             else: self.relativempos = relativempos
             dis = [0,10000]
             for i,a in enumerate(self.chrcorddatalined):
@@ -1662,20 +1632,18 @@ class TEXTBOX(GUI_ITEM):
             if self.relativempos[0]<self.chrcorddatalined[dis[0]][hdis[0]][1][0]:
                 strpos-=1
             return strpos
-    def draw(self,screen,ui):
+    def draw(self,screen,ui,clicking):
+##        self.child_refreshcords(ui)
         if self.borderdraw:
-            pygame.draw.rect(screen,self.backingcol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-        if self.selected: pygame.draw.rect(screen,self.selectcol,self.selectrect,int(self.selectbordersize*self.scale),border_radius=int((self.roundedcorners+self.selectbordersize)*self.scale))
+            pygame.draw.rect(screen,self.backingcol,rectscaler(self.rect,self),border_radius=int(self.roundedcorners*ui.scale))
+        if self.selected: pygame.draw.rect(screen,self.selectcol,rectscaler(self.selectrect,self),self.selectbordersize,border_radius=int((self.roundedcorners+self.selectbordersize)*ui.scale))
 
         surf = pygame.Surface(((self.width-self.leftborder-self.rightborder-self.scrolleron*self.scroller.width)*self.scale,(self.height-self.upperborder-self.lowerborder)*self.scale))
-        surf.fill((199,77,166))
-        pygame.draw.rect(surf,self.col,(0,0,surf.get_width(),surf.get_height()),border_radius=int(self.roundedcorners*self.scale))
-        surf.set_colorkey((199,77,166))
-
+        surf.fill(self.col)
         offset = (0,self.scroller.scroll)
-        surf.blit(self.textimage,(self.textimagerect.x*self.scale,(self.textimagerect.y-self.scroller.scroll)*self.scale))
+        surf.blit(self.textimage,rectscaler(self.textimagerect,self,offset))
         if self.typeline>20 and self.selected:
-            pygame.draw.line(surf,self.textcol,((self.linecenter[0])*self.scale,(self.linecenter[1]-self.cursorsize/2+self.verticalspacing-self.scroller.scroll)*self.scale),((self.linecenter[0])*self.scale,(self.linecenter[1]+self.cursorsize/2+self.verticalspacing-self.scroller.scroll)*self.scale),2)
+            pygame.draw.line(surf,self.textcol,((self.linecenter[0]+self.leftborder)*self.scale,(self.linecenter[1]-self.cursorsize/2+self.upperborder-self.scroller.scroll)*self.scale),((self.linecenter[0]+self.leftborder)*ui.scale,(self.linecenter[1]+self.cursorsize/2+self.upperborder-self.scroller.scroll)*ui.scale),2)
         if self.textselected[0] and self.textselected[1]!=self.textselected[2]:
             trect = [1000000,0,0,0]
             for a in range(min([self.textselected[1],self.textselected[2]]),max([self.textselected[1],self.textselected[2]])):
@@ -1688,8 +1656,7 @@ class TEXTBOX(GUI_ITEM):
                 highlight.set_alpha(180)
                 highlight.fill((51,144,255))
                 surf.blit(highlight,(trect[0],trect[1]))
-            
-        screen.blit(surf,(self.x*self.dirscale[0]+(self.leftborder)*self.scale,self.y*self.dirscale[1]+(self.upperborder)*self.scale))
+        screen.blit(surf,(self.x*self.dirscale[0]+(self.upperborder)*self.scale,self.y*self.dirscale[1]+(self.leftborder)*self.scale))
         
         
                 
@@ -1697,32 +1664,60 @@ class TEXTBOX(GUI_ITEM):
 
 
 class TABLE(GUI_ITEM):
-    def reset(self,ui):
-        self.tableimages=0
-        self.refreshscale(ui)
-        self.resetcords(ui)
-        self.refresh(ui)
-        self.resetcords(ui)
+##    def __init__(self,x,y,rows,colomns,data,titles,boxwidths,boxheight,spacing,menu,menuexceptions,edgebound,boxcol,boxtextcol,boxtextsize,boxcenter,boxfont,boxbold,titlefont,titlebold,titleboxcol,titletextcol,titletextsize,titlecenter,linesize,linecol,roundedcorners,layer,ID,ui):
+##        self.x = x
+##        self.y = y
+##        self.startx = x
+##        self.starty = y
+##        self.edgebound = edgebound
+##        
+##        self.rows = rows
+##        self.colomns = colomns
+##        self.data = data
+##        self.titles = titles
+##        self.menu = menu
+##        self.menuexceptions = menuexceptions
+##        self.layer = layer
+##        self.ID = ID
+##
+##        self.linesize = linesize
+##        self.linecol = linecol
+##
+##        self.boxwidth = boxwidths
+##        self.boxheight = boxheight
+##        self.spacing = spacing
+##        self.boxcol = boxcol
+##        self.boxtextcol = boxtextcol
+##        self.boxtextsize = boxtextsize
+##        self.boxfont = boxfont
+##        self.boxbold = boxbold
+##        self.boxcenter = boxcenter
+##
+##        self.titlefont = titlefont
+##        self.titlebold = titlebold
+##        self.titlecenter = titlecenter
+##        self.titleboxcol = titleboxcol
+##        self.titletextcol = titletextcol
+##        self.titletextsize = titletextsize
+##
+##        self.roundedcorners = roundedcorners
+##        self.refresh(ui)
+
     def refresh(self,ui):
-        self.refreshscale(ui)
         self.labeldata(ui)
-        self.initheightwidth()
         self.gentext(ui)
         self.gettablewidths(ui)
         self.gettableheights(ui)          
         self.refreshcords(ui)
 
     def labeldata(self,ui):
+        self.colomns = len(self.titles)
         self.labeleddata = []
         temp = copy.copy(self.data)
-        if len(self.titles)!=0:
+        if len(titles)!=0:
             temp.insert(0,copy.copy(self.titles))
-        self.rows = len(temp)
+        self.rows = len(self.temp)
         self.columns = max([len(a) for a in temp])
-        
-        for a in range(len(temp)):
-            while len(temp[a])<self.columns:
-                temp[a].append('')
         
         for a in temp:
             self.labeleddata.append([])
@@ -1730,285 +1725,477 @@ class TABLE(GUI_ITEM):
                 if type(b) == str: self.labeleddata[-1].append(['text',b])
                 elif type(b) == int: self.labeleddata[-1].append(['text',str(b)])
                 elif type(b) == list: self.labeleddata[-1].append(['text',str(b)])
+
                 elif type(b) == BUTTON: self.labeleddata[-1].append(['button',b])
                 elif type(b) == TEXTBOX: self.labeleddata[-1].append(['textbox',b])
-                elif type(b) == TEXT: self.labeleddata[-1].append(['textobj',b])
-                elif type(b) == pygame.Surface:self.labeleddata[-1].append(['image',b])
+                elif type(b) == TEXT:
+                    b.refresh(ui)
+                    self.labeleddata[-1].append(['textobj',b])
+                elif type(b) == pygame.Surface:
+                    if a == temp[0]: self.labeleddata[-1].append(['image',pygame.transform.scale(b,(b.get_width()*(self.titletextsize/b.get_height())*ui.scale,self.titletextsize*ui.scale))])
+                    else: self.labeleddata[-1].append(['image',pygame.transform.scale(b,(b.get_width()*(self.boxtextsize/b.get_height())*ui.scale,self.boxtextsize*ui.scale))])
                 else: print('unrecognised data type in table:',b)
-                
+    def refreshcords(self,ui):
+        for a in range(len(self.tableimages)):
+            for i,b in enumerate(self.tableimages[a]):
+                if b[0] == 'text':
+                    if (a != 0 and self.boxcenter) or (a == 0 and self.titlecenter):
+                        b[2].x = (self.x+self.linesize*(i+1)+self.boxwidthsinc[i]+self.boxwidths[i]/2)*ui.scale-b[1].get_width()/2
+                        b[2].y = (self.y+self.linesize*(a+1)+self.boxheightsinc[a]+self.boxheights[a]/2)*ui.scale-b[1].get_height()/2
+                    else:
+                        b[2].x = (self.x+self.linesize*(i+1)+self.boxwidthsinc[i]+self.spacing)*ui.scale
+                        b[2].y = (self.y+self.linesize*(a+1)+self.boxheightsinc[a])*ui.scale
+                elif b[0] == 'button':
+                    b[1].x = self.x+self.linesize*(i+1)+self.boxwidthsinc[i]+self.boxwidths[i]/2
+                    b[1].y = self.y+self.linesize*(a+1)+self.boxheightsinc[a]+self.boxheights[a]/2
+                    b[1].width = self.boxwidths[i]
+                    b[1].height = self.boxheights[a]
+                    b[1].layer = self.layer+0.1
+                    b[1].ontable = True
+                    b[1].refreshcords(ui)
+                elif b[0] == 'textbox':
+                    b[1].x = self.x+self.linesize*(i+1)+self.boxwidthsinc[i]+self.boxwidths[i]/2
+                    b[1].y = self.y+self.linesize*(a+1)+self.boxheightsinc[a]+b[1].titleheight/2
+                    b[1].width = self.boxwidths[i]
+                    b[1].height = self.boxheights[a]
+                    b[1].layer = self.layer+0.1
+                    b[1].ontable = True
+                    b[1].refreshcords(ui)
+                    b[1].resetscroller(ui)
+        self.rect = pygame.Rect(self.x,self.y,self.linesize*(self.colomns+1)+self.boxwidthtotal,self.linesize*(self.rows+2)+self.boxheighttotal)
+                    
+    def gettablewidths(self,ui):
+        self.boxwidthsinc = []
+        if self.boxwidth == -1:
+            self.boxwidths = []
+            for a in range(len(self.tableimages[0])):
+                minn = 0
+                for b in [self.tableimages[c][a] for c in range(len(self.tableimages))]:
+                    if b[0] == 'text':
+                        if minn<b[1].get_width():
+                            minn = b[1].get_width()
+                    elif b[0] == 'button':
+                        if minn<b[1].textimage.get_width():
+                            minn = b[1].textimage.get_width()
+                minn+=self.spacing*2*ui.scale
+                self.boxwidthsinc.append(sum(self.boxwidths))
+                self.boxwidths.append(minn/ui.scale)
+        else:
+            if type(self.boxwidth) == int:
+                temp = []
+                for a in range(len(self.tableimages[0])):
+                    self.boxwidthsinc.append(sum(temp))
+                    temp.append(self.boxwidth)
+                self.boxwidths = temp
+            else:
+                self.boxwidths = self.boxwidth[:]
+                for a in range(len(self.tableimages[0])):
+                    self.boxwidthsinc.append(sum(self.boxwidths[:a]))
+        self.boxwidthtotal = sum(self.boxwidths)
+        self.width = self.boxwidthtotal+self.linesize*(self.colomns+1)
+        
+    def gettableheights(self,ui):
+        self.boxheightsinc = []
+        if self.boxheight == -1:
+            self.boxheights = []
+            for a in range(len(self.tableimages)):
+                minn = 0
+                for b in [self.tableimages[a][c] for c in range(len(self.tableimages[0]))]:
+                    if b[0] == 'text':
+                        if minn<b[1].get_height():
+                            minn = b[1].get_height()
+                    elif b[0] == 'button':
+                        if minn<b[1].textimage.get_height():
+                            minn = b[1].textimage.get_height()
+                minn+=self.spacing*2*ui.scale
+                self.boxheightsinc.append(sum(self.boxheights))
+                self.boxheights.append(minn/ui.scale)
+        else:
+            if type(self.boxheight) == int:
+                temp = []
+                for a in range(len(self.tableimages)):
+                    self.boxheightsinc.append(sum(temp))
+                    temp.append(self.boxheight)
+                self.boxheights = temp
+            else:
+                self.boxheights = self.boxheight[:]
+                for a in range(len(self.tableimages)):
+                    self.boxheightsinc.append(sum(self.boxheights[:a]))
+        self.boxheighttotal = sum(self.boxheights)
+        self.height = self.boxheighttotal+self.linesize*(self.rows+2)
+                    
+                    
+    def render(self,screen,scale,mpos,mprs,mouseheld,buttondowntimer,ui):
+        self.draw(screen,scale,mpos,mprs,mouseheld,buttondowntimer,ui)
+        
+    def draw(self,screen,scale,mpos,mprs,mouseheld,buttondowntimer,ui):
+        pygame.draw.rect(screen,self.linecol,rectscaler(self.rect,scale),border_radius=int(self.roundedcorners*scale))
+        for y in range(self.rows+1):
+            for x in range(self.colomns):
+                if y == 0:
+                    pygame.draw.rect(screen,self.titleboxcol,rectscaler(pygame.Rect(self.x+self.linesize*(x+1)+self.boxwidthsinc[x],self.y+self.linesize*(y+1)+self.boxheightsinc[y],self.boxwidths[x],self.boxheights[y]),scale),border_radius=int(self.roundedcorners*scale))
+                else:
+                    pygame.draw.rect(screen,self.boxcol,rectscaler(pygame.Rect(self.x+self.linesize*(x+1)+self.boxwidthsinc[x],self.y+self.linesize*(y+1)+self.boxheightsinc[y],self.boxwidths[x],self.boxheights[y]),scale),border_radius=int(self.roundedcorners*scale))
+                if self.tableimages[y][x][0] == 'text':
+                    screen.blit(self.tableimages[y][x][1],self.tableimages[y][x][2])
+##                else:
+##                    if self.tableimages[y][x][0] == 'button':
+##                        if self.tableimages[y][x][1].render(screen,scale,mpos,mprs,mouseheld,buttondowntimer):
+##                            self.tableimages[y][x][1].command()
+##                    if self.tableimages[y][x][0] == 'textbox':
+##                        self.tableimages[y][x][1].render(screen,scale,mpos,mprs,mouseheld,buttondowntimer)
+##                        if self.tableimages[y][x][1].selected:
+##                            ui.selectedtextbox = ui.textboxes.index(self.tableimages[y][x][1])
+                            
+
+
     def gentext(self,ui):
         self.tableimages = []
         for a in range(len(self.labeleddata)):
             self.tableimages.append([])
             for i,b in enumerate(self.labeleddata[a]):
                 if b[0] == 'text':
-                    ui.delete('tabletext'+self.ID+str(a)+str(i),False)
-                    obj = ui.maketext(0,0,b[1],self.textsize,self.menu,'tabletext'+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,self.menuexceptions,textcenter=self.textcenter,textcol=self.textcol,font=self.font,bold=self.bold,antialiasing=self.antialiasing,pregenerated=self.pregenerated,maxwidth=self.boxwidth[i],scalesize=self.scalesize,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing)
-                    self.tableimages[-1].append(['textobj',obj])
+                    if self.boxwidth == -1:
+                        if a==0: img = ui.rendertext(b[1],self.titletextsize,self.titletextcol,self.titlefont,self.titlebold,backingcol=self.boxcol)
+                        else: img = ui.rendertext(b[1],self.boxtextsize,self.boxtextcol,self.boxfont,self.boxbold,backingcol=self.boxcol)
+                    else:
+                        if type(self.boxwidth) == int:
+                            if a==0: img = ui.rendertextlined(b[1],self.titletextsize*ui.scale,self.titletextcol,self.titleboxcol,self.titlefont,self.boxwidth*ui.scale,self.titlebold,center=self.titlecenter)
+                            else: img = ui.rendertextlined(b[1],self.boxtextsize*ui.scale,self.boxtextcol,self.boxcol,self.boxfont,self.boxwidth*ui.scale,self.boxbold,center=self.boxcenter)
+                        else:
+                            if a==0: img = ui.rendertextlined(b[1],self.titletextsize*ui.scale,self.titletextcol,self.titleboxcol,self.titlefont,self.boxwidth[i]*ui.scale,self.titlebold,center=self.titlecenter)
+                            else: img = ui.rendertextlined(b[1],self.boxtextsize*ui.scale,self.boxtextcol,self.boxcol,self.boxfont,self.boxwidth[i]*ui.scale,self.boxbold,center=self.boxcenter)
+                    rec = img.get_rect()
+                    self.tableimages[-1].append(['text',img,rec])
                 elif b[0] == 'button':
-                    b[1].scale = self.scale
-                    b[1].gentext(ui)
+                    b[1].roundedcorners = self.roundedcorners
                     self.tableimages[-1].append(['button',b[1]])
+                    b[1].refresh(ui)
                 elif b[0] == 'textbox':
+                    b[1].roundedcorners = self.roundedcorners
                     self.tableimages[-1].append(['textbox',b[1]])
-                elif b[0] == 'textobj':
-                    self.tableimages[-1].append(['textobj',b[1]])
+                    if not b[1] in ui.textboxes:
+                        ui.addid(b[1].ID,b[1])
                 elif b[0] == 'image':
-                    ui.delete('tabletext'+self.ID+str(a)+str(i),False)
-                    obj = ui.maketext(0,0,'',self.textsize,self.menu,'tabletext'+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,self.menuexceptions,textcenter=self.textcenter,img=b[1],maxwidth=self.boxwidth[i],scalesize=self.scalesize,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing)
-                    self.tableimages[-1].append(['textobj',obj]) 
+                    if a==0: scale = self.boxtextsize/b[1].get_height()
+                    else: scale = self.titletextsize/b[1].get_height()
+                    img = pygame.transform.scale(b[1],(b[1].get_width()*scale,b[1].get_height()*scale))
+                    rec = img.get_rect()
+                    self.tableimages[-1].append(['text',b[1],rec])
+                elif b[0] == 'presizedimage':
+                    self.tableimages[-1].append(['text',b[1],b[1].get_rect()])
                 else:
                     print(b[0])
-                    
-    def child_refreshcords(self,ui):
-        if self.tableimages!=0:
-            for a in range(len(self.tableimages)):
-                for i,b in enumerate(self.tableimages[a]):
-                    b[1].startanchor = [self.x*self.dirscale[0],self.y*self.dirscale[1]]
-                    b[1].startobjanchor = [0,0]
-                    b[1].startx = (self.linesize*(i+1)+self.boxwidthsinc[i])
-                    b[1].starty = (self.linesize*(a+1)+self.boxheightsinc[a])
-                    b[1].width = self.boxwidths[i]
-                    b[1].height = self.boxheights[a]
-                    b[1].backingdraw = self.backingdraw
-                    b[1].scalex = self.scalesize
-                    b[1].scaley = self.scalesize
-                    b[1].scalesize = self.scalesize
-                    b[1].resetcords(ui,False)
-                    b[1].layer = self.layer+0.1
-                    b[1].ontable = True
-                    if b[0] == 'button':
-                        b[1].gentext(ui)
-                        b[1].refreshcords(ui)
-                    elif b[0] == 'textbox':
-                        b[1].refreshcords(ui)
-                        b[1].resetscroller(ui)
-                    else:
-                        b[1].gentext(ui)
-                        b[1].refreshcords(ui)
-            ui.refreshitems()
 
-    def initheightwidth(self):
-        if type(self.boxwidth) == int:
-            self.boxwidth = [self.boxwidth for a in range(self.columns)]
-        else:
-            while len(self.boxwidth)<self.columns:
-                self.boxwidth.append(-1)
-        if type(self.boxheight) == int:
-            self.boxheight = [self.boxheight for a in range(self.rows)]
-        else:
-            while len(self.boxheight)<self.rows:
-                self.boxheight.append(-1)
-                
-    def gettablewidths(self,ui):
-        self.boxwidthsinc = []
-        self.boxwidths = []
-        for a in range(len(self.boxwidth)):
-            if self.boxwidth[a] == -1:
-                minn = 0
-                for b in [self.tableimages[c][a] for c in range(len(self.tableimages))]:
-                    if b[0] == 'button' or b[0] == 'textobj':
-                        if minn<b[1].textimage.get_width()+b[1].horizontalspacing*2*self.scale:
-                            minn = b[1].textimage.get_width()+b[1].horizontalspacing*2*self.scale
-                self.boxwidthsinc.append(sum(self.boxwidths))
-                self.boxwidths.append(minn/self.scale)
-            else:
-                self.boxwidthsinc.append(sum(self.boxwidths))
-                self.boxwidths.append(self.boxwidth[a])
-        self.boxwidthtotal = sum(self.boxwidths)
-        self.width = self.boxwidthtotal+self.linesize*(self.columns+1)
-##        print('get widths',self.width,self.boxwidths,b[1].textimage.get_rect())
+class TEXT:
+    def __init__(self,x,y,text,size,menu,menuexceptions,edgebound,col,center,font,bold,maxwidth,backingborder,backingcol,backingdraw,backingwidth,backingheight,img,colorkey,roundedcorners,antialiasing,pregenerated,layer,ID,ui):
+        self.x = x
+        self.y = y
+        self.startx = x
+        self.starty = y
+        self.edgebound = edgebound
         
-    def gettableheights(self,ui):
-        self.boxheightsinc = [] 
-        self.boxheights = []
-        for a in range(len(self.boxheight)):
-            if self.boxheight[a] == -1:
-                minn = 0
-                for b in [self.tableimages[a][c] for c in range(len(self.tableimages[0]))]:
-                    if b[0] == 'button' or b[0] == 'textobj':
-                        if minn<b[1].textimage.get_height()+b[1].verticalspacing*2*self.scale:
-                            minn = b[1].textimage.get_height()+b[1].verticalspacing*2*self.scale
-                self.boxheightsinc.append(sum(self.boxheights))
-                self.boxheights.append(minn/self.scale)
-            else:
-                self.boxheightsinc.append(sum(self.boxheights))
-                self.boxheights.append(self.boxheight[a])
-        self.boxheighttotal = sum(self.boxheights)
-        self.height = self.boxheighttotal+self.linesize*(self.rows+1)
-                    
-                    
-    def render(self,screen,ui):
-        self.draw(screen,ui)
+        self.text = text
+        self.size = size
+        self.col = col
+        self.center = center
+        self.font = font
+        self.bold = bold
+        self.img = img
+        self.colorkey = colorkey
+        self.antialiasing = antialiasing
+        self.pregenerated = pregenerated
+
+        self.maxwidth = maxwidth
+
+        self.backingcol = backingcol
+        self.backingborder = backingborder
+        self.backingdraw = backingdraw
+        self.backingwidth = backingwidth
+        self.backingheight = backingheight
+        self.roundedcorners = roundedcorners
+
+        self.menu = menu
+        self.menuexceptions = menuexceptions
+        self.layer = layer
+        self.ID = ID
         
-    def draw(self,screen,ui):
-        if self.borderdraw:
-            pygame.draw.rect(screen,self.bordercol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-        for y in range(self.rows):
-            for x in range(self.columns):
-                #pygame.draw.rect(screen,self.col,pygame.Rect(self.x*self.dirscale[0]+(self.linesize*(x+1)+self.boxwidthsinc[x])*self.scale,self.y*self.dirscale[1]+(self.linesize*(y+1)+self.boxheightsinc[y])*self.scale,self.boxwidths[x]*self.scale,self.boxheights[y]*self.scale),border_radius=int(self.roundedcorners*scale))
-                if self.tableimages[y][x][0] == 'text':
-                    screen.blit(self.tableimages[y][x][1],self.tableimages[y][x][2])
-                            
-
-class TEXT(GUI_ITEM):
-    def reset(self,ui):
-        self.refreshscale(ui)
-        self.autoscale(ui)
-        self.resetcords(ui)
-        self.refreshcords(ui)
-    def autoscale(self,ui):
-        self.gentext(ui)
-        if self.width == -1:
-            self.width = self.textimage.get_width()/self.scale+self.horizontalspacing*2
-        if self.height == -1:
-            self.height = self.textimage.get_height()/self.scale+self.verticalspacing*2
-    def render(self,screen,ui):
-        self.animatetext(ui)
-        self.getclickedon(ui)
-        self.draw(screen,ui)
-    def draw(self,screen,ui):
-        if self.backingdraw:
-            pygame.draw.rect(screen,self.col,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-        if self.borderdraw:
-            pygame.draw.rect(screen,self.bordercol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.border,border_radius=int(self.roundedcorners*self.scale))
-        if self.pregenerated:
-            if self.textcenter:
-                screen.blit(self.textimage,(self.x*self.dirscale[0]+self.width/2*self.scale-self.textimage.get_width()/2,self.y*self.dirscale[1]+self.height/2*self.scale-self.textimage.get_height()/2))
-            else:
-                screen.blit(self.textimage,(self.x*self.dirscale[0]+self.horizontalspacing*self.scale,self.y*self.dirscale[1]+self.verticalspacing*self.scale))
-        else:
-            ui.write(screen,self.x,self.y,self.text,self.textsize,self.textcol,self.textcenter,self.font,self.bold,self.antialiasing)
-    def refresh(self,ui):
-        if not self.ontable:
-            self.refreshscale(ui)
-        self.gentext(ui)
-        if not self.ontable:
-            self.refreshcords(ui)
-
-class SCROLLER(GUI_ITEM):
-    def reset(self,ui):
-        self.scroll = self.startp
-        self.scheight = self.height-self.border*2
-        self.prevholding = self.holding
-        self.refreshscale(ui)
         self.refresh(ui)
-        self.resetcords(ui)
-    def render(self,screen,ui):
-
-        temp = (self.x,self.y)
-        self.getclickedon(ui,pygame.Rect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale))
-        if self.holding:
-            self.scroll = (self.y-temp[1])/self.scale/(self.scheight/(self.maxp-self.minp))
-            
-            self.limitpos(ui)
-        self.x,self.y = temp
-        self.draw(screen,ui)
-            
-    def limitpos(self,ui):
-        if self.scroll<self.minp:
-            self.scroll = self.minp
-        elif self.scroll>self.maxp-self.pageheight:
-            self.scroll = self.maxp-self.pageheight
-##        self.refreshcords(ui)
-    def refresh(self,ui):
-        self.refreshcords(ui)
-    def child_refreshcords(self,ui):
-        self.scrollerheight = (self.pageheight/(self.maxp-self.minp))*self.scheight
-        self.scrollerwidth = self.width-self.leftborder-self.rightborder
         
-        self.rect = pygame.Rect(self.x,self.y,self.width,self.height)
-        self.sliderrect = pygame.Rect(self.x+self.border,self.y+self.border+self.scroll*(self.scheight/(self.maxp-self.minp)),self.scrollerwidth,self.scrollerheight)
-    def draw(self,screen,ui):
-        if (self.maxp-self.minp)>self.pageheight:
-            pygame.draw.rect(screen,self.col,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-            pygame.draw.rect(screen,self.scrollercol,pygame.Rect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale),border_radius=int(self.roundedcorners*self.scale))
+    def render(self,ui,screen):
+        self.draw(ui,screen)
+    def draw(self,ui,screen):
+        if self.backingdraw:
+            pygame.draw.rect(screen,self.backingcol,rectscaler(self.backingrect,ui.scale),border_radius=int(self.roundedcorners*ui.scale))
+        if self.pregenerated:
+            screen.blit(self.textimage,self.textrect)
+        else:
+            ui.write(screen,self.x,self.y,self.text,self.size,self.col,self.center,self.font,self.bold,self.antialiasing)
+        
+    def refresh(self,ui):
+        self.gentext(ui)
+        self.refreshcords(ui)
+    def gentext(self,ui):
+        if type(self.img) == str:
+            if self.maxwidth == -1:
+                self.textimage = ui.rendertext(self.text,self.size*ui.scale,self.col,self.font,self.bold,self.antialiasing,backingcol=self.backingcol,imgin=True,img=self.img)
+            else:
+                self.textimage = ui.rendertextlined(self.text,self.size*ui.scale,self.col,self.backingcol,self.font,self.maxwidth*ui.scale,self.bold,self.antialiasing,self.center,imgin=True,img=self.img)
+        else:
+            scale = self.size/self.img.get_height()*ui.scale
+            self.textimage = pygame.transform.scale(self.img,(self.img.get_height()*scale,self.img.get_width()*scale))
+            self.textimage.set_colorkey(self.colorkey)
+            
+    def refreshcords(self,ui):
+        self.textrect = self.textimage.get_rect()
+        if self.center:
+            self.textrect.center = (self.x*ui.dirscale[0],self.y*ui.dirscale[1]+self.textimage.get_height()/2)
+        else:
+            self.textrect.x = self.x*ui.dirscale[0]
+            self.textrect.y = self.y*ui.dirscale[1]
+        if self.backingwidth == -1: bw = self.textrect.width/ui.scale+self.backingborder*2
+        else: bw = self.backingwidth
+        if self.backingheight == -1: bh = self.textrect.height/ui.scale+self.backingborder*2
+        else: bh = self.backingheight
+        if self.center: self.backingrect = pygame.Rect(self.x-bw/2,self.y-bh/2+self.textimage.get_height()/2/ui.scale,bw,bh)
+        else: self.backingrect = pygame.Rect(self.x-self.backingborder,self.y-self.backingborder,bw,bh)
 
-class SLIDER(GUI_ITEM):
-    def reset(self,ui):
+class SCROLLER:
+    def __init__(self,x,y,menu,menuexceptions,edgebound,command,width,height,col,scrollercol,hovercol,clickcol,scrollerwidth,minh,maxh,pageh,starth,runcommandat,clicktype,layer,ID,ui):
+        self.x = x
+        self.y = y
+        self.startx = x
+        self.starty = y
+        self.edgebound = edgebound
+        
+        self.width = width
+        self.height = height
+        
+        self.col = col
+        self.scrollercol = scrollercol
+        self.hovercol = hovercol
+        self.clickcol = clickcol
+        self.scrollerwidth = scrollerwidth
+        self.border = (self.width-self.scrollerwidth)/2
+        self.scheight = self.height-self.border*2
+
+        self.minh = minh
+        self.maxh = maxh
+        self.pageh = pageh
+        self.starth = starth
+        self.scroll = starth
+
+        self.holding = False
+        self.prevholding = self.holding
+        self.holdingcords = [self.x,self.y]
+
+        self.runcommandat = runcommandat
+        self.clicktype = clicktype
+        self.command = command
+        self.menu = menu
+        self.menuexceptions = menuexceptions
+        self.layer = layer
+        self.ID = ID
+
+        self.ontextbox = False
+
+        self.refresh()
+        
+    def render(self,screen,scale,mpos,mprs,mouseheld,buttondowntimer):
+        if self.holding:
+            prevscroll = self.scroll
+            self.scroll = (mpos[1]-self.holdingcords[1]-self.y)/(self.scheight/(self.maxh-self.minh))
+            self.limitpos()
+            if prevscroll != self.scroll and self.runcommandat == 1:
+                self.command()
+            self.refresh()
+        if self.sliderrect.collidepoint(mpos):
+            if not self.holding:
+                self.draw(screen,scale,self.hovercol)
+            if mprs[self.clicktype]:
+                self.draw(screen,scale,self.clickcol)
+                if mouseheld[self.clicktype][1] == buttondowntimer:
+                    if self.runcommandat<2:
+                        self.command()
+                    self.holding = True
+                    self.holdingcords = [mpos[0]-self.sliderrect.x,mpos[1]-self.sliderrect.y]
+
+        else:
+            if self.holding:
+                self.draw(screen,scale,self.clickcol)
+            else: self.draw(screen,scale,self.scrollercol)
+        if not mprs[self.clicktype]:
+            self.draw(screen,scale,self.scrollercol)
+            self.holding = False
+        if self.prevholding and (not self.holding) and self.runcommandat == 2:
+            if self.sliderrect.collidepoint(mpos): self.command()
+        self.prevholding = self.holding
+            
+    def limitpos(self):
+        if self.scroll<self.minh:
+            self.scroll = self.minh
+        elif self.scroll>self.maxh-self.pageh:
+            self.scroll = self.maxh-self.pageh
+        self.refreshcords()
+    def draw(self,screen,scale,scrollercol):
+        if (self.maxh-self.minh)>self.pageh:
+            pygame.draw.rect(screen,self.col,rectscaler(self.rect,scale))
+            pygame.draw.rect(screen,scrollercol,rectscaler(self.sliderrect,scale))
+    def refresh(self):
+        self.refreshcords()
+    def refreshcords(self,_=0):
+        self.scrollerheight = (self.pageh/(self.maxh-self.minh))*self.scheight
+        self.rect = pygame.Rect(self.x,self.y,self.width,self.height)
+        self.sliderrect = pygame.Rect(self.x+self.border,self.y+self.border+self.scroll*(self.scheight/(self.maxh-self.minh)),self.scrollerwidth,self.scrollerheight)
+
+class SLIDER:
+    def __init__(self,x,y,width,height,menu,menuexceptions,edgebound,command,col,bordercol,slidercol,sliderbordercol,hovercol,clickdownsize,border,slidersize,increment,roundedcorners,barroundedcorners,img,colorkey,minp,maxp,startp,dragable,runcommandat,clicktype,layer,ID,ui):
+        self.x = x
+        self.y = y
+        self.startx = x
+        self.starty = y
+        self.edgebound = edgebound
+        self.width = width
+        self.height = height
+        
+        self.col = col
+        self.slidercol = slidercol
+        self.bordercol = bordercol
+        self.sliderbordercol = sliderbordercol
+        self.hovercol = hovercol
+
+        self.clickdownsize = clickdownsize
+        self.border = border
+        self.slidersize = slidersize
+        self.roundedcorners = roundedcorners
+        self.barroundedcorners = barroundedcorners
+        self.img = img
+        self.colorkey = colorkey
+
+        self.minp = minp
+        self.maxp = maxp
+        self.startp = startp
         self.slider = self.startp
+
         self.holding = False
         self.prevholding = False
         self.holdingcords = [self.x,self.y]
-        self.refreshscale(ui)
-        self.resetbutton(ui)
-        self.resetcords(ui)
+        self.increment = increment
+
+        self.dragable = dragable
+        self.runcommandat = runcommandat
+        self.clicktype = clicktype
+        self.command = command
+        self.menu = menu
+        self.menuexceptions = menuexceptions
+        self.layer = layer
+        self.ID = ID
+
+
+        self.refresh(ui)
+        
     def refresh(self,ui):
-        self.refreshcords(ui)
-        self.refreshbutton(ui)
-    def child_refreshcords(self,ui):
+        self.refreshcords()
+        self.genimage(ui)
+    def refreshcords(self):
         self.slidercenter = (self.x+self.border+(self.width-self.border*2)*(self.slider/(self.maxp-self.minp)),self.y+self.height/2)
         self.innerrect = pygame.Rect(self.slidercenter[0]-self.slidersize/2+self.border,self.slidercenter[1]-self.slidersize/2+self.border,self.slidersize-self.border*2,self.slidersize-self.border*2)
-        self.refreshbutton(ui)
-    def resetbutton(self,ui):
-        try:
-            ui.delete(self.button.ID,False)
-        except:
-            pass
-        if type(self.data) == BUTTON: self.button = self.data
+    def genimage(self,ui):
+        if type(self.img) == str:
+            if self.img != 'none':
+                self.sliderimage = ui.rendershape(self.img,self.slidersize*ui.scale,self.slidercol)
+            else:
+                self.sliderimage = 0
+        elif type(self.img) == pygame.Surface:
+            scale = self.slidersize/self.img.get_height()*ui.scale
+            self.sliderimage = pygame.transform.scale(self.img,(self.img.get_height()*scale,self.img.get_width()*scale))
+            self.sliderimage.set_colorkey(self.colorkey)
         else:
-            self.button = ui.makebutton(self.x,self.y,self.text,self.textsize,self.command,self.menu,self.ID+'button',self.layer+0.01,self.roundedcorners,self.menuexceptions,width=self.slidersize,height=self.slidersize,img=self.img,dragable=self.dragable,clickdownsize=int(self.slidersize/15),col=shiftcolor(self.col,-30),runcommandat=self.runcommandat)
-        if self.direction == 'vertical': self.button.startobjanchor = [self.button.width/2,self.button.height/2]
-        else: self.button.startobjanchor = ['w/2','h/2']
-        self.button.onsliderbox = True
-        self.button.layer = self.layer+0.1
-        self.refreshbutton(ui)
-    def refreshbuttoncords(self,ui):
-        self.slidercenter = (self.x+self.leftborder+(self.width-self.leftborder-self.rightborder)*((self.slider-self.minp)/(self.maxp-self.minp)),self.y+self.height/2)
-        self.button.startx = self.slidercenter[0]-self.x-self.leftborder
-        self.button.starty = 0
-        if self.direction == 'vertical':
-            self.slidercenter = (self.x+self.width/2,self.y+self.upperborder+(self.height-self.upperborder-self.lowerborder)*((self.slider-self.minp)/(self.maxp-self.minp)))
-            self.button.startx = 0
-            self.button.starty = self.slidercenter[1]-self.y-self.rightborder
+            self.sliderimage = pygame.Surface((0,0))
+            
+        if self.sliderimage != 0:
+            self.sliderimagerect = self.sliderimage.get_rect()
+            self.sliderimagerect.center = self.slidercenter
+            
+    def render(self,screen,scale,mpos,mprs,mouseheld,buttondowntimer):
+        if self.dragable:
+            self.innershrunk = 0
+            if not self.holding:
+                if self.innerrect.collidepoint(mpos):
+                    if mprs[self.clicktype] and mouseheld[self.clicktype][1]>0:
+                        self.innershrunksize = self.clickdownsize
+                        self.draw(screen,scale,self.hovercol)
+                        if mouseheld[self.clicktype][1] == buttondowntimer:
+                            self.holding = True
+                            self.holdingcords = [mpos[0]-self.slidercenter[0],mpos[1]-self.slidercenter[1]]
+                            if self.runcommandat<2:
+                                self.command()
+                    else:
+                        self.draw(screen,scale,self.hovercol)
+                else:
+                    self.draw(screen,scale,self.slidercol)
+            else:
+                prevpos = self.slider
+                self.movetomouse(mpos)
+                if prevpos != self.slider and self.runcommandat == 1:
+                    self.command()
+                self.slidercenter = (self.x+self.border+(self.width-self.border*2)*((self.slider-self.minp)/(self.maxp-self.minp)),self.y+self.height/2)
+                self.innershrunksize = self.clickdownsize
+                self.draw(screen,scale,self.hovercol)
+            if not mprs[self.clicktype]:
+                self.holding = False
+            if self.prevholding and (not self.holding) and self.runcommandat == 2:
+                if self.innerrect.collidepoint(mpos): self.command()
+            self.prevholding = self.holding
+        else:
+            self.draw(screen,scale,self.slidercol)
 
-        self.button.scalex = self.scalesize
-        self.button.scaley = self.scalesize
-        self.button.scalesize = self.scalesize
-        self.button.resetcords(ui,False)
-        self.button.refreshcords(ui)
-        self.button.onslider=True
-    def refreshbutton(self,ui):
-        self.refreshscale(ui)
-        self.button.startanchor = [self.x*self.dirscale[0],self.y*self.dirscale[1]+self.height/2*self.scale]
-        if self.direction == 'vertical':
-            self.button.startanchor = [self.x*self.dirscale[0]+self.width/2*self.scale,self.y*self.dirscale[1]]
-
-        self.button.gentext(ui)
-        self.refreshbuttoncords(ui)
-        
-    def render(self,screen,ui):
-        self.draw(screen,ui)
-        if self.button.holding: self.movetomouse(ui)
-        self.button.draw(screen,ui)
-    def movetomouse(self,ui):
-        self.slider = (ui.mpos[0]*ui.scale-self.x*self.dirscale[0]-self.leftborder*self.scale)/((self.width-self.leftborder-self.rightborder)*self.scale/(self.maxp-self.minp))+self.minp
-        if self.direction == 'vertical':
-            self.slider = (ui.mpos[1]*ui.scale-self.y*self.dirscale[1]-self.upperborder*self.scale)/((self.height-self.upperborder-self.lowerborder)*self.scale/(self.maxp-self.minp))+self.minp
+    def movetomouse(self,mpos):
+        self.slider = (mpos[0]-self.x-self.holdingcords[0])/((self.width-self.border*2)/(self.maxp-self.minp))+self.minp
         if self.increment!=0: self.slider = round(self.slider/self.increment)*self.increment
-        self.limitpos(ui)
-    def limitpos(self,ui):
+        self.limitpos()
+    def limitpos(self):
         if self.slider>self.maxp:
             self.slider = self.maxp
         elif self.slider<self.minp:
             self.slider = self.minp
-        self.refreshbuttoncords(ui)
+    
+    def draw(self,screen,scale,slidercol):
+        self.slidercenter = (self.x+self.border+(self.width-self.border*2)*((self.slider-self.minp)/(self.maxp-self.minp)),self.y+self.height/2)
+        self.innerrect = pygame.Rect(self.slidercenter[0]-self.slidersize/2+self.border+self.innershrunk,self.slidercenter[1]-self.slidersize/2+self.border+self.innershrunk,self.slidersize-self.border*2-self.innershrunk*2,self.slidersize-self.border*2-self.innershrunk*2)
+        pygame.draw.rect(screen,self.bordercol,rectscaler(pygame.Rect(self.x,self.y,self.width,self.height),scale),border_radius=int(self.barroundedcorners*scale))
+        pygame.draw.rect(screen,self.col,rectscaler(pygame.Rect(self.x+self.border,self.y+self.border,(self.width-self.border*2)*((self.slider-self.minp)/(self.maxp-self.minp)),self.height-self.border*2),scale),border_radius=int(self.barroundedcorners*scale))
+        if self.dragable:
+            if self.sliderimage != 0:
+                self.sliderimagerect.center = self.slidercenter
+                screen.blit(self.sliderimage,self.sliderimagerect)
+            else:
+                pygame.draw.rect(screen,self.sliderbordercol,rectscaler(pygame.Rect(self.slidercenter[0]-self.slidersize/2,self.slidercenter[1]-self.slidersize/2,self.slidersize,self.slidersize),scale),border_radius=int(self.roundedcorners*scale))
+                pygame.draw.rect(screen,slidercol,rectscaler(self.innerrect,scale),border_radius=int(self.roundedcorners*scale))
 
-    def draw(self,screen,ui):
-        pygame.draw.rect(screen,self.bordercol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-        if self.direction == 'vertical':
-            pygame.draw.rect(screen,self.col,pygame.Rect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,(self.width-self.leftborder-self.rightborder)*self.scale,(self.height-self.upperborder-self.lowerborder)*((self.slider-self.minp)/(self.maxp-self.minp))*self.scale),border_radius=int(self.roundedcorners*self.scale))
-        else:
-            pygame.draw.rect(screen,self.col,pygame.Rect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,(self.width-self.leftborder-self.rightborder)*((self.slider-self.minp)/(self.maxp-self.minp))*self.scale,(self.height-self.upperborder-self.lowerborder)*self.scale),border_radius=int(self.roundedcorners*self.scale))
 
+class WINDOWEDMENU:
+    def __init__(self,menu,behindmenu,x,y,width,height,col,roundedcorners,colorkey,isolated,darken,edgebound,ID):
+        self.menu = menu
+        self.behindmenu = behindmenu
+        self.ID = ID
+        
+        self.x = x
+        self.y = y
+        self.startx = x
+        self.starty = y
+        self.edgebound = edgebound
+        self.width = width
+        self.height = height
+        self.col = col
+        
+        self.roundedcorners = roundedcorners
+        self.colorkey = colorkey
+        self.isolated = isolated
+        self.truedarken = darken
+        self.darken = darken
 
-
-class WINDOWEDMENU(GUI_ITEM):
-    def reset(self,ui):
-        self.truedarken = self.darken
-        self.refreshscale(ui)
-    def refresh(self,ui):
-        pass 
+        self.layer=1
 
 
 class ANIMATION:
@@ -2058,24 +2245,22 @@ class ANIMATION:
             self.findonscreen(ui)
     def findonscreen(self,ui):
         tcords = list(self.cordlist[0])
-        scale = ui.IDs[self.animateID].scale
-        dirscale = ui.IDs[self.animateID].dirscale
         prog = 0
-        prev = pygame.Rect(0,0,ui.screenw,ui.screenh).colliderect(pygame.Rect(tcords[0]*dirscale[0],tcords[1]*dirscale[1],ui.IDs[self.animateID].width*scale,ui.IDs[self.animateID].height*scale))
+        prev = pygame.Rect(0,0,ui.screenw,ui.screenh).colliderect(pygame.Rect(tcords[0],tcords[1],ui.IDs[self.animateID].width,ui.IDs[self.animateID].height))
         while 1:
-            if not((pygame.Rect(0,0,ui.screenw,ui.screenh).colliderect(pygame.Rect(tcords[0]*dirscale[0],tcords[1]*dirscale[1],ui.IDs[self.animateID].width*scale,ui.IDs[self.animateID].height*scale)) != prev) or prog>self.length-2):
+            if not((pygame.Rect(0,0,ui.screenw,ui.screenh).colliderect(pygame.Rect(tcords[0],tcords[1],ui.IDs[self.animateID].width,ui.IDs[self.animateID].height)) != prev) or prog>self.length-2):
                 prog+=1
-                prev = pygame.Rect(0,0,ui.screenw,ui.screenh).colliderect(pygame.Rect(tcords[0]*dirscale[0],tcords[1]*dirscale[1],ui.IDs[self.animateID].width*scale,ui.IDs[self.animateID].height*scale))
+                prev = pygame.Rect(0,0,ui.screenw,ui.screenh).colliderect(pygame.Rect(tcords[0],tcords[1],ui.IDs[self.animateID].width,ui.IDs[self.animateID].height))
                 tcords[0] = self.cordlist[prog][0]
                 tcords[1] = self.cordlist[prog][1]
             else:
                 break
-        if pygame.Rect(0,0,ui.screenw,ui.screenh).colliderect(pygame.Rect(tcords[0]*dirscale[0],tcords[1]*dirscale[1],ui.IDs[self.animateID].width*scale,ui.IDs[self.animateID].height*scale)):
-            self.cordlist = self.cordlist[prog:]
-            self.fadeout = False
-        else:
+        if pygame.Rect(0,0,ui.screenw,ui.screenh).colliderect(pygame.Rect(self.startpos[0],self.startpos[1],ui.IDs[self.animateID].width,ui.IDs[self.animateID].height)):
             self.cordlist = self.cordlist[:prog]
             self.fadeout = True
+        else:
+            self.cordlist = self.cordlist[prog:]
+            self.fadeout = False
         self.skip = False
         self.startpos = self.cordlist[0]
         self.endpos = self.cordlist[-1]
@@ -2103,7 +2288,7 @@ class ANIMATION:
             if self.progress<self.length:
                 ui.IDs[self.animateID].x = self.cordlist[self.progress][0]
                 ui.IDs[self.animateID].y = self.cordlist[self.progress][1]
-                if type(ui.IDs[self.animateID]) in [TABLE,TEXTBOX,TEXT,SCROLLER,SLIDER,WINDOWEDMENU]:
+                if type(ui.IDs[self.animateID]) in [TABLE,TEXTBOX,TEXT,SCROLLER]:
                     ui.IDs[self.animateID].refreshcords(ui)
                 if type(ui.IDs[self.animateID]) == WINDOWEDMENU:
                     ui.IDs[self.animateID].darken = ui.IDs[self.animateID].truedarken*(self.progress/self.length)
@@ -2128,16 +2313,10 @@ class ANIMATION:
             self.endpos = (self.startpos[0]+self.endpos[0],self.startpos[1]+self.endpos[1])
         ui.IDs[self.animateID].x = self.trueendpos[0]
         ui.IDs[self.animateID].y = self.trueendpos[1]
-        if type(ui.IDs[self.animateID]) in [TABLE,TEXTBOX,TEXT,SCROLLER,SLIDER,WINDOWEDMENU]:
+        if type(ui.IDs[self.animateID]) in [TABLE,TEXTBOX,TEXT,SCROLLER]:
             ui.IDs[self.animateID].refreshcords(ui)
         if type(ui.IDs[self.animateID]) == WINDOWEDMENU:
             ui.IDs[self.animateID].darken = ui.IDs[self.animateID].truedarken
-
-class RECT(GUI_ITEM):
-    def render(self,screen,ui):
-        self.draw(screen,ui)
-    def draw(self,screen,ui):
-        pygame.draw.rect(screen,self.backingcol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
         
         
     

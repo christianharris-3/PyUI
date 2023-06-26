@@ -930,17 +930,6 @@ class UI:
                  dragable=dragable,colorkey=colorkey,
                  behindmenu=behindmenu,isolated=isolated,darken=darken)
         self.windowedmenunames = [a.menu for a in self.windowedmenus]
-    def makerect(self,x,y,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,menuexceptions=[],width=-1,height=-1,
-                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,
-                 border=-1,scalesize=True,scalex=True,scaley=True,
-                 runcommandat=0,col=-1,dragable=False):
-        if maxwidth == -1: maxwidth = width
-        if backingcol == -1: backingcol = bordercol
-        obj = RECT(self,x,y,command=emptyfunction,menu=menu,ID=ID ,layer=layer,roundedcorners=roundedcorners,menuexceptions=menuexceptions,width=width,height=height,
-                 anchor=anchor,objanchor=objanchor,center=center,centery=centery,
-                 border=border,scalesize=scalesize,scalex=scalex,scaley=scaley,
-                 runcommandat=runcommandat,col=col,dragable=dragable)
-        return obj
         
     def animate(self):
         self.queuedmenumove[0]-=1
@@ -1310,6 +1299,7 @@ class GUI_ITEM:
                     self.clickedon = 0
                     self.holding = True
                     self.holdingcords = [(mpos[0])-rect.x,(mpos[1])-rect.y]
+                    print(self.holdingcords)
                     if self.runcommandat<2 and runcom:
                         if self.toggleable:
                             if self.toggle: self.toggle = False
@@ -1424,6 +1414,7 @@ class TEXTBOX(GUI_ITEM):
         self.refreshscroller(ui)
         self.refreshcords(ui)
         self.resetcords(ui)
+        self.refresh(ui)
     def setvars(self):
         self.scroller=0
         self.selected = False
@@ -2132,12 +2123,6 @@ class ANIMATION:
             ui.IDs[self.animateID].refreshcords(ui)
         if type(ui.IDs[self.animateID]) == WINDOWEDMENU:
             ui.IDs[self.animateID].darken = ui.IDs[self.animateID].truedarken
-
-class RECT(GUI_ITEM):
-    def render(self,screen,ui):
-        self.draw(screen,ui)
-    def draw(self,screen,ui):
-        pygame.draw.rect(screen,self.backingcol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
         
         
     
