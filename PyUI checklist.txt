@@ -1,31 +1,6 @@
 done-when clicking on a text box, then clicking again outside, the textbox slects like one click has been dragged to the second click
-done-add textboxes into table
+-add textboxes into table
 -add sliders
 done-textbox buttons dont reset text scale
 -make the textbox cursor look better/be correct height
 done-make the table autoscale each column to the largest width in that column
-done-make auto width system in tables for height as well
--make tables refresh cords
--link scrollwheel up to specific objects
--fix a bug where images scale incoorectly in buttons
--add custom colour key to buttons
--add music based shapes play/pause/skip/stop
--add progress bar
-
-
-
--make all items base out of one object
--make all objects consistant
-done-add a datamap to tables, so each box can be unique
--give buttons a better toggle system
--make windowedmenus so u can have multiple of them on one menu/redo that system
-done-redo table so it can deal with no titles/no data etc
--shadow text in textbox
--make the pregenerated variable work on buttons/other
-sorta-make textboxes limited by their line count
-done?-make tables not crash when u give it bad data
-done-make text animateable with a list of img that it moves through
-done?-stop double update on screen resize
-done-draging stuf broke idk
--make menu be able to be a list
-done-fix textbox textcenter
