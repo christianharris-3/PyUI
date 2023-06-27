@@ -202,6 +202,7 @@ class UI:
         self.scrollers = []
         self.sliders = []
         self.animations = []
+        self.rects = []
         self.selectedtextbox = -1
         self.IDs = {}
         self.items = []
@@ -787,9 +788,10 @@ class UI:
         elif type(obj) == SLIDER: self.sliders.append(obj)
         elif type(obj) == WINDOWEDMENU: self.windowedmenus.append(obj)
         elif type(obj) == ANIMATION: self.animations.append(obj)
+        elif type(obj) == RECT: self.rects.append(obj)
         self.refreshitems()
     def refreshitems(self):
-        self.items = self.buttons+self.textboxes+self.tables+self.texts+self.scrollers+self.sliders+self.windowedmenus
+        self.items = self.buttons+self.textboxes+self.tables+self.texts+self.scrollers+self.sliders+self.windowedmenus+self.rects
         self.items.sort(key=lambda x: x.layer,reverse=False)
         
     def makebutton(self,x,y,text,textsize=50,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,menuexceptions=[],width=-1,height=-1,
@@ -930,18 +932,24 @@ class UI:
                  dragable=dragable,colorkey=colorkey,
                  behindmenu=behindmenu,isolated=isolated,darken=darken)
         self.windowedmenunames = [a.menu for a in self.windowedmenus]
-    def makerect(self,x,y,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,menuexceptions=[],width=-1,height=-1,
+    def makerect(self,x,y,width,height,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,menuexceptions=[],
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,
                  border=-1,scalesize=True,scalex=True,scaley=True,
                  runcommandat=0,col=-1,dragable=False):
-        if maxwidth == -1: maxwidth = width
-        if backingcol == -1: backingcol = bordercol
         obj = RECT(self,x,y,command=emptyfunction,menu=menu,ID=ID ,layer=layer,roundedcorners=roundedcorners,menuexceptions=menuexceptions,width=width,height=height,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,
                  border=border,scalesize=scalesize,scalex=scalex,scaley=scaley,
                  runcommandat=runcommandat,col=col,dragable=dragable)
         return obj
-        
+    def makecircle(self,x,y,radius,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=-1,menuexceptions=[],
+                 anchor=(0,0),objanchor=(0,0),center=True,centery=-1,
+                 border=-1,scalesize=True,scalex=True,scaley=True,
+                 runcommandat=0,col=-1,dragable=False):
+        if roundedcorners==-1: roundedcorners=radius
+        self.makerect(x,y,radius*2,radius*2,command,menu,ID ,layer,roundedcorners,menuexceptions,
+                 anchor=anchor,objanchor=objanchor,center=center,centery=centery,
+                 border=border,scalesize=scalesize,scalex=scalex,scaley=scaley,
+                 runcommandat=runcommandat,col=col,dragable=dragable)
     def animate(self):
         self.queuedmenumove[0]-=1
         if self.queuedmenumove[0]<0 and self.queuedmenumove[1] != []:
@@ -1068,6 +1076,7 @@ class UI:
                 self.delete(self.IDs[ID].button.ID)
                 self.sliders.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == ANIMATION: self.animations.remove(self.IDs[ID])
+            elif type(self.IDs[ID]) == RECT: self.rects.append(self.IDs[ID])
             del self.IDs[ID]
             self.refreshitems()
             return True
@@ -2135,6 +2144,7 @@ class ANIMATION:
 
 class RECT(GUI_ITEM):
     def render(self,screen,ui):
+        self.getclickedon(ui)
         self.draw(screen,ui)
     def draw(self,screen,ui):
         pygame.draw.rect(screen,self.backingcol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
