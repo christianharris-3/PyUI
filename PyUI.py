@@ -13,6 +13,9 @@ def rectscaler(rect,scale,offset=(0,0)):
         return pygame.Rect((rect.x-offset[0])*scale.dirscale[0],(rect.y-offset[1])*scale.dirscale[1],rect.w*scale.scale,rect.h*scale.scale)
     else:
         return pygame.Rect((rect.x-offset[0])*scale,(rect.y-offset[1])*scale,rect.w*scale,rect.h*scale)
+def roundrect(x,y,width,height):
+    return pygame.Rect(round(x),round(y),round(width),round(height))
+
 def emptyfunction():
     pass
 
@@ -813,8 +816,10 @@ class UI:
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='tick',font='default',bold=False,antialiasing=True,pregenerated=True,
                  border=4,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,maxwidth=-1,
-                 dragable=False,colorkey=(255,255,255),toggle=True,toggleable=True,toggletext='',toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-15,verticalspacing=0,horizontalspacing=8,
+                 dragable=False,colorkey=(255,255,255),toggle=True,toggleable=True,toggletext='',toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-15,verticalspacing=-15,horizontalspacing=-15,
                  backingdraw=False,borderdraw=True,animationspeed=5,linelimit=1000):
+        if width == -1: width = textsize+spacing*2
+        if height == -1: height = textsize+spacing*2
         obj = BUTTON(self,x,y,width,height,menu,ID,layer,roundedcorners,menuexceptions,
                  anchor,objanchor,center,centery,text,textsize,img,font,bold,antialiasing,pregenerated,
                  border,upperborder,lowerborder,rightborder,leftborder,scalesize,scalex,scaley,
@@ -1169,8 +1174,8 @@ class GUI_ITEM:
         self.verticalspacing = verticalspacing
         self.horizontalspacing = horizontalspacing
         if spacing!=-1:
-            self.verticalspacing = spacing
-            self.horizontalspacing = spacing
+            if verticalspacing == 0:self.verticalspacing = spacing
+            if horizontalspacing == 8:self.horizontalspacing = spacing
 
         self.toggle = toggle
         self.toggleable = toggleable
@@ -1253,10 +1258,8 @@ class GUI_ITEM:
                 else: txt = self.text
                 self.textimages.append(ui.rendertextlined(txt,self.textsize,self.textcol,self.col,self.font,self.maxwidth,self.bold,self.antialiasing,True,imgin=True,img=img,scale=self.scale,linelimit=self.linelimit))
             else:
-                print('before',self.ID,img.get_rect())
                 self.textimages.append(pygame.transform.scale(img,(img.get_width()*(self.textsize/img.get_height())*self.scale,img.get_height()*(self.textsize/img.get_height())*self.scale)))
                 self.textimages[-1].set_colorkey(self.colorkey)
-                print(self.textimages[-1].get_rect())
         self.textimage = self.textimages[0]
         if len(self.textimages) != 1:
             self.animating = True
@@ -1410,18 +1413,19 @@ class BUTTON(GUI_ITEM):
     def draw(self,screen,ui):
         col = self.col
         if not self.toggle: col = self.togglecol
-        innerrect = pygame.Rect(self.x*self.dirscale[0]+(self.leftborder+self.clickdownsize*self.holding)*self.scale,self.y*self.dirscale[1]+(self.upperborder+self.clickdownsize*self.holding)*self.scale,(self.width-self.leftborder-self.rightborder-self.clickdownsize*self.holding*2)*self.scale,(self.height-self.upperborder-self.lowerborder-self.clickdownsize*self.holding*2)*self.scale)
+        innerrect = roundrect(self.x*self.dirscale[0]+(self.leftborder+self.clickdownsize*self.holding)*self.scale,self.y*self.dirscale[1]+(self.upperborder+self.clickdownsize*self.holding)*self.scale,(self.width-self.leftborder-self.rightborder-self.clickdownsize*self.holding*2)*self.scale,(self.height-self.upperborder-self.lowerborder-self.clickdownsize*self.holding*2)*self.scale)
         if self.holding or self.hovering:
             if not self.toggle: col = self.togglehovercol
             else: col = self.hovercol
         if self.borderdraw:
-            if self.backingdraw: pygame.draw.rect(screen,self.backingcol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-            else: pygame.draw.rect(screen,self.backingcol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),int((self.border+self.clickdownsize*self.holding)*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            if self.backingdraw: pygame.draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            else: pygame.draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),int((self.border+self.clickdownsize*self.holding)*self.scale),border_radius=int(self.roundedcorners*self.scale))
         if self.backingdraw: pygame.draw.rect(screen,col,innerrect,border_radius=int((self.roundedcorners-self.border)*self.scale))
         if self.toggle:
             screen.blit(self.textimage,(self.x*self.dirscale[0]+((self.width-self.leftborder-self.rightborder)/2+self.leftborder+self.textoffsetx)*self.scale-self.textimage.get_width()/2,self.y*self.dirscale[1]+((self.height-self.upperborder-self.lowerborder)/2+self.upperborder+self.textoffsety)*self.scale-self.textimage.get_height()/2))
         else:
             screen.blit(self.toggletextimage,(self.x*self.dirscale[0]+((self.width-self.leftborder-self.rightborder)/2+self.leftborder+self.textoffsetx)*self.scale-self.toggletextimage.get_width()/2,self.y*self.dirscale[1]+((self.height-self.upperborder-self.lowerborder)/2+self.upperborder+self.textoffsety)*self.scale-self.toggletextimage.get_height()/2))
+        print((self.x*self.dirscale[0]+(self.leftborder+self.clickdownsize*self.holding)*self.scale,self.y*self.dirscale[1]+(self.upperborder+self.clickdownsize*self.holding)*self.scale,(self.width-self.leftborder-self.rightborder-self.clickdownsize*self.holding*2)*self.scale,(self.height-self.upperborder-self.lowerborder-self.clickdownsize*self.holding*2)*self.scale),(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.ID)
 
 class TEXTBOX(GUI_ITEM):
     def reset(self,ui):
@@ -1602,8 +1606,8 @@ class TEXTBOX(GUI_ITEM):
             self.scroller.scroll = self.scroller.minp
     def child_refreshcords(self,ui):
         if self.scroller != 0:
-            self.rect = pygame.Rect(self.x,self.y,self.width,self.height)
-            self.innerrect = pygame.Rect(self.x+self.leftborder,self.y+self.upperborder,self.width-self.rightborder-self.leftborder-self.scrolleron*self.scroller.width,self.height-self.upperborder-self.lowerborder)
+            self.rect = roundrect(self.x,self.y,self.width,self.height)
+            self.innerrect = roundrect(self.x+self.leftborder,self.y+self.upperborder,self.width-self.rightborder-self.leftborder-self.scrolleron*self.scroller.width,self.height-self.upperborder-self.lowerborder)
             self.textimagerect = self.textimage.get_rect()     
             if self.textcenter:
                 self.textimagerect.x = (self.width-self.horizontalspacing*2-self.scrolleron*self.scroller.width-self.leftborder-self.rightborder)/2+self.textoffsetx+self.horizontalspacing-self.textimagerect.width/2/self.scale
@@ -1614,7 +1618,7 @@ class TEXTBOX(GUI_ITEM):
             
     def render(self,screen,ui):
         self.typeline+=1
-        self.selectrect = pygame.Rect(self.x*self.dirscale[0]+(self.leftborder-self.selectbordersize)*self.scale,self.y*self.dirscale[1]+(self.upperborder-self.selectbordersize)*self.scale,(self.width-(self.leftborder+self.rightborder)+self.selectbordersize*2-self.scrolleron*self.scroller.width)*self.scale,(self.height-(self.upperborder+self.lowerborder)+self.selectbordersize*2)*self.scale)
+        self.selectrect = roundrect(self.x*self.dirscale[0]+(self.leftborder-self.selectbordersize)*self.scale,self.y*self.dirscale[1]+(self.upperborder-self.selectbordersize)*self.scale,(self.width-(self.leftborder+self.rightborder)+self.selectbordersize*2-self.scrolleron*self.scroller.width)*self.scale,(self.height-(self.upperborder+self.lowerborder)+self.selectbordersize*2)*self.scale)
         if self.typeline == 80:
             self.typeline = 0 
         self.getclickedon(ui,self.selectrect,False,False)
@@ -1675,7 +1679,7 @@ class TEXTBOX(GUI_ITEM):
             return strpos
     def draw(self,screen,ui):
         if self.borderdraw:
-            pygame.draw.rect(screen,self.backingcol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            pygame.draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
         if self.selected: pygame.draw.rect(screen,self.selectcol,self.selectrect,int(self.selectbordersize*self.scale),border_radius=int((self.roundedcorners+self.selectbordersize)*self.scale))
 
         surf = pygame.Surface(((self.width-self.leftborder-self.rightborder-self.scrolleron*self.scroller.width)*self.scale,(self.height-self.upperborder-self.lowerborder)*self.scale))
@@ -1854,7 +1858,7 @@ class TABLE(GUI_ITEM):
         
     def draw(self,screen,ui):
         if self.borderdraw:
-            pygame.draw.rect(screen,self.bordercol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            pygame.draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
         for y in range(self.rows):
             for x in range(self.columns):
                 #pygame.draw.rect(screen,self.col,pygame.Rect(self.x*self.dirscale[0]+(self.linesize*(x+1)+self.boxwidthsinc[x])*self.scale,self.y*self.dirscale[1]+(self.linesize*(y+1)+self.boxheightsinc[y])*self.scale,self.boxwidths[x]*self.scale,self.boxheights[y]*self.scale),border_radius=int(self.roundedcorners*scale))
@@ -1880,9 +1884,9 @@ class TEXT(GUI_ITEM):
         self.draw(screen,ui)
     def draw(self,screen,ui):
         if self.backingdraw:
-            pygame.draw.rect(screen,self.col,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            pygame.draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
         if self.borderdraw:
-            pygame.draw.rect(screen,self.bordercol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.border,border_radius=int(self.roundedcorners*self.scale))
+            pygame.draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.border,border_radius=int(self.roundedcorners*self.scale))
         if self.pregenerated:
             if self.textcenter:
                 screen.blit(self.textimage,(self.x*self.dirscale[0]+self.width/2*self.scale-self.textimage.get_width()/2,self.y*self.dirscale[1]+self.height/2*self.scale-self.textimage.get_height()/2))
@@ -1932,8 +1936,8 @@ class SCROLLER(GUI_ITEM):
         self.sliderrect = pygame.Rect(self.x+self.border,self.y+self.border+self.scroll*(self.scheight/(self.maxp-self.minp)),self.scrollerwidth,self.scrollerheight)
     def draw(self,screen,ui):
         if (self.maxp-self.minp)>self.pageheight:
-            pygame.draw.rect(screen,self.col,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-            pygame.draw.rect(screen,self.scrollercol,pygame.Rect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            pygame.draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            pygame.draw.rect(screen,self.scrollercol,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale),border_radius=int(self.roundedcorners*self.scale))
 
 class SLIDER(GUI_ITEM):
     def reset(self,ui):
@@ -2006,11 +2010,11 @@ class SLIDER(GUI_ITEM):
         self.refreshbuttoncords(ui)
 
     def draw(self,screen,ui):
-        pygame.draw.rect(screen,self.bordercol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+        pygame.draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
         if self.direction == 'vertical':
-            pygame.draw.rect(screen,self.col,pygame.Rect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,(self.width-self.leftborder-self.rightborder)*self.scale,(self.height-self.upperborder-self.lowerborder)*((self.slider-self.minp)/(self.maxp-self.minp))*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            pygame.draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,(self.width-self.leftborder-self.rightborder)*self.scale,(self.height-self.upperborder-self.lowerborder)*((self.slider-self.minp)/(self.maxp-self.minp))*self.scale),border_radius=int(self.roundedcorners*self.scale))
         else:
-            pygame.draw.rect(screen,self.col,pygame.Rect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,(self.width-self.leftborder-self.rightborder)*((self.slider-self.minp)/(self.maxp-self.minp))*self.scale,(self.height-self.upperborder-self.lowerborder)*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            pygame.draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,(self.width-self.leftborder-self.rightborder)*((self.slider-self.minp)/(self.maxp-self.minp))*self.scale,(self.height-self.upperborder-self.lowerborder)*self.scale),border_radius=int(self.roundedcorners*self.scale))
 
 
 
@@ -2149,7 +2153,7 @@ class RECT(GUI_ITEM):
         self.getclickedon(ui)
         self.draw(screen,ui)
     def draw(self,screen,ui):
-        pygame.draw.rect(screen,self.backingcol,pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+        pygame.draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
         
         
     
