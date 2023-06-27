@@ -909,16 +909,14 @@ class UI:
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
                  runcommandat=1,col=-1,backingcol=-1,button='default',
                  dragable=True,colorkey=(255,255,255),backingdraw=True,borderdraw=True,
-                 slidersize=-1,increment=0,sliderroundedcorners=-1,minp=0,startp=0,direction='horizontal'):
-
-        if slidersize == -1: slidersize = height*2
+                 slidersize=-1,increment=0,sliderroundedcorners=-1,minp=0,startp=0,direction='horizontal',containedslider=False):
 
         obj = SLIDER(self,x,y,width,height,menu,ID,layer,roundedcorners,menuexceptions,
                  anchor,objanchor,center,centery,
                  border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,
                  command=command,runcommandat=runcommandat,col=col,backingcol=backingcol,
                  dragable=dragable,colorkey=colorkey,backingdraw=backingdraw,borderdraw=borderdraw,
-                 slidersize=slidersize,increment=increment,sliderroundedcorners=sliderroundedcorners,minp=minp,maxp=maxp,startp=startp,direction=direction,data=button)
+                 slidersize=slidersize,increment=increment,sliderroundedcorners=sliderroundedcorners,minp=minp,maxp=maxp,startp=startp,direction=direction,containedslider=containedslider,data=button)
 
         return obj
 
@@ -1105,7 +1103,7 @@ class GUI_ITEM:
                  lines=1,linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=True,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,
                  data='empty',titles=[],boxwidth=-1,boxheight=-1,linesize=2,datatable=[],
                  backingdraw=True,borderdraw=True,animationspeed=5,scrollercol=-1,scrollerwidth=-1,pageheight=15,
-                 slidercol=-1,sliderbordercol=-1,slidersize=-1,increment=0,sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',
+                 slidercol=-1,sliderbordercol=-1,slidersize=-1,increment=0,sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',containedslider=False,
                  behindmenu='main',isolated=True,darken=60):
         self.center = center
         if centery == -1: centery = center
@@ -1225,10 +1223,19 @@ class GUI_ITEM:
         self.maxp = maxp
         self.startp = startp
         self.increment = increment
-        self.slidersize = slidersize
+        self.containedslider = containedslider
+        if slidersize == -1:
+            self.slidersize = self.height*2
+            if self.containedslider: self.slidersize = self.height-self.upperborder-self.lowerborder
+            if direction == 'vertical':
+                self.slidersize = self.width*2
+                if self.containedslider: self.slidersize = self.width-self.leftborder-self.rightborder
+        else:
+            self.slidersize = slidersize
         if sliderroundedcorners == -1: sliderroundedcorners = roundedcorners
         self.sliderroundedcorners = sliderroundedcorners
-        self.direction=direction
+        self.direction = direction
+        self.containedslider = containedslider
 
         self.behindmenu = behindmenu
         self.isolated = isolated
@@ -1425,7 +1432,6 @@ class BUTTON(GUI_ITEM):
             screen.blit(self.textimage,(self.x*self.dirscale[0]+((self.width-self.leftborder-self.rightborder)/2+self.leftborder+self.textoffsetx)*self.scale-self.textimage.get_width()/2,self.y*self.dirscale[1]+((self.height-self.upperborder-self.lowerborder)/2+self.upperborder+self.textoffsety)*self.scale-self.textimage.get_height()/2))
         else:
             screen.blit(self.toggletextimage,(self.x*self.dirscale[0]+((self.width-self.leftborder-self.rightborder)/2+self.leftborder+self.textoffsetx)*self.scale-self.toggletextimage.get_width()/2,self.y*self.dirscale[1]+((self.height-self.upperborder-self.lowerborder)/2+self.upperborder+self.textoffsety)*self.scale-self.toggletextimage.get_height()/2))
-        print((self.x*self.dirscale[0]+(self.leftborder+self.clickdownsize*self.holding)*self.scale,self.y*self.dirscale[1]+(self.upperborder+self.clickdownsize*self.holding)*self.scale,(self.width-self.leftborder-self.rightborder-self.clickdownsize*self.holding*2)*self.scale,(self.height-self.upperborder-self.lowerborder-self.clickdownsize*self.holding*2)*self.scale),(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.ID)
 
 class TEXTBOX(GUI_ITEM):
     def reset(self,ui):
@@ -1898,6 +1904,7 @@ class TEXT(GUI_ITEM):
         if not self.ontable:
             self.refreshscale(ui)
         self.gentext(ui)
+        
         if not self.ontable:
             self.refreshcords(ui)
 
@@ -1969,13 +1976,16 @@ class SLIDER(GUI_ITEM):
         self.button.layer = self.layer+0.1
         self.refreshbutton(ui)
     def refreshbuttoncords(self,ui):
-        self.slidercenter = (self.x+self.leftborder+(self.width-self.leftborder-self.rightborder)*((self.slider-self.minp)/(self.maxp-self.minp)),self.y+self.height/2)
-        self.button.startx = self.slidercenter[0]-self.x-self.leftborder
+        offset = 0
+        if self.containedslider: offset = self.button.width/2
+        self.slidercenter = (self.x+self.leftborder+offset+(self.width-self.leftborder-self.rightborder-offset*2)*((self.slider-self.minp)/(self.maxp-self.minp)),self.y+self.height/2)
+        self.button.startx = self.slidercenter[0]-self.x
         self.button.starty = 0
         if self.direction == 'vertical':
-            self.slidercenter = (self.x+self.width/2,self.y+self.upperborder+(self.height-self.upperborder-self.lowerborder)*((self.slider-self.minp)/(self.maxp-self.minp)))
+            if self.containedslider: offset = self.button.height/2
+            self.slidercenter = (self.x+self.width/2,self.y+self.upperborder+offset+(self.height-self.upperborder-self.lowerborder-offset*2)*((self.slider-self.minp)/(self.maxp-self.minp)))
             self.button.startx = 0
-            self.button.starty = self.slidercenter[1]-self.y-self.rightborder
+            self.button.starty = self.slidercenter[1]-self.y
 
         self.button.scalex = self.scalesize
         self.button.scaley = self.scalesize
@@ -2012,9 +2022,9 @@ class SLIDER(GUI_ITEM):
     def draw(self,screen,ui):
         pygame.draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
         if self.direction == 'vertical':
-            pygame.draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,(self.width-self.leftborder-self.rightborder)*self.scale,(self.height-self.upperborder-self.lowerborder)*((self.slider-self.minp)/(self.maxp-self.minp))*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            pygame.draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,(self.width-self.leftborder-self.rightborder)*self.scale,((self.height-self.upperborder-self.lowerborder-self.button.height*self.containedslider)*((self.slider-self.minp)/(self.maxp-self.minp))+self.button.height*self.containedslider)*self.scale),border_radius=int(self.roundedcorners*self.scale))
         else:
-            pygame.draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,(self.width-self.leftborder-self.rightborder)*((self.slider-self.minp)/(self.maxp-self.minp))*self.scale,(self.height-self.upperborder-self.lowerborder)*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            pygame.draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,((self.width-self.leftborder-self.rightborder-self.button.width*self.containedslider)*((self.slider-self.minp)/(self.maxp-self.minp))+self.button.width*self.containedslider)*self.scale,(self.height-self.upperborder-self.lowerborder)*self.scale),border_radius=int(self.roundedcorners*self.scale))
 
 
 
