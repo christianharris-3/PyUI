@@ -1253,8 +1253,10 @@ class GUI_ITEM:
                 else: txt = self.text
                 self.textimages.append(ui.rendertextlined(txt,self.textsize,self.textcol,self.col,self.font,self.maxwidth,self.bold,self.antialiasing,True,imgin=True,img=img,scale=self.scale,linelimit=self.linelimit))
             else:
-                self.textimages.append(pygame.transform.scale(img,(self.textsize*self.scale,img.get_width()*self.textsize/img.get_height()*self.scale)))
+                print('before',self.ID,img.get_rect())
+                self.textimages.append(pygame.transform.scale(img,(img.get_width()*(self.textsize/img.get_height())*self.scale,img.get_height()*(self.textsize/img.get_height())*self.scale)))
                 self.textimages[-1].set_colorkey(self.colorkey)
+                print(self.textimages[-1].get_rect())
         self.textimage = self.textimages[0]
         if len(self.textimages) != 1:
             self.animating = True
