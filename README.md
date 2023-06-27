@@ -19,7 +19,7 @@ ui.defaultbackingcol = (255,255,255)
 ui.defaultanimationspeed = 30
 ```
 
-## Making Gui Objects
+## Gui Objects
 There are several objects that can be made, each being produced through a command in the ui object, then being rendered through the rendergui() function.
 ### Buttons
 ### Checkbox
@@ -28,6 +28,9 @@ There are several objects that can be made, each being produced through a comman
 ### Table
 ### Slider
 ### Scroller
+### Windowed Menu
+### Rect
+### Circle
 
 ## Using Gui Objects
 deletion/access
