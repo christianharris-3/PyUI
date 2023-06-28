@@ -79,37 +79,42 @@ For a more complex example, an object that needs to be always 20 pixels from the
 ## Object variables
 All objects have a range of variables that can be changed to edit the object being made, most objects share similar variables and do the same job for each object so can be described in one, rather than a different set for each object.
 ### General variables
-x
-y
-width
-height
-menu
-ID
-layer
-roundedcorners
-menuexceptions
-anchor
-objanchor
-center
-centery
-scalesize
-scalex
-scaley
-border
-upperborder
-lowerborder
-rightborder
-leftborder
-spacing
-verticalspacing
-horizontalspacing
-command
-runcommandat
-col
-backingcol
-bordercol
-backingdraw
-borderdraw
+- **x** = The x position of the top left corner of the object relative to the anchor(default is 0,0).
+- **y** = The y position of the top leftcorner of the object relative to the anchor(default is 0,0).
+- **width** = The full width of the object.
+- **height** = The full height of the object.
+- **menu** = The menu the object is on, if set to 'universal' it will be displayed on all menus.
+- **ID** = The ID of the object, if one of the same name already exists a 1/2/3 etc is added to the end of the ID.
+- **layer** = The display order of the object, lower number means drawn underneath and default is 1.
+- **roundedcorners** = Rounds the corners of the object by, the value given is the radius of the quarter circle in each corner of the rect
+- **menuexceptions** = if menu = 'universal', a list of the menus it doesnt display on
+- **anchor** = The point treated as the origin by the object, refer to Object Positioning for more info.
+- **objanchor** = The point on the object its x and y act on, refer to Object Positioning for more info.
+- **center** = Auto sets objanchor to the center of the object.
+- **centery** = Auto sets specifically the vertical center of the object.
+- **scalesize** = Boolean that allows/doesnt allow the object to scale in size when the screen is resized.
+- **scalex** = Boolean that allows/doesnt allow the object to scale closer to its origin in the x direction when the screen is resized.
+- **scaley** = Boolean that allows/doesnt allow the object to scale closer to its origin in the y direction when the screen is resized.
+- **border** = Sets the pixel size of the border of the object.
+- **upperborder** = Sets pixel size of only the upper border.
+- **lowerborder** = Sets pixel size of only the lower border
+- **rightborder** = Sets pixel size of only the right border.
+- **leftborder** = Sets pixel size of only the left border.
+- **spacing** = Sets the pixel distance between the text and the border inside an object.
+- **verticalspacing** = Sets the vertical pixel distance between the text and the border inside an object.
+- **horizontalspacing** = Sets the horizontal pixel distance between the text and the border inside an object.
+- **command** = Any function that is than run by the object, this can be a PyUI function like menumove or delete, or any user created function. To give the function inputs use the syntax
+
+```py
+command=lambda: testfunction('function arguements')
+```
+
+- **runcommandat** = Used to control when a command is ran when clicking a button, 0=when first clicked, 1=every tick the button is held, 2=when the button is released.
+- **col** = The overall colour of the object, other colours used if not set by the user will be based off this colour. If not set col defaults to the ui.default col variable.
+- **backingcol** = the colour of the backing,mostly interchangeable with bordercol, if unset it will default to adding 20 to the the r,g and b number of col.
+- **bordercol** = interchangable with backingcol, just used as it is more intuative for some objects.
+- **backingdraw** = boolean that toggles if the backing is drawn.
+- **borderdraw** = boolean that toggles if the border is drawn.
 
 ### Text variables
 text
