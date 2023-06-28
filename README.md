@@ -69,5 +69,112 @@ ui.IDs['test button'].refresh(ui)
 ui.delete('test button')
 ```
 
+## object variables
+All objects have a range of variables that can be changed to edit the object being made, most objects share similar variables and do the same job for each object so can be described in one, rather than a different set for each object.
+### General variables
+x
+y
+width
+height
+menu
+ID
+layer
+roundedcorners
+menuexceptions
+anchor
+objanchor
+center
+centery
+scalesize
+scalex
+scaley
+border
+upperborder
+lowerborder
+rightborder
+leftborder
+spacing
+verticalspacing
+horizontalspacing
+command
+runcommandat
+col
+backingcol
+bordercol
+backingdraw
+borderdraw
+
+### Text variables
+text
+textsize
+img
+colorkey
+font
+bold
+antialiasing
+pregenerated
+textcol
+textoffsetx
+textoffsety
+animationspeed
+
+### Button specific
+hovercol
+clickdownsize
+clicktype
+maxwidth
+dragable
+toggle
+toggleable
+toggletext
+toggleimg
+togglecol
+togglehovercol
+bindtoggle
+
+### Textbox specific
+lines
+linelimit
+selectcol
+selectbordersize
+selectshrinksize
+cursorsize
+textcenter
+chrlimit
+numsonly
+enterreturns
+commandifenter
+commandifkey
+
+### Table specific
+data
+titles
+boxwidth
+boxheight
+linesize
+
+### Scroller/Slider specific
+minp
+maxp
+startp
+#### Scroller
+scrollercol
+scrollerwidth
+pageheight
+#### Slider
+slidercol
+sliderbordercol
+slidersize
+increment
+sliderroundedcorners
+button
+direction
+containedslider
+
+### Windowed menu specific
+behindmenu
+isolated
+darken
+
 
 
