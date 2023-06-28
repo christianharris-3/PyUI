@@ -1119,6 +1119,8 @@ class GUI_ITEM:
 
         self.width = width
         self.height = height
+        self.startwidth = width
+        self.startheight = height
         self.roundedcorners = roundedcorners
         self.scalesize = scalesize
         self.scalex = scalex
@@ -1245,6 +1247,7 @@ class GUI_ITEM:
         
     def reset(self,ui):
         self.refreshscale(ui)
+        self.gentext(ui)
         self.autoscale(ui)
         self.refreshcords(ui)
         self.resetcords(ui)
@@ -1376,6 +1379,7 @@ class BUTTON(GUI_ITEM):
         if not self.ontable:
             self.refreshcords(ui)
         self.gentext(ui)
+        self.autoscale(ui)
     def child_gentext(self,ui):
         if (self.img != self.toggleimg) or (self.text != self.toggletext):
             if type(self.img) != list: imgs = [self.toggleimg]
@@ -1398,11 +1402,11 @@ class BUTTON(GUI_ITEM):
             self.toggletextimage = self.toggletextimages[0]
         
     def autoscale(self,ui):
-        self.gentext(ui)
-        imgsizes = [a.get_size() for a in self.textimages]+[a.get_size() for a in self.toggletextimages]
-        if self.width == -1:
+        imgsizes = [a.get_size() for a in self.textimages]
+        if self.toggleable: imgsizes+=[a.get_size() for a in self.toggletextimages]
+        if self.startwidth == -1:
             self.width = max([a[0] for a in imgsizes])/ui.scale+self.horizontalspacing*2+self.leftborder+self.rightborder
-        if self.height == -1:
+        if self.startheight == -1:
             self.height = max([a[1] for a in imgsizes])/ui.scale+self.verticalspacing*2+self.upperborder+self.lowerborder
     def child_refreshcords(self,ui):
         self.colliderect = pygame.Rect(self.x+self.leftborder,self.y+self.upperborder,self.width-self.leftborder-self.rightborder,self.height-self.upperborder-self.lowerborder)
