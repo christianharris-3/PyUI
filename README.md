@@ -19,6 +19,15 @@ ui.defaultbackingcol = (255,255,255)
 ui.defaultanimationspeed = 30
 ```
 
+## Menu System
+Every object in PyUI has a menu it is displayed on, with the current menu being stored in the ui.activemenu variable. When a new object is created it will be automatically placed on the 'main' menu.
+You can move between menus using 2 functions in the ui object:
+```py
+ui.movemenu('new menu','left')
+ui.menuback()
+```
+The menumove function will swap the activemenu to the menu entered, with an optional direction which will animate all menu objects moving away, and the all the objects on the new menu moving in making a clean slide from one menu to another. The menuback function will move to the previous activemenu and doing the reverse direction of the previous used slide. 
+
 ## Gui Objects
 There are several objects that can be made, each being produced through a command in the ui object, then being rendered through the rendergui() function.
 ### Buttons
@@ -60,4 +69,5 @@ ui.IDs['test button'].refresh(ui)
 ui.delete('test button')
 ```
 
-## Menu System
+
+
