@@ -193,7 +193,7 @@ class draw:
         draw.circle(surf,col,point2,width)
     def rect(surf,col,rect,width=0,border_radius=0):
         x,y,w,h = rect
-        radius = int(min([border_radius,rect[2]/2,rect[3]/2]))
+        radius = abs(int(min([border_radius,rect[2]/2,rect[3]/2])))
         pygame.draw.rect(surf,col,roundrect(x,y,w,h),int(width),int(border_radius))
         if border_radius != 0 and (radius*(1+(2**0.5)/2)<width or width==0):
             pygame.gfxdraw.aacircle(surf,x+radius,y+radius,radius,col)
@@ -2188,6 +2188,36 @@ class RECT(GUI_ITEM):
         
         
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+        
+
+        
+        
+                          
+
 
 
 
