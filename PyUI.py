@@ -571,18 +571,18 @@ class UI:
         pygame.draw.rect(surf,col,pygame.Rect(0,0,width,size),border_radius=int(size*rounded))
         return surf
     def rendershapeclock(self,name,size,col,backcol):
-        vals = self.getshapedata(name,['hour','minute','border','handwidth','circlewidth'],[0,20,0.05,0.05,0.05])
+        vals = self.getshapedata(name,['hour','minute','minutehandwidth','hourhandwidth','circlewidth'],[0,20,0.05,0.05,0.05])
         hour = vals[0]
         minute = vals[1]
-        border = vals[2]
-        handwidth = vals[3]
+        minutehandwidth = vals[2]
+        hourhandwidth = vals[3]
         circlewidth = vals[4]
         surf = pygame.Surface((size,size))
         surf.fill(backcol)
         pygame.draw.circle(surf,col,(size/2,size/2),size/2)
         pygame.draw.circle(surf,backcol,(size/2,size/2),size/2-size*circlewidth)
-        drawroundedline(surf,col,(size/2,size/2),(size/2+size*0.4*math.cos(math.pi*2*(minute/60)-math.pi/2),size/2+size*0.4*math.sin(math.pi*2*(minute/60)-math.pi/2)),size*handwidth)
-        drawroundedline(surf,col,(size/2,size/2),(size/2+size*0.25*math.cos(math.pi*2*(hour/12)-math.pi/2),size/2+size*0.25*math.sin(math.pi*2*(hour/12)-math.pi/2)),size*handwidth)
+        drawroundedline(surf,col,(size/2,size/2),(size/2+size*0.4*math.cos(math.pi*2*(minute/60)-math.pi/2),size/2+size*0.4*math.sin(math.pi*2*(minute/60)-math.pi/2)),size*minutehandwidth)
+        drawroundedline(surf,col,(size/2,size/2),(size/2+size*0.25*math.cos(math.pi*2*(hour/12)-math.pi/2),size/2+size*0.25*math.sin(math.pi*2*(hour/12)-math.pi/2)),size*hourhandwidth)
         return surf
     def rendershapebezier(self,name,size,col,backcol,failmessage):
         data = [['test thing', [[[(200, 100), (490, 220), (300, 40), (850, 340)], [(850, 340), (300, 200), (450, 350), (340, 430)], [(340, 430), (310, 250), (200, 310), (200, 100)]], [[(380, 440), (540, 360), (330, 240), (850, 370)], [(850, 370), (380, 440)]]]],
@@ -2168,20 +2168,6 @@ class RECT(GUI_ITEM):
         self.draw(screen,ui)
     def draw(self,screen,ui):
         pygame.draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-        
-        
-    
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2200,7 +2186,6 @@ class RECT(GUI_ITEM):
         
         
                           
-
 
 
 
