@@ -1,7 +1,13 @@
 # PyUI
 A gui module for pygame that allows for the creation of buttons, texstboxes, tables, text, sliders and scroll bars inside the pygame module. It acts as an add on to normal pygame code, and can be seamlessly integrated into pre existing code so a simple gui can be added.
-# Requirements
-The only module used is pygame, and the base code to integrate PyUI into a pygame project is under 
+# Requirements and file info
+The only module used is pygame, and the base code to integrate PyUI into a pygame project is under.
+- [PyUI.py](https://github.com/LazerWolfeGod/PyUI/blob/master/PyUI.py) This is the only file required to use the module.
+- [PyUI vector maker.py](https://github.com/LazerWolfeGod/PyUI/blob/master/PyUI%20vector%20maker.py) Used to create images inside PyUI, a simple vector image using bezier curves. Clicking the PyUI button will then output a list of numbers that can be placed into pyuis code for the images to be then usde inside of PyUI, see In build images section of documentation for more info.
+- [basic start.py](https://github.com/LazerWolfeGod/PyUI/blob/master/_basic%20start_.py) The code to create and init Pygame and PyUI, then create a game loop. Useful as a baseline for making something with PyUI.
+- [pyuitesting.py](https://github.com/LazerWolfeGod/PyUI/blob/master/pyuitesting.py) The program I use to develope and test PyUI, it contains several buttons,tables, textboxes etc.
+- [/old PyUI versions](https://github.com/LazerWolfeGod/PyUI/tree/master/old%20PyUI%20versions) A file containing all of the previous versions of PyUI while I was not using github.
+
 
 # Documentation
 ## Initialiazation
@@ -75,6 +81,9 @@ The screen can be dynamically scaled horizontally and vertically, so objects nee
 To make an object Always be in the center of the screen the anchor variable should be set to ('w/2','h/2'), this will take the height and width of the screen and set it relative to those lengths. The object anchor should also be set to the center of the object, which can either be done by setting it to ('w/2','h/2'), or just setting center=True, which will default the object center to that. And finally setting x and y to 0, as the objects center will be the same as the center of the screen.
 
 For a more complex example, an object that needs to be always 20 pixels from the bottom of the screen and its distance to the left side of the screen is always 10% the width of the screen. For this The anchor needs to be ('w*0.1','h-20'), this will ensure the width is always a tenth of the screens width, and the y is always 20 pixels lower than the screens height. The object anchor will then need to be the bottom left corner of the object, meaning it is (0,'h'), and lastly the x and y will still be 0 as these 2 points should be the same.
+
+## In built images
+
 
 ## Object variables
 All objects have a range of variables that can be changed to edit the object being made, most objects share similar variables and do the same job for each object so can be described in one, rather than a different set for each object.
