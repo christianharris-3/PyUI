@@ -83,7 +83,59 @@ To make an object Always be in the center of the screen the anchor variable shou
 For a more complex example, an object that needs to be always 20 pixels from the bottom of the screen and its distance to the left side of the screen is always 10% the width of the screen. For this The anchor needs to be ('w*0.1','h-20'), this will ensure the width is always a tenth of the screens width, and the y is always 20 pixels lower than the screens height. The object anchor will then need to be the bottom left corner of the object, meaning it is (0,'h'), and lastly the x and y will still be 0 as these 2 points should be the same.
 
 ## In built images
+When giving text into a PyUI object you can add a set of in built images giving a range of useful symbols. 
+There are 2 main types of images, those that are drawn manually and those drawn using [PyUI vector maker.py](https://github.com/LazerWolfeGod/PyUI/blob/master/PyUI%20vector%20maker.py) Used to create images inside PyUI, a simple vector image using bezier curves. Clicking the PyUI button will then output a list of numbers that can be placed into pyuis code for the images to be then usde inside of PyUI, see In build images section of documentation for more info.
+Those drawn manually have access to being edited as each has a set of variables that can be used to change properties of the image, which the vector based one is only one set image.
+The images can be added by placing the name of the image in {}, or leaving the brackets empty and setting the img variable to the image name.
+Setting an img to a loaded image with pygame.image.load('example.png') will not place it into the {}, but will completely overwrite the text.
+Manual images have variables that can be changed to edit the image, and all images can be given the suffix up, left or down to rotate it where the default direction is right.
 
+Example code:
+```py
+ui.maketext(100,100,'This is a cross {cross}')
+ui.makebutton(200,100,'This is lots of crosses {}{}{}{}{}',img='cross')
+ui.makebutton(300,100,'This is an small arrow pointing up {arrow stick=0.3 up}')
+```
+
+### Manual in built images
+most variables that edit the image shape are a value between 0 and 1 representing a percentage of the full size of the image.
+- 'tick' A simple tick shape.
+  - 'thickness' A variable that changes the thickness of the, default = 0.2
+- 'cross' A simple cross shape.
+  - 'width' The width of the lines on the cross, default = 0.1
+- 'arrow' A simple arrow with point and stick. the width of the image is based of the stick and point length.
+  - 'stick' The length of the stick of the arrow, default = 0.95
+  - 'point' The length of the point of the arrow, default = 0.45
+  - 'smooth' The amount of curve the corners of the arrow has, not recomended at low resolutions, default = 0
+  - 'width' The width of the stick of the arrow, default = 0.2
+- 'settings' The gear symbol commonly used to represent settings.
+  - 'innercircle' The radius of the inner circle, default = 0.15
+  - 'outercircle' The radius of the outer circle, default = 0.35
+  - 'prongs' The number of prongs the gear has, default = 6
+  - 'prongwidth' The width of each prong, default = 0.2
+  - 'prongsteepness' Controls angle of the prongs, default = 1.1
+- 'play' A simple play button triangle.
+  - 'rounded' Rounds the corners of the triangle, default = 0
+- 'pause' Two rectangles to represent a pause button
+  - 'rounded' Rounds the corners of the Rectangle, default = 0
+- 'skip' A rectange and play image together, giving a skip simbol.
+  - 'rounded' Rounds the rectangle and play image, defulat = 0
+  - 'thickness' Changes the width of the rectangle, default = 0.25
+  - 'offset' Changes the x position of the rectangle relative to the triangle, default = -0.35
+- 'clock' A simple clock image with minute and hour hand.
+  - 'hour' sets the position of the hour hand on the clock, default = 0
+  - 'minute' sets the position of the minute hand on the clock, default = 20
+  - 'minutehandwidth' sets the width of the minute hand, default = 0.05
+  - 'hourhandwidth' sets the width of the hour hand, default = 0.05
+  - 'circlewidth' sets the width of the outer circle, default = 0.05
+
+### Vector in built images
+- 'heart' A heart
+- 'smiley' A simple smiley face
+- 'happy face' Same thing as smiley just it looks more happy
+- 'search' The magnifying glass image generally used for a search function
+- 'shuffle' The twisting arrows image used to represent shuffle 
+- 'pfp' The monochrome head and shoulders shape
 
 ## Object variables
 All objects have a range of variables that can be changed to edit the object being made, most objects share similar variables and do the same job for each object so can be described in one, rather than a different set for each object.
