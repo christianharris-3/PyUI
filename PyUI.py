@@ -1,4 +1,5 @@
 import pygame,random,math,time,copy,ctypes
+import pygame.gfxdraw
 pygame.init()
 
 def resource_path(relative_path):
@@ -28,21 +29,6 @@ def normalizelist(lis,sumto=1):
         return newlis
     else:
         return lis
-
-def drawroundedline(surf,col,point1,point2,width):
-    if point1[0]-point2[0] != 0:
-        grad = (point1[1]-point2[1])/(point1[0]-point2[0])
-        if grad != 0: invgrad = -1/grad
-        else: invgrad = 100000
-    else: invgrad = 0
-    ang = math.atan(invgrad)
-    points = [(point1[0]+math.cos(ang)*width,point1[1]+math.sin(ang)*width),
-              (point1[0]-math.cos(ang)*width,point1[1]-math.sin(ang)*width),
-              (point2[0]-math.cos(ang)*width,point2[1]-math.sin(ang)*width),
-              (point2[0]+math.cos(ang)*width,point2[1]+math.sin(ang)*width)]
-    pygame.draw.polygon(surf,col,points)
-    pygame.draw.circle(surf,col,point1,width)
-    pygame.draw.circle(surf,col,point2,width)
 
 def colav(col1,col2,weight):
     return (col1[0]+(col2[0]-col1[0])*weight,col1[1]+(col2[1]-col1[1])*weight,col1[2]+(col2[2]-col1[2])*weight)
@@ -166,30 +152,61 @@ def linecirclecross(L1,L2):
         return True,[xcross2,ycross2]
     return False,0
 
-def bezierpoints(roots,progress,detail):
-    #print(roots)
-    npoints = []
-    for a in range(len(roots)-1):
-        npoints.append((roots[a][0]+(roots[a+1][0]-roots[a][0])*(progress/detail),roots[a][1]+(roots[a+1][1]-roots[a][1])*(progress/detail)))
-    if len(npoints)>0:
-        point = bezierpoints(npoints,progress,detail)
-    else:
-        point = roots[0]
-    return point
-def bezierdrawer(points,width,commandpoints=True,detail=200):
-    curvepoints = []
-    for a in range(detail):
-        curvepoints.append(bezierpoints(points,a,detail))
-    curvepoints.append(points[-1])
-    if commandpoints:
-        pygame.draw.aalines(screen,(0,0,0),False,curvepoints)
-        if len(points) == 4:
-            pygame.draw.line(screen,(100,100,100),points[0],points[1])
-            pygame.draw.line(screen,(100,100,100),points[2],points[3])
+class draw:
+    def bezierpoints(roots,progress,detail):
+        #print(roots)
+        npoints = []
+        for a in range(len(roots)-1):
+            npoints.append((roots[a][0]+(roots[a+1][0]-roots[a][0])*(progress/detail),roots[a][1]+(roots[a+1][1]-roots[a][1])*(progress/detail)))
+        if len(npoints)>0:
+            point = draw.bezierpoints(npoints,progress,detail)
         else:
-            pygame.draw.lines(screen,(100,100,100),False,points)
-    return curvepoints
-
+            point = roots[0]
+        return point
+    def bezierdrawer(points,width,commandpoints=True,detail=200):
+        curvepoints = []
+        for a in range(detail):
+            curvepoints.append(draw.bezierpoints(points,a,detail))
+        curvepoints.append(points[-1])
+        if commandpoints:
+            pygame.draw.aalines(screen,(0,0,0),False,curvepoints)
+            if len(points) == 4:
+                pygame.draw.line(screen,(100,100,100),points[0],points[1])
+                pygame.draw.line(screen,(100,100,100),points[2],points[3])
+            else:
+                pygame.draw.lines(screen,(100,100,100),False,points)
+        return curvepoints
+    def roundedline(surf,col,point1,point2,width):
+        if point1[0]-point2[0] != 0:
+            grad = (point1[1]-point2[1])/(point1[0]-point2[0])
+            if grad != 0: invgrad = -1/grad
+            else: invgrad = 100000
+        else: invgrad = 0
+        ang = math.atan(invgrad)
+        points = [(point1[0]+math.cos(ang)*width,point1[1]+math.sin(ang)*width),
+                  (point1[0]-math.cos(ang)*width,point1[1]-math.sin(ang)*width),
+                  (point2[0]-math.cos(ang)*width,point2[1]-math.sin(ang)*width),
+                  (point2[0]+math.cos(ang)*width,point2[1]+math.sin(ang)*width)]
+        pygame.gfxdraw.aapolygon(surf,points,col)
+        pygame.gfxdraw.filled_polygon(surf,points,col)
+        draw.circle(surf,col,point1,width)
+        draw.circle(surf,col,point2,width)
+    def rect(surf,col,rect,width=0,border_radius=0):
+        x,y,w,h = rect
+        radius = int(min([border_radius,rect[2]/2,rect[3]/2]))
+        pygame.draw.rect(surf,col,roundrect(x,y,w,h),int(width),int(border_radius))
+        if border_radius != 0 and (radius*(1+(2**0.5)/2)<width or width==0):
+            pygame.gfxdraw.aacircle(surf,x+radius,y+radius,radius,col)
+            pygame.gfxdraw.aacircle(surf,x+w-radius-1,y+radius,radius,col)
+            pygame.gfxdraw.aacircle(surf,x+w-radius-1,y+h-radius-1,radius,col)
+            pygame.gfxdraw.aacircle(surf,x+radius,y+h-radius-1,radius,col)
+    def circle(surf,col,center,radius):
+        pygame.gfxdraw.filled_circle(surf,int(center[0]),int(center[1]),int(radius),col)
+        pygame.gfxdraw.aacircle(surf,int(center[0]),int(center[1]),int(radius),col)
+    def polygon(surf,col,points):
+        pygame.gfxdraw.aapolygon(surf,points,col)
+        pygame.gfxdraw.filled_polygon(surf,points,col)
+    
 class UI:
     def __init__(self,scale=1):
         pygame.key.set_repeat(350,31)
@@ -402,7 +419,7 @@ class UI:
         largetext = pygame.font.SysFont(font,int(size),bold)
         images.append(largetext.render(texts[0], antialiasing, col))
         for a in range(len(texts)-1):
-            images.append(self.rendershape(imagenames[a],size,col,False))
+            images.append(self.rendershape(imagenames[a],size,col,False,backcol=backingcol))
             images.append(largetext.render(texts[a+1], antialiasing, col))
         textsurf = pygame.Surface((sum([a.get_width() for a in images]),max([a.get_height() for a in images])))
         textsurf.fill(backingcol)
@@ -414,9 +431,8 @@ class UI:
         textsurf.set_colorkey(backingcol)
         return textsurf
 
-    def rendershape(self,name,size,col='default',failmessage=True):
+    def rendershape(self,name,size,col='default',failmessage=True,backcol=(255,255,255)):
         if col == 'default': col = self.defaulttextcol
-        backcol = (255,255,255)
         if col == backcol: backcol = (0,0,0)
         if name[:4] == 'tick':
             surf = self.rendershapetick(name,size,col,backcol)
@@ -475,7 +491,7 @@ class UI:
         for a in npoints[1]:
             a[1]-=size*0.015
         for a in npoints:
-            pygame.draw.polygon(surf,col,a)
+            draw.polygon(surf,col,a)
         surf = pygame.transform.scale(surf,(tsize,tsize))
         return surf
     def rendershapearrow(self,name,size,col,backcol):
@@ -487,19 +503,19 @@ class UI:
         surf = pygame.Surface((size*(sticklen+pointlen+0.1),size*0.7))
         surf.fill(backcol)
         if smooth:
-            drawroundedline(surf,col,(size*(width+0.05),size*0.35),(size*(sticklen+pointlen+0.05-width),size*0.35),width*size)
-            drawroundedline(surf,col,(size*(sticklen+0.05),size*(0.05+width)),(size*(sticklen+pointlen+0.05-width),size*0.35),width*size)
-            drawroundedline(surf,col,(size*(sticklen+0.05),size*(0.7-0.05-width)),(size*(sticklen+pointlen+0.05-width),size*0.35),width*size)
+            draw.roundedline(surf,col,(size*(width+0.05),size*0.35),(size*(sticklen+pointlen+0.05-width),size*0.35),width*size)
+            draw.roundedline(surf,col,(size*(sticklen+0.05),size*(0.05+width)),(size*(sticklen+pointlen+0.05-width),size*0.35),width*size)
+            draw.roundedline(surf,col,(size*(sticklen+0.05),size*(0.7-0.05-width)),(size*(sticklen+pointlen+0.05-width),size*0.35),width*size)
         else:
-            pygame.draw.polygon(surf,col,((size*0.05,size*0.25),(size*(sticklen+0.05),size*0.25),(size*(sticklen+0.05),size*0.05),(size*(sticklen+pointlen+0.05),size*0.35),(size*(sticklen+0.05),size*0.65),(size*(sticklen+0.05),size*0.45),(size*0.05,size*0.45)))
+            draw.polygon(surf,col,((size*0.05,size*0.25),(size*(sticklen+0.05),size*0.25),(size*(sticklen+0.05),size*0.05),(size*(sticklen+pointlen+0.05),size*0.35),(size*(sticklen+0.05),size*0.65),(size*(sticklen+0.05),size*0.45),(size*0.05,size*0.45)))
         return surf
     def rendershapecross(self,name,size,col,backcol):
         vals = self.getshapedata(name,['width'],[0.1])
         width = vals[0]
         surf = pygame.Surface((size,size))
         surf.fill(backcol)
-        drawroundedline(surf,col,(size*width,size*width),(size*(1-width),size*(1-width)),size*width)
-        drawroundedline(surf,col,(size*(1-width),size*width),(size*width,size*(1-width)),size*width)
+        draw.roundedline(surf,col,(size*width,size*width),(size*(1-width),size*(1-width)),size*width)
+        draw.roundedline(surf,col,(size*(1-width),size*width),(size*width,size*(1-width)),size*width)
         return surf
     def rendershapesettings(self,name,size,col,backcol):
         surf = pygame.Surface((size,size))
@@ -510,8 +526,8 @@ class UI:
         prongs = int(vals[2])
         prongwidth = vals[3]
         prongsteepness = vals[4]
-        pygame.draw.circle(surf,col,(size*0.5,size*0.5),size*outercircle)
-        pygame.draw.circle(surf,backcol,(size*0.5,size*0.5),size*innercircle)
+        draw.circle(surf,col,(size*0.5,size*0.5),size*outercircle)
+        draw.circle(surf,backcol,(size*0.5,size*0.5),size*innercircle)
         width=prongwidth
         innerwidth=width+math.sin(width)*prongsteepness
         points = []
@@ -520,7 +536,7 @@ class UI:
             ang = (math.pi*2)*a/prongs
             points.append([((math.sin(ang-width)*0.5*0.95+0.5)*size,(math.cos(ang-width)*0.5*0.95+0.5)*size),((math.sin(ang+width)*0.5*0.95+0.5)*size,(math.cos(ang+width)*0.5*0.95+0.5)*size),((math.sin(ang+innerwidth)*0.5*(outercircle*2)+0.5)*size,(math.cos(ang+innerwidth)*0.5*(outercircle*2)+0.5)*size),((math.sin(ang-innerwidth)*0.5*(outercircle*2)+0.5)*size,(math.cos(ang-innerwidth)*0.5*(outercircle*2)+0.5)*size)])
         for a in points:
-            pygame.draw.polygon(surf,col,a)
+            draw.polygon(surf,col,a)
         return surf
     def rendershapeplay(self,name,size,col,backcol):
         vals = self.getshapedata(name,['rounded'],[0.0])
@@ -532,16 +548,16 @@ class UI:
         for a in range(len(points)):
             points[a][0]+=realign
         for a in range(len(points)):
-            drawroundedline(surf,col,points[a],points[a-1],size*rounded/2)
-        pygame.draw.polygon(surf,col,points)
+            draw.roundedline(surf,col,points[a],points[a-1],size*rounded/2)
+        draw.polygon(surf,col,points)
         return surf
     def rendershapepause(self,name,size,col,backcol):
         surf = pygame.Surface((size*0.75,size))
         surf.fill(backcol)
         vals = self.getshapedata(name,['rounded'],[0.0])
         rounded = vals[0]
-        pygame.draw.rect(surf,col,pygame.Rect(0,0,size*0.25,size),border_radius=int(size*rounded))
-        pygame.draw.rect(surf,col,pygame.Rect(size*0.5,0,size*0.25,size),border_radius=int(size*rounded))
+        draw.rect(surf,col,pygame.Rect(0,0,size*0.25,size),border_radius=int(size*rounded))
+        draw.rect(surf,col,pygame.Rect(size*0.5,0,size*0.25,size),border_radius=int(size*rounded))
         return surf
     def rendershapeskip(self,name,size,col,backcol):
         vals = self.getshapedata(name,['rounded','thickness','offset'],[0,0.25,-0.35])
@@ -553,7 +569,7 @@ class UI:
         surf = pygame.Surface((max([size*(rounded+(1-rounded)*(3**0.5)/2),size+(offset+thickness)*size]),size))
         surf.fill(backcol)
         surf.blit(self.rendershapeplay(name,size,col,backcol),(-realign,0))
-        pygame.draw.rect(surf,col,pygame.Rect(size+size*offset,0,size*thickness,size),border_radius=int(size*rounded))
+        draw.rect(surf,col,pygame.Rect(size+size*offset,0,size*thickness,size),border_radius=int(size*rounded))
         return surf
     def rendershapecircle(self,name,size,col,backcol):
         vals = self.getshapedata(name,['width'],[1])
@@ -568,7 +584,7 @@ class UI:
         width = vals[1]*self.scale
         surf = pygame.Surface((width,size))
         surf.fill(backcol)
-        pygame.draw.rect(surf,col,pygame.Rect(0,0,width,size),border_radius=int(size*rounded))
+        draw.rect(surf,col,pygame.Rect(0,0,width,size),border_radius=int(size*rounded))
         return surf
     def rendershapeclock(self,name,size,col,backcol):
         vals = self.getshapedata(name,['hour','minute','minutehandwidth','hourhandwidth','circlewidth'],[0,20,0.05,0.05,0.05])
@@ -579,10 +595,10 @@ class UI:
         circlewidth = vals[4]
         surf = pygame.Surface((size,size))
         surf.fill(backcol)
-        pygame.draw.circle(surf,col,(size/2,size/2),size/2)
-        pygame.draw.circle(surf,backcol,(size/2,size/2),size/2-size*circlewidth)
-        drawroundedline(surf,col,(size/2,size/2),(size/2+size*0.4*math.cos(math.pi*2*(minute/60)-math.pi/2),size/2+size*0.4*math.sin(math.pi*2*(minute/60)-math.pi/2)),size*minutehandwidth)
-        drawroundedline(surf,col,(size/2,size/2),(size/2+size*0.25*math.cos(math.pi*2*(hour/12)-math.pi/2),size/2+size*0.25*math.sin(math.pi*2*(hour/12)-math.pi/2)),size*hourhandwidth)
+        draw.circle(surf,col,(size/2,size/2),size/2)
+        draw.circle(surf,backcol,(size/2,size/2),size/2-size*circlewidth)
+        draw.roundedline(surf,col,(size/2,size/2),(size/2+size*0.4*math.cos(math.pi*2*(minute/60)-math.pi/2),size/2+size*0.4*math.sin(math.pi*2*(minute/60)-math.pi/2)),size*minutehandwidth)
+        draw.roundedline(surf,col,(size/2,size/2),(size/2+size*0.25*math.cos(math.pi*2*(hour/12)-math.pi/2),size/2+size*0.25*math.sin(math.pi*2*(hour/12)-math.pi/2)),size*hourhandwidth)
         return surf
     def rendershapebezier(self,name,size,col,backcol,failmessage):
         data = [['test thing', [[[(200, 100), (490, 220), (300, 40), (850, 340)], [(850, 340), (300, 200), (450, 350), (340, 430)], [(340, 430), (310, 250), (200, 310), (200, 100)]], [[(380, 440), (540, 360), (330, 240), (850, 370)], [(850, 370), (380, 440)]]]],
@@ -590,8 +606,8 @@ class UI:
                 ['shuffle', [[[(275, 200), (450, 200), (450, 400), (600, 400)], [(600, 400), (600, 350)], [(600, 350), (675, 425)], [(675, 425), (600, 500)], [(600, 500), (600, 450)], [(600, 450), (425, 450), (425, 250), (275, 250)], [(275, 250), (275, 200)]], [[(275, 400), (275, 450)], [(275, 450), (360, 450), (420, 390)], [(420, 390), (385, 345)], [(385, 345), (350, 390), (275, 400)]], [[(600, 250), (600, 300)], [(600, 300), (675, 225)], [(675, 225), (600, 150)], [(600, 150), (600, 200)], [(600, 200), (500, 200), (455, 260)], [(455, 260), (490, 300)], [(490, 300), (530, 255), (600, 250)]]]],
                 ['penis', [[[(560, 540), (670, 440), (690, 320), (690, 200)], [(690, 200), (680, -10), (620, 60), (610, 190)], [(610, 190), (600, 310), (570, 410), (510, 470)], [(510, 470), (440, 520), (480, 570), (560, 540)]], [[(490, 500), (370, 560), (280, 420), (440, 300), (570, 420), (540, 460)], [(540, 460), (490, 500)]], [[(560, 500), (650, 430), (810, 470), (610, 730), (470, 650), (530, 540)], [(530, 540), (560, 500)]]]],
                 ['pfp', [[[(340, 430), (710, 430)], [(710, 430), (650, 280), (380, 280), (340, 430)]], [[(510, 280), (400, 280), (400, 50), (630, 50), (630, 280), (510, 280)]]]],
-                ['face', [[[(560, 460), (310, 460), (310, 40), (810, 40), (810, 460), (560, 460)], [(560, 460), (560, 430)], [(560, 430), (380, 430), (380, 120), (740, 120), (740, 430), (560, 430)], [(560, 430), (560, 460)]], [[(630, 350), (560, 470), (500, 350)], [(500, 350), (560, 420), (630, 350)]], [[(490, 290), (520, 340), (550, 290)], [(550, 290), (520, 280), (490, 290)]], [[(570, 290), (600, 340), (630, 290)], [(630, 290), (600, 280), (570, 290)]]]],
-                ['face2', [[[(560, 460), (310, 460), (310, 40), (810, 40), (810, 460), (560, 460)], [(560, 460), (560, 430)], [(560, 430), (380, 430), (380, 120), (740, 120), (740, 430), (560, 430)], [(560, 430), (560, 460)]], [[(590, 350), (560, 470), (530, 350)], [(530, 350), (570, 360), (590, 350)]], [[(490, 290), (520, 340), (550, 290)], [(550, 290), (520, 280), (490, 290)]], [[(570, 290), (600, 340), (630, 290)], [(630, 290), (600, 280), (570, 290)]]]],
+                ['smiley', [[[(560, 460), (310, 460), (310, 40), (810, 40), (810, 460), (560, 460)], [(560, 460), (560, 430)], [(560, 430), (380, 430), (380, 120), (740, 120), (740, 430), (560, 430)], [(560, 430), (560, 460)]], [[(630, 350), (560, 470), (500, 350)], [(500, 350), (560, 420), (630, 350)]], [[(490, 290), (520, 340), (550, 290)], [(550, 290), (520, 280), (490, 290)]], [[(570, 290), (600, 340), (630, 290)], [(630, 290), (600, 280), (570, 290)]]]],
+                ['happy face', [[[(560, 460), (310, 460), (310, 40), (810, 40), (810, 460), (560, 460)], [(560, 460), (560, 430)], [(560, 430), (380, 430), (380, 120), (740, 120), (740, 430), (560, 430)], [(560, 430), (560, 460)]], [[(590, 350), (560, 470), (530, 350)], [(530, 350), (570, 360), (590, 350)]], [[(490, 290), (520, 340), (550, 290)], [(550, 290), (520, 280), (490, 290)]], [[(570, 290), (600, 340), (630, 290)], [(630, 290), (600, 280), (570, 290)]]]],
                 ['heart', [[[(549, 526), (528, 483), (444, 462), (444, 399)], [(444, 399), (444, 357), (486, 315), (549, 357)], [(549, 357), (612, 315), (654, 357), (654, 399)], [(654, 399), (654, 462), (570, 483), (549, 526)]]]],
                 ]
         for a in self.images:
@@ -617,7 +633,7 @@ class UI:
         for b in splines:
             points = []
             for a in b:
-                points+=bezierdrawer([((a[c][0]-minus1[0])*mul1,(a[c][1]-minus1[1])*mul1) for c in range(len(a))],0,False)
+                points+=draw.bezierdrawer([((a[c][0]-minus1[0])*mul1,(a[c][1]-minus1[1])*mul1) for c in range(len(a))],0,False)
             polys.append(points)
         boundingbox = [1000,1000,0,0]   
         for a in polys:
@@ -633,7 +649,7 @@ class UI:
         for b in splines:
             points = []
             for a in b:
-                points+=bezierdrawer([(((a[c][0]-minus1[0])*mul1-minus[0])*mul,((a[c][1]-minus1[1])*mul1-minus[1])*mul) for c in range(len(a))],0,False)
+                points+=draw.bezierdrawer([(((a[c][0]-minus1[0])*mul1-minus[0])*mul,((a[c][1]-minus1[1])*mul1-minus[1])*mul) for c in range(len(a))],0,False)
             pygame.draw.polygon(surf,col,points)
 
         return surf
@@ -690,7 +706,7 @@ class UI:
                 if textgen.size(lines[0])[0] != imgchr :
                     chrwidth = textgen.size(lines[0])[0]
                 else:
-                    chrwidth = self.rendershape(imgnames[imgwidthid],size,col).get_width()
+                    chrwidth = self.rendershape(imgnames[imgwidthid],size,col,backcol=self.col).get_width()
                 while chrwidth>width:
                     split = lines[0].rsplit(' ',1)
                     if len(split)>1:
@@ -710,7 +726,7 @@ class UI:
                     if textgen.size(lines[0])[0] != imgchr :
                         chrwidth = textgen.size(lines[0])[0]
                     else:
-                        chrwidth = self.rendershape(imgnames[imgwidthid],size,col).get_width()
+                        chrwidth = self.rendershape(imgnames[imgwidthid],size,col,backcol=self.col).get_width()
             if imgin:
                 while lines[0].count(imgchr) != 0:
                     lines[0] = lines[0].replace(imgchr,'{'+imgnames[imgwidthid]+'}',1)
@@ -1101,7 +1117,7 @@ class GUI_ITEM:
                  command=emptyfunction,runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,maxwidth=-1,
                  dragable=False,colorkey=(255,255,255),toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=0,horizontalspacing=8,
                  lines=1,linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=True,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,
-                 data='empty',titles=[],boxwidth=-1,boxheight=-1,linesize=2,datatable=[],
+                 data='empty',titles=[],boxwidth=-1,boxheight=-1,linesize=2,
                  backingdraw=True,borderdraw=True,animationspeed=5,scrollercol=-1,scrollerwidth=-1,pageheight=15,
                  slidercol=-1,sliderbordercol=-1,slidersize=-1,increment=0,sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',containedslider=False,
                  behindmenu='main',isolated=True,darken=60):
@@ -1208,7 +1224,6 @@ class GUI_ITEM:
 
         self.data = data
         self.titles = titles
-        self.datatable = datatable
         self.linesize = linesize
         self.boxwidth = boxwidth
         self.boxheight = boxheight
@@ -1405,9 +1420,9 @@ class BUTTON(GUI_ITEM):
         imgsizes = [a.get_size() for a in self.textimages]
         if self.toggleable: imgsizes+=[a.get_size() for a in self.toggletextimages]
         if self.startwidth == -1:
-            self.width = max([a[0] for a in imgsizes])/ui.scale+self.horizontalspacing*2+self.leftborder+self.rightborder
+            self.width = max([a[0] for a in imgsizes])/self.scale+self.horizontalspacing*2+self.leftborder+self.rightborder
         if self.startheight == -1:
-            self.height = max([a[1] for a in imgsizes])/ui.scale+self.verticalspacing*2+self.upperborder+self.lowerborder
+            self.height = max([a[1] for a in imgsizes])/self.scale+self.verticalspacing*2+self.upperborder+self.lowerborder
     def child_refreshcords(self,ui):
         self.colliderect = pygame.Rect(self.x+self.leftborder,self.y+self.upperborder,self.width-self.leftborder-self.rightborder,self.height-self.upperborder-self.lowerborder)
     def render(self,screen,ui):
@@ -1429,9 +1444,9 @@ class BUTTON(GUI_ITEM):
             if not self.toggle: col = self.togglehovercol
             else: col = self.hovercol
         if self.borderdraw:
-            if self.backingdraw: pygame.draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-            else: pygame.draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),int((self.border+self.clickdownsize*self.holding)*self.scale),border_radius=int(self.roundedcorners*self.scale))
-        if self.backingdraw: pygame.draw.rect(screen,col,innerrect,border_radius=int((self.roundedcorners-self.border)*self.scale))
+            if self.backingdraw: draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            else: draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),int((self.border+self.clickdownsize*self.holding)*self.scale),border_radius=int(self.roundedcorners*self.scale))
+        if self.backingdraw: draw.rect(screen,col,innerrect,border_radius=int((self.roundedcorners-self.border)*self.scale))
         if self.toggle:
             screen.blit(self.textimage,(self.x*self.dirscale[0]+((self.width-self.leftborder-self.rightborder)/2+self.leftborder+self.textoffsetx)*self.scale-self.textimage.get_width()/2,self.y*self.dirscale[1]+((self.height-self.upperborder-self.lowerborder)/2+self.upperborder+self.textoffsety)*self.scale-self.textimage.get_height()/2))
         else:
@@ -1689,13 +1704,14 @@ class TEXTBOX(GUI_ITEM):
             return strpos
     def draw(self,screen,ui):
         if self.borderdraw:
-            pygame.draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-        if self.selected: pygame.draw.rect(screen,self.selectcol,self.selectrect,int(self.selectbordersize*self.scale),border_radius=int((self.roundedcorners+self.selectbordersize)*self.scale))
+            draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+        if self.selected:
+            draw.rect(screen,self.selectcol,self.selectrect,int(self.selectbordersize*self.scale),border_radius=int((self.roundedcorners+self.selectbordersize)*self.scale))
 
         surf = pygame.Surface(((self.width-self.leftborder-self.rightborder-self.scrolleron*self.scroller.width)*self.scale,(self.height-self.upperborder-self.lowerborder)*self.scale))
-        surf.fill((199,77,166))
-        pygame.draw.rect(surf,self.col,(0,0,surf.get_width(),surf.get_height()),border_radius=int(self.roundedcorners*self.scale))
-        surf.set_colorkey((199,77,166))
+        surf.fill(self.backingcol)
+        draw.rect(surf,self.col,(0,0,surf.get_width(),surf.get_height()),border_radius=int(self.roundedcorners*self.scale))
+        surf.set_colorkey(self.backingcol)
 
         offset = (0,self.scroller.scroll)
         surf.blit(self.textimage,(self.textimagerect.x*self.scale,(self.textimagerect.y-self.scroller.scroll)*self.scale))
@@ -1743,7 +1759,8 @@ class TABLE(GUI_ITEM):
         if len(self.titles)!=0:
             temp.insert(0,copy.copy(self.titles))
         self.rows = len(temp)
-        self.columns = max([len(a) for a in temp])
+        if self.rows == 0: self.columns = 0
+        else: self.columns = max([len(a) for a in temp])
         
         for a in range(len(temp)):
             while len(temp[a])<self.columns:
@@ -1868,7 +1885,7 @@ class TABLE(GUI_ITEM):
         
     def draw(self,screen,ui):
         if self.borderdraw:
-            pygame.draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
         for y in range(self.rows):
             for x in range(self.columns):
                 #pygame.draw.rect(screen,self.col,pygame.Rect(self.x*self.dirscale[0]+(self.linesize*(x+1)+self.boxwidthsinc[x])*self.scale,self.y*self.dirscale[1]+(self.linesize*(y+1)+self.boxheightsinc[y])*self.scale,self.boxwidths[x]*self.scale,self.boxheights[y]*self.scale),border_radius=int(self.roundedcorners*scale))
@@ -1894,9 +1911,9 @@ class TEXT(GUI_ITEM):
         self.draw(screen,ui)
     def draw(self,screen,ui):
         if self.backingdraw:
-            pygame.draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
         if self.borderdraw:
-            pygame.draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.border,border_radius=int(self.roundedcorners*self.scale))
+            draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.border,border_radius=int(self.roundedcorners*self.scale))
         if self.pregenerated:
             if self.textcenter:
                 screen.blit(self.textimage,(self.x*self.dirscale[0]+self.width/2*self.scale-self.textimage.get_width()/2,self.y*self.dirscale[1]+self.height/2*self.scale-self.textimage.get_height()/2))
@@ -1947,8 +1964,8 @@ class SCROLLER(GUI_ITEM):
         self.sliderrect = pygame.Rect(self.x+self.border,self.y+self.border+self.scroll*(self.scheight/(self.maxp-self.minp)),self.scrollerwidth,self.scrollerheight)
     def draw(self,screen,ui):
         if (self.maxp-self.minp)>self.pageheight:
-            pygame.draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-            pygame.draw.rect(screen,self.scrollercol,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            draw.rect(screen,self.scrollercol,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale),border_radius=int(self.roundedcorners*self.scale))
 
 class SLIDER(GUI_ITEM):
     def reset(self,ui):
@@ -2026,9 +2043,9 @@ class SLIDER(GUI_ITEM):
     def draw(self,screen,ui):
         pygame.draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
         if self.direction == 'vertical':
-            pygame.draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,(self.width-self.leftborder-self.rightborder)*self.scale,((self.height-self.upperborder-self.lowerborder-self.button.height*self.containedslider)*((self.slider-self.minp)/(self.maxp-self.minp))+self.button.height*self.containedslider)*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,(self.width-self.leftborder-self.rightborder)*self.scale,((self.height-self.upperborder-self.lowerborder-self.button.height*self.containedslider)*((self.slider-self.minp)/(self.maxp-self.minp))+self.button.height*self.containedslider)*self.scale),border_radius=int(self.roundedcorners*self.scale))
         else:
-            pygame.draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,((self.width-self.leftborder-self.rightborder-self.button.width*self.containedslider)*((self.slider-self.minp)/(self.maxp-self.minp))+self.button.width*self.containedslider)*self.scale,(self.height-self.upperborder-self.lowerborder)*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,((self.width-self.leftborder-self.rightborder-self.button.width*self.containedslider)*((self.slider-self.minp)/(self.maxp-self.minp))+self.button.width*self.containedslider)*self.scale,(self.height-self.upperborder-self.lowerborder)*self.scale),border_radius=int(self.roundedcorners*self.scale))
 
 
 
@@ -2167,25 +2184,10 @@ class RECT(GUI_ITEM):
         self.getclickedon(ui)
         self.draw(screen,ui)
     def draw(self,screen,ui):
-        pygame.draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-
-
-
-
-
-
-
-
-
-
-
-
+        draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+        
+        
     
-        
-
-        
-        
-                          
 
 
 
