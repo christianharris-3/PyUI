@@ -1,8 +1,8 @@
-import pygame,random,math,time,copy,ctypes
+import pygame,random,math,time,copy,ctypes,os
 import pygame.gfxdraw
 pygame.init()
 
-def resource_path(relative_path):
+def resourcepath(relative_path):
     try:
         base_path = sys._MEIPASS
     except Exception:
@@ -1897,14 +1897,14 @@ class TABLE(GUI_ITEM):
 class TEXT(GUI_ITEM):
     def reset(self,ui):
         self.refreshscale(ui)
+        self.gentext(ui)
         self.autoscale(ui)
         self.resetcords(ui)
         self.refreshcords(ui)
     def autoscale(self,ui):
-        self.gentext(ui)
-        if self.width == -1:
+        if self.startwidth == -1:
             self.width = self.textimage.get_width()/self.scale+self.horizontalspacing*2
-        if self.height == -1:
+        if self.startheight == -1:
             self.height = self.textimage.get_height()/self.scale+self.verticalspacing*2
     def render(self,screen,ui):
         self.animatetext(ui)
@@ -1926,7 +1926,7 @@ class TEXT(GUI_ITEM):
         if not self.ontable:
             self.refreshscale(ui)
         self.gentext(ui)
-        
+        self.autoscale(ui)
         if not self.ontable:
             self.refreshcords(ui)
 
@@ -2199,8 +2199,3 @@ class RECT(GUI_ITEM):
         draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
         
         
-    
-
-
-
-
