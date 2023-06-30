@@ -512,7 +512,7 @@ class UI:
     def rendershapecross(self,name,size,col,backcol):
         vals = self.getshapedata(name,['width'],[0.1])
         width = vals[0]
-        surf = pygame.Surface((size,size))
+        surf = pygame.Surface((size+1,size+1))
         surf.fill(backcol)
         draw.roundedline(surf,col,(size*width,size*width),(size*(1-width),size*(1-width)),size*width)
         draw.roundedline(surf,col,(size*(1-width),size*width),(size*width,size*(1-width)),size*width)
@@ -593,7 +593,7 @@ class UI:
         minutehandwidth = vals[2]
         hourhandwidth = vals[3]
         circlewidth = vals[4]
-        surf = pygame.Surface((size,size))
+        surf = pygame.Surface((size+1,size+1))
         surf.fill(backcol)
         draw.circle(surf,col,(size/2,size/2),size/2)
         draw.circle(surf,backcol,(size/2,size/2),size/2-size*circlewidth)
@@ -2026,7 +2026,13 @@ class SLIDER(GUI_ITEM):
     def render(self,screen,ui):
         self.draw(screen,ui)
         if self.button.holding: self.movetomouse(ui)
+##        if self.movetomouse: self.movebuttontoclick(ui)
+        self.movebuttontoclick(ui)
         self.button.draw(screen,ui)
+    def movebuttontoclick(self,ui):
+        self.getclickedon(ui,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),False,False)
+        if self.clickedon == 0:
+            print('make this move the slider')
     def movetomouse(self,ui):
         self.slider = (ui.mpos[0]*ui.scale-self.x*self.dirscale[0]-self.leftborder*self.scale)/((self.width-self.leftborder-self.rightborder)*self.scale/(self.maxp-self.minp))+self.minp
         if self.direction == 'vertical':
@@ -2041,7 +2047,7 @@ class SLIDER(GUI_ITEM):
         self.refreshbuttoncords(ui)
 
     def draw(self,screen,ui):
-        pygame.draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+        draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
         if self.direction == 'vertical':
             draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,(self.width-self.leftborder-self.rightborder)*self.scale,((self.height-self.upperborder-self.lowerborder-self.button.height*self.containedslider)*((self.slider-self.minp)/(self.maxp-self.minp))+self.button.height*self.containedslider)*self.scale),border_radius=int(self.roundedcorners*self.scale))
         else:
@@ -2184,7 +2190,7 @@ class RECT(GUI_ITEM):
         self.getclickedon(ui)
         self.draw(screen,ui)
     def draw(self,screen,ui):
-        draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+        draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
         
         
     
