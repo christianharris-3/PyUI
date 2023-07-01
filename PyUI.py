@@ -609,6 +609,8 @@ class UI:
                 ['smiley', [[[(560, 460), (310, 460), (310, 40), (810, 40), (810, 460), (560, 460)], [(560, 460), (560, 430)], [(560, 430), (380, 430), (380, 120), (740, 120), (740, 430), (560, 430)], [(560, 430), (560, 460)]], [[(630, 350), (560, 470), (500, 350)], [(500, 350), (560, 420), (630, 350)]], [[(490, 290), (520, 340), (550, 290)], [(550, 290), (520, 280), (490, 290)]], [[(570, 290), (600, 340), (630, 290)], [(630, 290), (600, 280), (570, 290)]]]],
                 ['happy face', [[[(560, 460), (310, 460), (310, 40), (810, 40), (810, 460), (560, 460)], [(560, 460), (560, 430)], [(560, 430), (380, 430), (380, 120), (740, 120), (740, 430), (560, 430)], [(560, 430), (560, 460)]], [[(590, 350), (560, 470), (530, 350)], [(530, 350), (570, 360), (590, 350)]], [[(490, 290), (520, 340), (550, 290)], [(550, 290), (520, 280), (490, 290)]], [[(570, 290), (600, 340), (630, 290)], [(630, 290), (600, 280), (570, 290)]]]],
                 ['heart', [[[(549, 526), (528, 483), (444, 462), (444, 399)], [(444, 399), (444, 357), (486, 315), (549, 357)], [(549, 357), (612, 315), (654, 357), (654, 399)], [(654, 399), (654, 462), (570, 483), (549, 526)]]]],
+                ['mute', [[[(325, 215), (325, 315)], [(325, 315), (325, 325), (335, 325)], [(335, 325), (435, 325)], [(435, 325), (445, 325), (455, 335)], [(455, 335), (535, 415)], [(535, 415), (565, 445), (565, 415)], [(565, 415), (565, 115)], [(565, 115), (565, 85), (535, 115)], [(535, 115), (455, 195)], [(455, 195), (445, 205), (435, 205)], [(435, 205), (335, 205)], [(335, 205), (325, 205), (325, 215)]], [[(705.0, 240.0), (735.0, 210.0), (715.0, 190.0), (685.0, 220.0)], [(685.0, 220.0), (615.0, 290.0)], [(615.0, 290.0), (585.0, 320.0), (605.0, 340.0), (635.0, 310.0)], [(635.0, 310.0), (705.0, 240.0)]], [[(615.0, 240.0), (585.0, 210.0), (605.0, 190.0), (635.0, 220.0)], [(635.0, 220.0), (705.0, 290.0)], [(705.0, 290.0), (735.0, 320.0), (715.0, 340.0), (685.0, 310.0)], [(685.0, 310.0), (615.0, 240.0)]]]],
+                ['speaker', [[[(325, 215), (325, 315)], [(325, 315), (325, 325), (335, 325)], [(335, 325), (435, 325)], [(435, 325), (445, 325), (455, 335)], [(455, 335), (535, 415)], [(535, 415), (565, 445), (565, 415)], [(565, 415), (565, 115)], [(565, 115), (565, 85), (535, 115)], [(535, 115), (455, 195)], [(455, 195), (445, 205), (435, 205)], [(435, 205), (335, 205)], [(335, 205), (325, 205), (325, 215)]], [[(665.0, 145.0), (655.0, 135.0), (635.0, 155.0), (645.0, 165.0)], [(645.0, 165.0), (705.0, 235.0), (705.0, 285.0), (645.0, 365.0)], [(645.0, 365.0), (635.0, 375.0), (655.0, 395.0), (665.0, 385.0)], [(665.0, 385.0), (735.0, 305.0), (735.0, 215.0), (665.0, 145.0)]], [[(605.0, 205.0), (595.0, 195.0), (615.0, 175.0), (625.0, 185.0)], [(625.0, 185.0), (665.0, 225.0), (665.0, 305.0), (625.0, 345.0)], [(625.0, 345.0), (615.0, 355.0), (595.0, 335.0), (605.0, 325.0)], [(605.0, 325.0), (635.0, 285.0), (635.0, 245.0), (605.0, 205.0)]]]],
                 ]
         for a in self.images:
             data.append(a)
@@ -644,12 +646,12 @@ class UI:
                 if c[1]>boundingbox[3]: boundingbox[3] = c[1]
         minus = [boundingbox[0],boundingbox[1]]
         mul = size/(boundingbox[3]-boundingbox[1])
-        surf = pygame.Surface((size*((boundingbox[2]-boundingbox[0])/(boundingbox[3]-boundingbox[1])),size))
+        surf = pygame.Surface((size*((boundingbox[2]-boundingbox[0])/(boundingbox[3]-boundingbox[1]))+2,size+2))
         surf.fill(backcol)
         for b in splines:
             points = []
             for a in b:
-                points+=draw.bezierdrawer([(((a[c][0]-minus1[0])*mul1-minus[0])*mul,((a[c][1]-minus1[1])*mul1-minus[1])*mul) for c in range(len(a))],0,False)
+                points+=draw.bezierdrawer([(((a[c][0]-minus1[0])*mul1-minus[0])*mul+1,((a[c][1]-minus1[1])*mul1-minus[1])*mul+1) for c in range(len(a))],0,False)
             pygame.draw.polygon(surf,col,points)
 
         return surf
@@ -664,7 +666,7 @@ class UI:
                         vals[i] = float(a.split('=')[1])     
         return vals
         
-    def rendertextlined(self,text,size,col='default',backingcol=(150,150,150),font='default',width=-1,bold=False,antialiasing=True,center=False,spacing=0,imgin=False,img='',scale='default',linelimit=10000,getcords=False):
+    def rendertextlined(self,text,size,col='default',backingcol=(150,150,150),font='default',width=-1,bold=False,antialiasing=True,center=False,spacing=0,imgin=False,img='',scale='default',linelimit=10000,getcords=False,cutstartspaces=False):
         if font=='default': font=self.defaultfont
         if col == 'default': col = self.defaulttextcol
         if width==-1 and center: center = False
@@ -735,6 +737,8 @@ class UI:
             if lines[0] == '':
                 lines[0] = newline
                 newline = ''
+            if cutstartspaces and len(lines[0])>0 and lines[0][0] == ' ':
+                lines[0] = lines[0].removeprefix(' ')
             textimages.append(self.rendertext(lines[0],int(size),col,font,bold,antialiasing,backingcol,imgin,img))
             tempsize = (textimages[-1].get_width(),textimages[-1].get_height())
             if tempsize[0]>imagesize[0]: imagesize[0] = tempsize[0]
@@ -1281,8 +1285,8 @@ class GUI_ITEM:
         for img in imgs:
             if type(img) == str:
                 if len(imgs)!=1: txt = img
-                else: txt = self.text
-                self.textimages.append(ui.rendertextlined(txt,self.textsize,self.textcol,self.col,self.font,self.maxwidth,self.bold,self.antialiasing,True,imgin=True,img=img,scale=self.scale,linelimit=self.linelimit))
+                else: txt = self.text  
+                self.textimages.append(ui.rendertextlined(txt,self.textsize,self.textcol,self.col,self.font,self.maxwidth,self.bold,self.antialiasing,self.textcenter,imgin=True,img=img,scale=self.scale,linelimit=self.linelimit,cutstartspaces=True))
             else:
                 self.textimages.append(pygame.transform.scale(img,(img.get_width()*(self.textsize/img.get_height())*self.scale,img.get_height()*(self.textsize/img.get_height())*self.scale)))
                 self.textimages[-1].set_colorkey(self.colorkey)
@@ -1406,7 +1410,7 @@ class BUTTON(GUI_ITEM):
                 if type(img) == str:
                     if len(imgs)!=1: txt = img
                     else: txt = self.toggletext
-                    self.toggletextimages.append(ui.rendertextlined(self.toggletext,self.textsize,self.textcol,self.togglecol,self.font,self.maxwidth,self.bold,True,imgin=True,img=self.toggleimg,scale=self.scale,linelimit=self.linelimit))
+                    self.toggletextimages.append(ui.rendertextlined(self.toggletext,self.textsize,self.textcol,self.togglecol,self.font,self.maxwidth,self.bold,True,center=self.textcenter,imgin=True,img=self.toggleimg,scale=self.scale,linelimit=self.linelimit,cutstartspaces=True))
                 else:
                     self.toggletextimages.append(pygame.transform.scale(img,(self.textsize,img.get_width()*self.textsize/img.get_height())))
                     self.toggletextimages[-1].set_colorkey(self.colorkey)
@@ -2050,14 +2054,15 @@ class SLIDER(GUI_ITEM):
 
     def draw(self,screen,ui):
         draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-        if self.direction == 'vertical':
-            h = ((self.height-self.upperborder-self.lowerborder-self.button.height*self.containedslider)*((self.slider-self.minp)/(self.maxp-self.minp))+self.button.height*self.containedslider)
-            w = (self.width-self.leftborder-self.rightborder)-2*(self.roundedcorners-abs(int(min([self.roundedcorners,h/2]))))
-            draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,w*self.scale,h*self.scale),border_radius=int(self.roundedcorners*self.scale))
-        else:
-            w = ((self.width-self.leftborder-self.rightborder-self.button.width*self.containedslider)*((self.slider-self.minp)/(self.maxp-self.minp))+self.button.width*self.containedslider)
-            h = (self.height-self.upperborder-self.lowerborder)-2*(self.roundedcorners-abs(int(min([self.roundedcorners,w/2]))))
-            draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.height-h)/2*self.scale,w*self.scale,h*self.scale),border_radius=int(self.roundedcorners*self.scale))
+        if self.slider!=self.minp:
+            if self.direction == 'vertical':
+                h = ((self.height-self.upperborder-self.lowerborder-self.button.height*self.containedslider)*((self.slider-self.minp)/(self.maxp-self.minp))+self.button.height*self.containedslider)
+                w = (self.width-self.leftborder-self.rightborder)-2*(self.roundedcorners-abs(int(min([self.roundedcorners,h/2]))))
+                draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,w*self.scale,h*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            else:
+                w = ((self.width-self.leftborder-self.rightborder-self.button.width*self.containedslider)*((self.slider-self.minp)/(self.maxp-self.minp))+self.button.width*self.containedslider)
+                h = (self.height-self.upperborder-self.lowerborder)-2*(self.roundedcorners-abs(int(min([self.roundedcorners,w/2]))))
+                draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.height-h)/2*self.scale,w*self.scale,h*self.scale),border_radius=int(self.roundedcorners*self.scale))
 
 
 
@@ -2199,3 +2204,5 @@ class RECT(GUI_ITEM):
         draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
         
         
+    
+
