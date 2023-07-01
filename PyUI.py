@@ -9,6 +9,12 @@ def resourcepath(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
+def loadinganimation(points):
+    img = []
+    for a in range(points):
+        img.append('{loading largest='+str(a)+'}')
+    return img
+
 def rectscaler(rect,scale,offset=(0,0)):
     if not type(scale) in [float,int]:
         return pygame.Rect((rect.x-offset[0])*scale.dirscale[0],(rect.y-offset[1])*scale.dirscale[1],rect.w*scale.scale,rect.h*scale.scale)
@@ -269,9 +275,9 @@ class UI:
         self.dirscale = [self.screenw/self.basescreensize[0],self.screenh/self.basescreensize[1]]
         #fix this later u lazy melt
         for a in self.items:
-            if type(TABLE):
-                a.refresh(self)
-                a.resetcords(self)
+##            if type(TABLE):
+##                a.refresh(self)
+##                a.resetcords(self)
             a.refresh(self)
             a.resetcords(self)
         
@@ -310,14 +316,14 @@ class UI:
             darkening.fill((0,0,0,window.darken))
             screen.blit(darkening,(0,0))
 
-            windowsurf = pygame.Surface((window.width*self.scale,window.height*self.scale))
+            windowsurf = pygame.Surface((window.width*window.scale,window.height*window.scale))
             windowsurf.fill(window.colorkey)
-            pygame.draw.rect(windowsurf,window.col,pygame.Rect(0,0,window.width*self.scale,window.height*self.scale),border_radius=int(window.roundedcorners*self.scale))
+            pygame.draw.rect(windowsurf,window.col,pygame.Rect(0,0,window.width*window.scale,window.height*window.scale),border_radius=int(window.roundedcorners*window.scale))
             windowsurf.set_colorkey(window.colorkey)
             for i,a in enumerate(self.items):
                 if (a.menu == self.activemenu or (a.menu == 'universal' and not(self.activemenu in a.menuexceptions)))and type(a)!=WINDOWEDMENU:
                     self.renderguiobject(a,windowsurf)
-            screen.blit(windowsurf,(window.x*self.scale,window.y*self.scale))
+            screen.blit(windowsurf,(window.x*window.dirscale[0],window.y*window.dirscale[1]))
     def renderguiobject(self,a,screen):
         a.render(screen,self)
     def drawguiobject(self,a,screen):
@@ -454,6 +460,10 @@ class UI:
             surf = self.rendershaperect(name,size,col,backcol)
         elif name[:5] == 'clock':
             surf = self.rendershapeclock(name,size,col,backcol)
+        elif name[:7] == 'loading':
+            surf = self.rendershapeloading(name,size,col,backcol)
+        elif name[:4] == 'dots':
+            surf = self.rendershapedots(name,size,col,backcol)
         else:
             surf = self.rendershapebezier(name,size,col,backcol,failmessage)
         if 'left' in name:
@@ -600,6 +610,33 @@ class UI:
         draw.roundedline(surf,col,(size/2,size/2),(size/2+size*0.4*math.cos(math.pi*2*(minute/60)-math.pi/2),size/2+size*0.4*math.sin(math.pi*2*(minute/60)-math.pi/2)),size*minutehandwidth)
         draw.roundedline(surf,col,(size/2,size/2),(size/2+size*0.25*math.cos(math.pi*2*(hour/12)-math.pi/2),size/2+size*0.25*math.sin(math.pi*2*(hour/12)-math.pi/2)),size*hourhandwidth)
         return surf
+    def rendershapeloading(self,name,size,col,backcol):
+        vals = self.getshapedata(name,['points','largest','traildrop','spotsize'],[12,0,0.015,0.1])
+        points = vals[0]
+        largest = vals[1]
+        traildrop = vals[2]
+        spotsize = vals[3]
+        surf = pygame.Surface((size+2,size+2))
+        surf.fill(backcol)
+        rad = (size/2-spotsize*size)
+        for a in range(points):
+            draw.circle(surf,col,(size/2+rad*math.sin(math.pi*2*(a-largest)/points)+1,size/2+rad*math.cos(math.pi*2*(a-largest)/points)+1),spotsize*size)
+            spotsize-=traildrop
+            if spotsize<0:
+                break
+        return surf
+    def rendershapedots(self,name,size,col,backcol):
+        vals = self.getshapedata(name,['num','seperation','radius'],[3,0.3,0.1])
+        dots = vals[0]
+        seperation = vals[1]
+        radius = vals[2]
+        surf = pygame.Surface(((radius*2+seperation*(dots-1))*size+2,size+2))
+        surf.fill(backcol)
+        x = radius
+        for a in range(dots):
+            draw.circle(surf,col,(x*size+1,size/2+1),radius*size)
+            x+=seperation
+        return surf
     def rendershapebezier(self,name,size,col,backcol,failmessage):
         data = [['test thing', [[[(200, 100), (490, 220), (300, 40), (850, 340)], [(850, 340), (300, 200), (450, 350), (340, 430)], [(340, 430), (310, 250), (200, 310), (200, 100)]], [[(380, 440), (540, 360), (330, 240), (850, 370)], [(850, 370), (380, 440)]]]],
                 ['search', [[[(300, 350), (150, 200), (350, 0), (500, 150)], [(500, 150), (560, 210), (520, 280), (485, 315)], [(485, 315), (585, 415)], [(585, 415), (625, 455), (595, 485), (555, 445)], [(555, 445), (455, 345)], [(455, 345), (420, 380), (350, 400), (300, 350)], [(300, 350), (325, 325)], [(325, 325), (205, 205), (365, 65), (475, 175)], [(475, 175), (555, 255), (395, 395), (325, 325)], [(325, 325), (300, 350)]]]],
@@ -611,6 +648,7 @@ class UI:
                 ['heart', [[[(549, 526), (528, 483), (444, 462), (444, 399)], [(444, 399), (444, 357), (486, 315), (549, 357)], [(549, 357), (612, 315), (654, 357), (654, 399)], [(654, 399), (654, 462), (570, 483), (549, 526)]]]],
                 ['mute', [[[(325, 215), (325, 315)], [(325, 315), (325, 325), (335, 325)], [(335, 325), (435, 325)], [(435, 325), (445, 325), (455, 335)], [(455, 335), (535, 415)], [(535, 415), (565, 445), (565, 415)], [(565, 415), (565, 115)], [(565, 115), (565, 85), (535, 115)], [(535, 115), (455, 195)], [(455, 195), (445, 205), (435, 205)], [(435, 205), (335, 205)], [(335, 205), (325, 205), (325, 215)]], [[(705.0, 240.0), (735.0, 210.0), (715.0, 190.0), (685.0, 220.0)], [(685.0, 220.0), (615.0, 290.0)], [(615.0, 290.0), (585.0, 320.0), (605.0, 340.0), (635.0, 310.0)], [(635.0, 310.0), (705.0, 240.0)]], [[(615.0, 240.0), (585.0, 210.0), (605.0, 190.0), (635.0, 220.0)], [(635.0, 220.0), (705.0, 290.0)], [(705.0, 290.0), (735.0, 320.0), (715.0, 340.0), (685.0, 310.0)], [(685.0, 310.0), (615.0, 240.0)]]]],
                 ['speaker', [[[(325, 215), (325, 315)], [(325, 315), (325, 325), (335, 325)], [(335, 325), (435, 325)], [(435, 325), (445, 325), (455, 335)], [(455, 335), (535, 415)], [(535, 415), (565, 445), (565, 415)], [(565, 415), (565, 115)], [(565, 115), (565, 85), (535, 115)], [(535, 115), (455, 195)], [(455, 195), (445, 205), (435, 205)], [(435, 205), (335, 205)], [(335, 205), (325, 205), (325, 215)]], [[(665.0, 145.0), (655.0, 135.0), (635.0, 155.0), (645.0, 165.0)], [(645.0, 165.0), (705.0, 235.0), (705.0, 285.0), (645.0, 365.0)], [(645.0, 365.0), (635.0, 375.0), (655.0, 395.0), (665.0, 385.0)], [(665.0, 385.0), (735.0, 305.0), (735.0, 215.0), (665.0, 145.0)]], [[(605.0, 205.0), (595.0, 195.0), (615.0, 175.0), (625.0, 185.0)], [(625.0, 185.0), (665.0, 225.0), (665.0, 305.0), (625.0, 345.0)], [(625.0, 345.0), (615.0, 355.0), (595.0, 335.0), (605.0, 325.0)], [(605.0, 325.0), (635.0, 285.0), (635.0, 245.0), (605.0, 205.0)]]]],
+                ['3dots', [[[(385.0, 325.0), (325.0, 325.0), (325.0, 205.0), (445.0, 205.0), (445.0, 325.0), (385.0, 325.0)]], [[(505.0, 325.0), (445.0, 325.0), (445.0, 205.0), (565.0, 205.0), (565.0, 325.0), (505.0, 325.0)]], [[(625.0, 325.0), (565.0, 325.0), (565.0, 205.0), (685.0, 205.0), (685.0, 325.0), (625.0, 325.0)]]]],
                 ]
         for a in self.images:
             data.append(a)
@@ -1274,8 +1312,9 @@ class GUI_ITEM:
         self.refresh(ui)
         
     def refresh(self,ui):
+        tscale = self.scale
         self.refreshscale(ui)
-        self.gentext(ui)
+        if tscale!=self.scale: self.gentext(ui)
         self.refreshcords(ui)
     def gentext(self,ui):
         if type(self.img) != list: imgs = [self.img]
@@ -1396,9 +1435,11 @@ class GUI_ITEM:
     
 class BUTTON(GUI_ITEM):
     def refresh(self,ui):
+        tscale = self.scale
         if not self.ontable:
             self.refreshcords(ui)
-        self.gentext(ui)
+        if tscale!=self.scale:
+            self.gentext(ui)
         self.autoscale(ui)
     def child_gentext(self,ui):
         if (self.img != self.toggleimg) or (self.text != self.toggletext):
@@ -1765,12 +1806,14 @@ class TABLE(GUI_ITEM):
             temp.insert(0,copy.copy(self.titles))
         self.rows = len(temp)
         if self.rows == 0: self.columns = 0
-        else: self.columns = max([len(a) for a in temp])
+        else:
+            self.columns = max([len(a) for a in temp])
+            if type(self.boxwidth) == list:
+                self.columns = max(self.columns,len(self.boxwidth))
         
         for a in range(len(temp)):
             while len(temp[a])<self.columns:
                 temp[a].append('')
-        
         for a in temp:
             self.labeleddata.append([])
             for b in a:
@@ -1790,7 +1833,7 @@ class TABLE(GUI_ITEM):
             for i,b in enumerate(self.labeleddata[a]):
                 if b[0] == 'text':
                     ui.delete('tabletext'+self.ID+str(a)+str(i),False)
-                    obj = ui.maketext(0,0,b[1],self.textsize,self.menu,'tabletext'+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,self.menuexceptions,textcenter=self.textcenter,textcol=self.textcol,font=self.font,bold=self.bold,antialiasing=self.antialiasing,pregenerated=self.pregenerated,maxwidth=self.boxwidth[i],scalesize=self.scalesize,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing)
+                    obj = ui.maketext(0,0,b[1],self.textsize,self.menu,'tabletext'+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,self.menuexceptions,textcenter=self.textcenter,textcol=self.textcol,font=self.font,bold=self.bold,antialiasing=self.antialiasing,pregenerated=self.pregenerated,maxwidth=self.boxwidth[i],scalesize=self.scalesize,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,backingcol=self.col)
                     self.tableimages[-1].append(['textobj',obj])
                 elif b[0] == 'button':
                     b[1].scale = self.scale
@@ -1815,6 +1858,8 @@ class TABLE(GUI_ITEM):
                     b[1].startobjanchor = [0,0]
                     b[1].startx = (self.linesize*(i+1)+self.boxwidthsinc[i])
                     b[1].starty = (self.linesize*(a+1)+self.boxheightsinc[a])
+                    b[1].startwidth = self.boxwidths[i]
+                    b[1].startheight = self.boxheights[a]
                     b[1].width = self.boxwidths[i]
                     b[1].height = self.boxheights[a]
                     b[1].backingdraw = self.backingdraw
@@ -1824,15 +1869,6 @@ class TABLE(GUI_ITEM):
                     b[1].resetcords(ui,False)
                     b[1].layer = self.layer+0.1
                     b[1].ontable = True
-                    if b[0] == 'button':
-                        b[1].gentext(ui)
-                        b[1].refreshcords(ui)
-                    elif b[0] == 'textbox':
-                        b[1].refreshcords(ui)
-                        b[1].resetscroller(ui)
-                    else:
-                        b[1].gentext(ui)
-                        b[1].refreshcords(ui)
             ui.refreshitems()
 
     def initheightwidth(self):
@@ -1846,6 +1882,8 @@ class TABLE(GUI_ITEM):
         else:
             while len(self.boxheight)<self.rows:
                 self.boxheight.append(-1)
+            while len(self.boxheight)>self.rows and len(self.boxheights)>0 and self.boxheight[-1] == -1:
+                del self.boxheight[-1]
                 
     def gettablewidths(self,ui):
         self.boxwidthsinc = []
@@ -1864,7 +1902,6 @@ class TABLE(GUI_ITEM):
                 self.boxwidths.append(self.boxwidth[a])
         self.boxwidthtotal = sum(self.boxwidths)
         self.width = self.boxwidthtotal+self.linesize*(self.columns+1)
-##        print('get widths',self.width,self.boxwidths,b[1].textimage.get_rect())
         
     def gettableheights(self,ui):
         self.boxheightsinc = [] 
@@ -1883,7 +1920,11 @@ class TABLE(GUI_ITEM):
                 self.boxheights.append(self.boxheight[a])
         self.boxheighttotal = sum(self.boxheights)
         self.height = self.boxheighttotal+self.linesize*(self.rows+1)
-                    
+    def wipe(self,ui,titles=True):
+        for i,a in enumerate(self.tableimages):
+            if titles or i>0:
+                for b in a:
+                    ui.delete(b[1].ID,False)
                     
     def render(self,screen,ui):
         self.draw(screen,ui)
