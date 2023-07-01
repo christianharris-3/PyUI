@@ -292,7 +292,8 @@ class UI:
             if (a.menu in windowedmenubackings or (a.menu == 'universal' and not(self.activemenu in a.menuexceptions))) and (self.activemenu in self.windowedmenunames) and type(a)!=WINDOWEDMENU:
                 if a.menu == windowedmenubackings[self.windowedmenunames.index(self.activemenu)]:
                     window = self.windowedmenus[self.windowedmenunames.index(self.activemenu)]
-                    if pygame.Rect(window.x,window.y,window.width,window.height).collidepoint(self.mpos):
+##                    print(pygame.Rect(window.x*window.dirscale[0],window.y*window.dirscale[1],window.width*window.scale,window.height*window.scale),[self.mpos[0]*self.scale,self.mpos[1]*self.scale],pygame.mouse.get_pos())
+                    if pygame.Rect(window.x*window.dirscale[0],window.y*window.dirscale[1],window.width*window.scale,window.height*window.scale).collidepoint([self.mpos[0]*self.scale,self.mpos[1]*self.scale]):
                         self.drawguiobject(a,screen)
                     else:
                         if window.isolated:
@@ -309,8 +310,8 @@ class UI:
         if self.activemenu in self.windowedmenunames:
             window = self.windowedmenus[self.windowedmenunames.index(self.activemenu)]
             #window = [menu,behindmenu,x,y,width,height,col,rounedcorners,colorkey,isolated,darken]
-            self.mpos[0]-=window.x
-            self.mpos[1]-=window.y
+            self.mpos[0]-=window.x/self.scale
+            self.mpos[1]-=window.y/self.scale
 
             darkening = pygame.Surface((self.screenw,self.screenh),pygame.SRCALPHA)
             darkening.fill((0,0,0,window.darken))
@@ -1810,7 +1811,6 @@ class TABLE(GUI_ITEM):
             self.columns = max([len(a) for a in temp])
             if type(self.boxwidth) == list:
                 self.columns = max(self.columns,len(self.boxwidth))
-        
         for a in range(len(temp)):
             while len(temp[a])<self.columns:
                 temp[a].append('')
@@ -1873,18 +1873,20 @@ class TABLE(GUI_ITEM):
 
     def initheightwidth(self):
         if type(self.boxwidth) == int:
-            self.boxwidth = [self.boxwidth for a in range(self.columns)]
+            if self.columns == 0: self.boxwidth = [self.boxwidth]
+            else: self.boxwidth = [self.boxwidth for a in range(self.columns)]
         else:
             while len(self.boxwidth)<self.columns:
                 self.boxwidth.append(-1)
         if type(self.boxheight) == int:
-            self.boxheight = [self.boxheight for a in range(self.rows)]
+            if self.rows == 0: self.boxheight = [self.boxheight]
+            else: self.boxheight = [self.boxheight for a in range(self.rows)]
         else:
             while len(self.boxheight)<self.rows:
                 self.boxheight.append(-1)
             while len(self.boxheight)>self.rows and len(self.boxheights)>0 and self.boxheight[-1] == -1:
                 del self.boxheight[-1]
-                
+
     def gettablewidths(self,ui):
         self.boxwidthsinc = []
         self.boxwidths = []
