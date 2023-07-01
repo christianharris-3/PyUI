@@ -3,7 +3,7 @@ import pygame.gfxdraw
 import PyUI
 pygame.init()
 screenw = 1000
-screenh = 800
+screenh = 600
 screen = pygame.display.set_mode((screenw, screenh))
 pygame.scrap.init()
 ui = PyUI.UI()
@@ -141,11 +141,12 @@ def load(splines):
                 nodecount = len(b)
                 extendspline(splines)
                 for i,c in enumerate(splines[-1][-1]):
-                    ui.IDs[c].x = int(b[i].split(',')[0])
-                    ui.IDs[c].y = int(b[i].split(',')[1])
+                    ui.IDs[c].x = int(float(b[i].split(',')[0]))
+                    ui.IDs[c].y = int(float(b[i].split(',')[1]))
             if a[0][0] == a[-1][-1]:
                 completespline(splines)
-    except:
+    except Exception as ex:
+        print(ex)
         print('failed to load file: '+ui.IDs['load textbox'].text+'.txt')
 
 def PyUIify(splines):
@@ -219,10 +220,13 @@ ui.makewindowedmenu(200,200,400,300,'savescreen','main',col=(240,240,240),rounde
 ui.makewindowedmenu(200,200,400,300,'loadscreen','main',col=(240,240,240),roundedcorners=5)
 ui.maketext(10,10,'Save As',50,'savescreen',center=False)
 ui.maketext(10,10,'Load',50,'loadscreen',center=False)
-ui.maketextbox(200,50,'',380,6,'savescreen',command=lambda: saveas(splines),ID='saveas textbox')
-ui.maketextbox(200,50,'',380,6,'loadscreen',command=lambda: load(splines),ID='load textbox')
+ui.maketextbox(200,50,'',380,5,'savescreen',command=lambda: saveas(splines),center=True,centery=False,ID='saveas textbox')
+ui.maketextbox(200,50,'',380,5,'loadscreen',command=lambda: load(splines),center=True,centery=False,ID='load textbox')
 ui.makebutton(10,260,'Enter',40,lambda: saveas(splines),'savescreen',center=False)
 ui.makebutton(10,260,'Enter',40,lambda: load(splines),'loadscreen',center=False)
+
+##
+##ui.maketext(200,200,'',400,dragable=True,img=pygame.image.load('backingimage2.png'),colorkey=(226,227,232))
 
 
 while not done:
@@ -252,7 +256,6 @@ while not done:
 ##                pygame.draw.polygon(screen,(0,0,0),points)
             else:
                 pygame.draw.aalines(screen,(0,0,0),False,points)
-        
     ui.rendergui(screen)
     pygame.display.flip()
     clock.tick(60)
