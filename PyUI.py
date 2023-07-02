@@ -786,7 +786,7 @@ class UI:
             del lines[0]
             if newline!='':
                 lines.insert(0,newline)
-            else:
+            elif not ('\n' in text):
                 break
             addedlines+=1
         surf = pygame.Surface(imagesize)
