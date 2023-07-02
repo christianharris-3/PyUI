@@ -245,6 +245,7 @@ class UI:
 
         self.fullscreen = False
         self.exit = False
+        self.blockf11 = 0
         
         self.loadtickdata()
         self.checkcaps()
@@ -331,6 +332,7 @@ class UI:
         a.draw(screen,self)
             
     def loadtickdata(self):
+        self.blockf11-=1
         mpos = pygame.mouse.get_pos()
         self.mpos = [mpos[0]/self.scale,mpos[1]/self.scale]
         self.mprs = pygame.mouse.get_pressed()
@@ -349,7 +351,8 @@ class UI:
                     self.menuback()
                 if event.key == pygame.K_F5:
                     self.scaleset(self.scale)
-                if event.key == pygame.K_F11 and self.fullscreenable:
+                if event.key == pygame.K_F11 and self.fullscreenable and self.blockf11<0:
+                    print('f11')
                     self.togglefullscreen(pygame.display.get_surface())
                 if self.selectedtextbox!=-1:
                     if not self.textboxes[self.selectedtextbox].selected:
@@ -391,6 +394,7 @@ class UI:
             self.scaleset(self.screenh/self.basescreensize[1])
         if self.fullscreen: screen = pygame.display.set_mode((self.screenw,self.screenh),pygame.FULLSCREEN)
         else: screen = pygame.display.set_mode((self.screenw,self.screenh),pygame.RESIZABLE)       
+        self.blockf11 = 10
         
     def write(self,screen,x,y,text,size,col='default',center=True,font='default',bold=False,antialiasing=True):
         if font=='default': font=self.defaultfont
@@ -654,6 +658,7 @@ class UI:
                 ['mute', [[[(325, 215), (325, 315)], [(325, 315), (325, 325), (335, 325)], [(335, 325), (435, 325)], [(435, 325), (445, 325), (455, 335)], [(455, 335), (535, 415)], [(535, 415), (565, 445), (565, 415)], [(565, 415), (565, 115)], [(565, 115), (565, 85), (535, 115)], [(535, 115), (455, 195)], [(455, 195), (445, 205), (435, 205)], [(435, 205), (335, 205)], [(335, 205), (325, 205), (325, 215)]], [[(705.0, 240.0), (735.0, 210.0), (715.0, 190.0), (685.0, 220.0)], [(685.0, 220.0), (615.0, 290.0)], [(615.0, 290.0), (585.0, 320.0), (605.0, 340.0), (635.0, 310.0)], [(635.0, 310.0), (705.0, 240.0)]], [[(615.0, 240.0), (585.0, 210.0), (605.0, 190.0), (635.0, 220.0)], [(635.0, 220.0), (705.0, 290.0)], [(705.0, 290.0), (735.0, 320.0), (715.0, 340.0), (685.0, 310.0)], [(685.0, 310.0), (615.0, 240.0)]]]],
                 ['speaker', [[[(325, 215), (325, 315)], [(325, 315), (325, 325), (335, 325)], [(335, 325), (435, 325)], [(435, 325), (445, 325), (455, 335)], [(455, 335), (535, 415)], [(535, 415), (565, 445), (565, 415)], [(565, 415), (565, 115)], [(565, 115), (565, 85), (535, 115)], [(535, 115), (455, 195)], [(455, 195), (445, 205), (435, 205)], [(435, 205), (335, 205)], [(335, 205), (325, 205), (325, 215)]], [[(665.0, 145.0), (655.0, 135.0), (635.0, 155.0), (645.0, 165.0)], [(645.0, 165.0), (705.0, 235.0), (705.0, 285.0), (645.0, 365.0)], [(645.0, 365.0), (635.0, 375.0), (655.0, 395.0), (665.0, 385.0)], [(665.0, 385.0), (735.0, 305.0), (735.0, 215.0), (665.0, 145.0)]], [[(605.0, 205.0), (595.0, 195.0), (615.0, 175.0), (625.0, 185.0)], [(625.0, 185.0), (665.0, 225.0), (665.0, 305.0), (625.0, 345.0)], [(625.0, 345.0), (615.0, 355.0), (595.0, 335.0), (605.0, 325.0)], [(605.0, 325.0), (635.0, 285.0), (635.0, 245.0), (605.0, 205.0)]]]],
                 ['3dots', [[[(385.0, 325.0), (325.0, 325.0), (325.0, 205.0), (445.0, 205.0), (445.0, 325.0), (385.0, 325.0)]], [[(505.0, 325.0), (445.0, 325.0), (445.0, 205.0), (565.0, 205.0), (565.0, 325.0), (505.0, 325.0)]], [[(625.0, 325.0), (565.0, 325.0), (565.0, 205.0), (685.0, 205.0), (685.0, 325.0), (625.0, 325.0)]]]],
+                ['pencil', [[[(325, 365), (345, 305)], [(345, 305), (515, 135)], [(515, 135), (555, 175)], [(555, 175), (385, 345)], [(385, 345), (325, 365)], [(325, 365), (345, 345)], [(345, 345), (355, 315)], [(355, 315), (515, 155)], [(515, 155), (535, 175)], [(535, 175), (385, 325)], [(385, 325), (365, 305)], [(365, 305), (355, 315)], [(355, 315), (375, 335)], [(375, 335), (345, 345)], [(345, 345), (325, 365)]]]],
                 ]
         for a in self.images:
             data.append(a)
@@ -694,7 +699,9 @@ class UI:
         for b in splines:
             points = []
             for a in b:
-                points+=draw.bezierdrawer([(((a[c][0]-minus1[0])*mul1-minus[0])*mul+1,((a[c][1]-minus1[1])*mul1-minus[1])*mul+1) for c in range(len(a))],0,False)
+                if len(a) == 2: detail = 1
+                else: detail = 200
+                points+=draw.bezierdrawer([(((a[c][0]-minus1[0])*mul1-minus[0])*mul+1,((a[c][1]-minus1[1])*mul1-minus[1])*mul+1) for c in range(len(a))],0,False,detail=detail)
             pygame.draw.polygon(surf,col,points)
 
         return surf
