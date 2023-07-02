@@ -1102,8 +1102,12 @@ class UI:
                 self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].ID,'current',dirr,'sinout',length,command=lambda: self.movemenu(menuto,backchainadd=False),runcommandat=length,queued=False,relativemove=True,skiptoscreen=True)
                 self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].ID,'current',[dirr[0]*-1,dirr[1]*-1],'linear',1,command=self.finishmenumove,runcommandat=1,queued=True,relativemove=True)
             else:
-                self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].behindmenu,'current',dirr,'sinout',length,command=lambda: self.slidemenuin(menuto,length,dirr),runcommandat=length,queued=False,menu=True,relativemove=True)
-                self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].behindmenu,'current',[dirr[0]*-1,dirr[1]*-1],'linear',1,menu=True,relativemove=True)
+                if menuto in self.windowedmenunames:
+                    self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].ID,'current',dirr,'sinout',length,command=lambda: self.slidemenuin(menuto,length,dirr),runcommandat=length,queued=False,relativemove=True)
+                    self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].ID,'current',[dirr[0]*-1,dirr[1]*-1],'linear',1,relativemove=True)
+                else:
+                    self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].behindmenu,'current',dirr,'sinout',length,command=lambda: self.slidemenuin(menuto,length,dirr),runcommandat=length,queued=False,menu=True,relativemove=True)
+                    self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].behindmenu,'current',[dirr[0]*-1,dirr[1]*-1],'linear',1,menu=True,relativemove=True)
         elif menuto in self.windowedmenunames:
             if menufrom == self.windowedmenus[self.windowedmenunames.index(menuto)].behindmenu:
                 self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menuto)].ID,[dirr[0]*-1,dirr[1]*-1],'current','sinin',length,command=self.finishmenumove,runcommandat=length,queued=True,relativemove=True,skiptoscreen=True)
@@ -1659,6 +1663,7 @@ class TEXTBOX(GUI_ITEM):
             if self.textcenter: self.linecenter = [self.width/2-self.leftborder,self.textsize*0.3]
             else: self.linecenter = [self.horizontalspacing,self.textsize*0.3]
     def refreshscroller(self,ui):
+        self.scroller.menu = self.menu
         inc = 0
         if self.linecenter[1]-self.scroller.scroll>self.height-self.upperborder-self.lowerborder:
             inc = self.textsize
@@ -1866,6 +1871,7 @@ class TABLE(GUI_ITEM):
                     b[1].scalex = self.scalesize
                     b[1].scaley = self.scalesize
                     b[1].scalesize = self.scalesize
+                    b[1].menu = self.menu
                     b[1].resetcords(ui,False)
                     b[1].layer = self.layer+0.1
                     b[1].ontable = True
@@ -2068,7 +2074,7 @@ class SLIDER(GUI_ITEM):
         self.button.startanchor = [self.x*self.dirscale[0],self.y*self.dirscale[1]+self.height/2*self.scale]
         if self.direction == 'vertical':
             self.button.startanchor = [self.x*self.dirscale[0]+self.width/2*self.scale,self.y*self.dirscale[1]]
-
+        self.button.menu = self.menu
         self.button.gentext(ui)
         self.refreshbuttoncords(ui)
         
