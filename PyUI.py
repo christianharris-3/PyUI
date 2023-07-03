@@ -260,6 +260,7 @@ class UI:
         self.backquits = True
         self.scrollwheelscrolls = True
         self.idmessages = False
+        self.queuemenumove = True
         
         self.resizable = True
         self.fullscreenable = True
@@ -1080,15 +1081,16 @@ class UI:
                     self.slidemenu(self.activemenu,moveto,slide,length)
             for a in self.mouseheld:
                 a[1]-=1
-        else:
+        elif self.queuemenumove:
             self.queuedmenumove[1] = ['move',moveto,slide,length]
     def menuback(self,slide='none',length='default'):
+        if len(self.backchain)>0:
+            if slide=='none' and self.backchain[-1][1] != 'none':
+                slide = self.backchain[-1][1]+' flip'
         if length == 'default':
             length = self.defaultanimationspeed
         if self.queuedmenumove[0]<0 or slide=='none':
             if len(self.backchain)>0:
-                if slide=='none' and self.backchain[-1][1] != 'none':
-                    slide = self.backchain[-1][1]+' flip'
                 if slide=='none':
                     self.activemenu = self.backchain[-1][0]
                 else:
@@ -1098,7 +1100,7 @@ class UI:
                 self.exit = True
             for a in self.mouseheld:
                 a[1]-=1
-        else:
+        elif self.queuemenumove:
             self.queuedmenumove[1] = ['back',slide,length]
     def slidemenu(self,menufrom,menuto,slide,length):
         self.queuedmenumove[0] = length*30
@@ -1631,7 +1633,8 @@ class TEXTBOX(GUI_ITEM):
         self.scroll = 0
         if self.scroller != 0:
             ui.delete(self.scroller.ID,False)
-        self.scroller = ui.makescroller(self.x+self.width-15-self.rightborder/2,self.y+self.upperborder,self.height-self.upperborder-self.lowerborder,emptyfunction,15,0,self.height-self.upperborder-self.lowerborder,self.height,menu=self.menu,roundedcorners=self.roundedcorners,col=self.col)
+        self.scroller = ui.makescroller(self.x+self.width-15-self.rightborder/2,self.y+self.upperborder,self.height-self.upperborder-self.lowerborder,emptyfunction,15,0,self.height-self.upperborder-self.lowerborder,self.height,
+                                        menu=self.menu,roundedcorners=self.roundedcorners,col=self.col,scalesize=self.scalesize,scaley=self.scalesize,scalex=self.scalesize)
         self.scroller.ontextbox = True
         self.scroller.layer = self.layer+0.01
         self.scrolleron = False
@@ -1676,6 +1679,16 @@ class TEXTBOX(GUI_ITEM):
             if self.textcenter: self.linecenter = [self.width/2-self.leftborder,self.textsize*0.3]
             else: self.linecenter = [self.horizontalspacing,self.textsize*0.3]
     def refreshscroller(self,ui):
+        self.scroller.x = self.x+self.width-15-self.rightborder/2
+        self.scroller.y = self.y+self.upperborder
+        self.scroller.startx = self.x+self.width-15-self.rightborder/2
+        self.scroller.starty = self.y+self.upperborder
+        self.scroller.scalesize = self.scalesize
+        self.scroller.scaley = self.scalesize
+        self.scroller.scalex = self.scalesize
+        self.scroller.layer = self.layer+1
+        ui.refreshitems()
+        
         self.scroller.menu = self.menu
         inc = 0
         if self.linecenter[1]-self.scroller.scroll>self.height-self.upperborder-self.lowerborder:
@@ -1813,6 +1826,7 @@ class TABLE(GUI_ITEM):
         self.refreshscale(ui)
         self.labeldata(ui)
         self.initheightwidth()
+        self.refreshcords(ui)
         self.gentext(ui)
         self.gettablewidths(ui)
         self.gettableheights(ui)          
