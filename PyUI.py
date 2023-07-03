@@ -884,7 +884,7 @@ class UI:
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='tick',font='default',bold=False,antialiasing=True,pregenerated=True,
                  border=4,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,maxwidth=-1,
-                 dragable=False,colorkey=(255,255,255),toggle=True,toggleable=True,toggletext='',toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-15,verticalspacing=-15,horizontalspacing=-15,
+                 dragable=False,colorkey=(255,255,255),toggle=True,toggleable=True,toggletext='',toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-15,verticalspacing=-15,horizontalspacing=-15,clickablerect=-1,
                  backingdraw=False,borderdraw=True,animationspeed=5,linelimit=1000):
         if width == -1: width = textsize+spacing*2
         if height == -1: height = textsize+spacing*2
@@ -1708,6 +1708,7 @@ class TEXTBOX(GUI_ITEM):
             self.scroller.scroll = self.scroller.minp
     def child_refreshcords(self,ui):
         if self.scroller != 0:
+            self.refreshscroller(ui)
             self.rect = roundrect(self.x,self.y,self.width,self.height)
             self.innerrect = roundrect(self.x+self.leftborder,self.y+self.upperborder,self.width-self.rightborder-self.leftborder-self.scrolleron*self.scroller.width,self.height-self.upperborder-self.lowerborder)
             self.textimagerect = self.textimage.get_rect()     
