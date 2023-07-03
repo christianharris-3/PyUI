@@ -277,11 +277,9 @@ class UI:
         self.dirscale = [self.screenw/self.basescreensize[0],self.screenh/self.basescreensize[1]]
         #fix this later u lazy melt
         for a in self.items:
-##            if type(TABLE):
-##                a.refresh(self)
-##                a.resetcords(self)
-            a.refresh(self)
-            a.resetcords(self)
+            if not a.ontable:
+                a.refresh(self)
+                a.resetcords(self)
         
     def getscreen(self):
         sc = pygame.display.get_surface()
@@ -869,7 +867,7 @@ class UI:
         
     def makebutton(self,x,y,text,textsize=50,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,menuexceptions=[],width=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',font='default',bold=False,antialiasing=True,pregenerated=True,
-                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
+                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,maxwidth=-1,
                  dragable=False,colorkey=(255,255,255),toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=0,horizontalspacing=8,clickablerect=-1,
                  backingdraw=True,borderdraw=True,animationspeed=5,linelimit=1000):
@@ -884,7 +882,7 @@ class UI:
 ##    def makecheckbox(self,x,y,textsize=80,command=emptyfunction,menu='main',menuexceptions=[],edgebound=(1,0,0,1),text='',col=(255,255,255),bordercol='default',hovercol=-1,textcol='default',img='tick',colorkey=(255,255,255),runcommandat=0,width=-1,height=-1,border=4,clickdownsize=1,verticalspacing=-15,horizontalspacing=-15,roundedcorners=0,clicktype=0,textoffsetx=0,textoffsety=0,toggle=True,togglecol=-1,togglehovercol=-1,toggleable=True,drawifoff=False,bindtoggle=[],dragable=False,center=True,font='default',bold=False,layer=1,ID='tickbox',returnobj=False):
     def makecheckbox(self,x,y,textsize=80,command=emptyfunction,menu='main',ID='checkbox',text='',layer=1,roundedcorners=0,menuexceptions=[],width=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='tick',font='default',bold=False,antialiasing=True,pregenerated=True,
-                 border=4,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
+                 border=4,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,maxwidth=-1,
                  dragable=False,colorkey=(255,255,255),toggle=True,toggleable=True,toggletext='',toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-15,verticalspacing=-15,horizontalspacing=-15,
                  backingdraw=False,borderdraw=True,animationspeed=5,linelimit=1000):
@@ -899,7 +897,7 @@ class UI:
         return obj
     def maketextbox(self,x,y,text='',width=200,lines=1,menu='main',command=emptyfunction,ID='textbox',layer=1,roundedcorners=0,menuexceptions=[],height=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',textsize=50,font='default',bold=False,antialiasing=True,pregenerated=True,
-                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
+                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,
                  colorkey=(255,255,255),spacing=-1,verticalspacing=0,horizontalspacing=8,clickablerect=-1,
                  linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=False,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,
@@ -920,7 +918,7 @@ class UI:
 
     def maketable(self,x,y,data='empty',titles=[],menu='main',ID='table',layer=1,roundedcorners=0,menuexceptions=[],width=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,text='',textsize=50,img='none',font='default',bold=False,antialiasing=True,pregenerated=True,
-                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
+                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,
                  command=emptyfunction,runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,
                  dragable=False,colorkey=(255,255,255),spacing=-1,verticalspacing=0,horizontalspacing=8,clickablerect=-1,
                  boxwidth=-1,boxheight=-1,linesize=2,textcenter=True,
@@ -942,7 +940,7 @@ class UI:
 ##    def maketext(self,x,y,text,size,menu='main',menuexceptions=[],edgebound=(1,0,0,1),col='default',center=True,font='default',bold=False,maxwidth=-1,border=4,backingcol='default',backingdraw=0,backingwidth=-1,backingheight=-1,img='none',colorkey=(255,255,255),roundedcorners=0,layer=1,ID='default',antialiasing=True,pregenerated=True,returnobj=False):
     def maketext(self,x,y,text,textsize=50,menu='main',ID='text',layer=1,roundedcorners=0,menuexceptions=[],width=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',font='default',bold=False,antialiasing=True,pregenerated=True,
-                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
+                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,
                  command=emptyfunction,runcommandat=0,col=-1,textcol=-1,clicktype=0,backingcol=-1,bordercol=-1,textoffsetx=0,textoffsety=0,
                  dragable=False,colorkey=(255,255,255),spacing=-1,verticalspacing=3,horizontalspacing=3,maxwidth=-1,animationspeed=5,clickablerect=-1,
                  textcenter=False,backingdraw=False,borderdraw=False):
@@ -960,7 +958,7 @@ class UI:
 ##    def makescroller(self,x,y,height,command=emptyfunction,width=15,minh=0,maxh=-1,pageh=100,starth=0,menu='main',menuexceptions=[],edgebound=(1,0,0,1),col='default',scrollercol=-1,hovercol=-1,clickcol=-1,scrollerwidth=11,runcommandat=1,clicktype=0,layer=1,ID='default',returnobj=False):
     def makescroller(self,x,y,height,command=emptyfunction,width=15,minp=0,maxp=100,pageheight=15,menu='main',ID='scroller',layer=1,roundedcorners=0,menuexceptions=[],
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,
-                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
+                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,
                  runcommandat=0,col=-1,backingcol=-1,clicktype=0,clickablerect=-1,
                  dragable=True,backingdraw=True,borderdraw=True,scrollercol=-1,scrollerwidth=-1,increment=0,startp=0):
 
@@ -977,7 +975,7 @@ class UI:
 ##    def makeslider(self,x,y,width,height,maxp=100,menu='main',command=emptyfunction,menuexceptions=[],edgebound=(1,0,0,1),col='default',slidercol=-1,sliderbordercol=-1,hovercol=-1,clickcol=-1,clickdownsize=2,bordercol=-1,border=2,slidersize=-1,increment=0,img='none',colorkey=(255,255,255),minp=0,startp=0,style='square',roundedcorners=0,barroundedcorners=-1,dragable=True,runcommandat=1,clicktype=0,layer=1,ID='default',returnobj=False):
     def makeslider(self,x,y,width,height,maxp=100,menu='main',command=emptyfunction,ID='slider',layer=1,roundedcorners=0,menuexceptions=[],
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,
-                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
+                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,
                  runcommandat=1,col=-1,backingcol=-1,button='default',clickablerect=-1,
                  dragable=True,colorkey=(255,255,255),backingdraw=True,borderdraw=True,
                  slidersize=-1,increment=0,sliderroundedcorners=-1,minp=0,startp=0,direction='horizontal',containedslider=False,movetoclick=False):
@@ -1008,7 +1006,7 @@ class UI:
         self.windowedmenunames = [a.menu for a in self.windowedmenus]
     def makerect(self,x,y,width,height,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,menuexceptions=[],
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,
-                 border=-1,scalesize=True,scalex=True,scaley=True,
+                 border=-1,scalesize=True,scalex=-1,scaley=-1,
                  runcommandat=0,col=-1,dragable=False):
         obj = RECT(self,x,y,command=emptyfunction,menu=menu,ID=ID ,layer=layer,roundedcorners=roundedcorners,menuexceptions=menuexceptions,width=width,height=height,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,
@@ -1017,7 +1015,7 @@ class UI:
         return obj
     def makecircle(self,x,y,radius,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=-1,menuexceptions=[],
                  anchor=(0,0),objanchor=(0,0),center=True,centery=-1,
-                 border=-1,scalesize=True,scalex=True,scaley=True,
+                 border=-1,scalesize=True,scalex=-1,scaley=-1,
                  runcommandat=0,col=-1,dragable=False):
         if roundedcorners==-1: roundedcorners=radius
         self.makerect(x,y,radius*2,radius*2,command,menu,ID ,layer,roundedcorners,menuexceptions,
@@ -1105,10 +1103,10 @@ class UI:
     def slidemenu(self,menufrom,menuto,slide,length):
         self.queuedmenumove[0] = length*30
         dirr = [0,0]
-        if 'left' in slide: dirr[0]-=self.screenw/self.scale
-        if 'right' in slide: dirr[0]+=self.screenw/self.scale
-        if 'up' in slide: dirr[1]-=self.screenh/self.scale
-        if 'down' in slide: dirr[1]+=self.screenh/self.scale
+        if 'left' in slide: dirr[0]-=self.screenw
+        if 'right' in slide: dirr[0]+=self.screenw
+        if 'up' in slide: dirr[1]-=self.screenh
+        if 'down' in slide: dirr[1]+=self.screenh
         if 'flip' in slide: dirr = [dirr[0]*-1,dirr[1]*-1]
         if menufrom in self.windowedmenunames:
             if menuto == self.windowedmenus[self.windowedmenunames.index(menufrom)].behindmenu:
@@ -1173,7 +1171,7 @@ class UI:
 class GUI_ITEM:
     def __init__(self,ui,x,y,width,height,menu='main',ID='',layer=1,roundedcorners=0,menuexceptions=[],
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,text='',textsize=50,img='none',font='default',bold=False,antialiasing=True,pregenerated=True,
-                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=True,scaley=True,
+                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,
                  command=emptyfunction,runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,maxwidth=-1,
                  dragable=False,colorkey=(255,255,255),toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=0,horizontalspacing=8,clickablerect=-1,
                  lines=1,linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=True,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,
@@ -1199,7 +1197,9 @@ class GUI_ITEM:
         self.startheight = height
         self.roundedcorners = roundedcorners
         self.scalesize = scalesize
+        if scalex == -1: scalex = self.scalesize
         self.scalex = scalex
+        if scaley == -1: scaley = self.scalesize
         self.scaley = scaley
 
         self.border = border
@@ -1456,8 +1456,7 @@ class GUI_ITEM:
 class BUTTON(GUI_ITEM):
     def refresh(self,ui):
         tscale = self.scale
-        if not self.ontable:
-            self.refreshcords(ui)
+        self.refreshcords(ui)
         if tscale!=self.scale:
             self.gentext(ui)
         self.autoscale(ui)
@@ -1826,7 +1825,6 @@ class TABLE(GUI_ITEM):
         self.refreshscale(ui)
         self.labeldata(ui)
         self.initheightwidth()
-        self.refreshcords(ui)
         self.gentext(ui)
         self.gettablewidths(ui)
         self.gettableheights(ui)          
@@ -1865,15 +1863,23 @@ class TABLE(GUI_ITEM):
             for i,b in enumerate(self.labeleddata[a]):
                 if b[0] == 'text':
                     ui.delete('tabletext'+self.ID+str(a)+str(i),False)
-                    obj = ui.maketext(0,0,b[1],self.textsize,self.menu,'tabletext'+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,self.menuexceptions,textcenter=self.textcenter,textcol=self.textcol,font=self.font,bold=self.bold,antialiasing=self.antialiasing,pregenerated=self.pregenerated,maxwidth=max([self.boxwidth[i]-self.horizontalspacing*2,-1]),scalesize=self.scalesize,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,backingcol=self.col)
+                    obj = ui.maketext(0,0,b[1],self.textsize,self.menu,'tabletext'+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,self.menuexceptions,textcenter=self.textcenter,textcol=self.textcol,
+                                      font=self.font,bold=self.bold,antialiasing=self.antialiasing,pregenerated=self.pregenerated,maxwidth=max([self.boxwidth[i]-self.horizontalspacing*2,-1]),
+                                      scalesize=self.scalesize,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,backingcol=self.col)
                     self.tableimages[-1].append(['textobj',obj])
                 elif b[0] == 'button':
-                    b[1].scale = self.scale
-                    b[1].gentext(ui)
+                    b[1].scalesize = self.scalesize
+                    b[1].scalex = self.scalesize
+                    b[1].scaley = self.scalesize
+                    b[1].refresh(ui)
                     self.tableimages[-1].append(['button',b[1]])
                 elif b[0] == 'textbox':
                     self.tableimages[-1].append(['textbox',b[1]])
                 elif b[0] == 'textobj':
+                    b[1].scalesize = self.scalesize
+                    b[1].scalex = self.scalesize
+                    b[1].scaley = self.scalesize
+                    b[1].refresh(ui)
                     self.tableimages[-1].append(['textobj',b[1]])
                 elif b[0] == 'image':
                     ui.delete('tabletext'+self.ID+str(a)+str(i),False)
@@ -1881,7 +1887,7 @@ class TABLE(GUI_ITEM):
                     self.tableimages[-1].append(['textobj',obj]) 
                 else:
                     print(b[0])
-                    
+                
     def child_refreshcords(self,ui):
         if self.tableimages!=0:
             for a in range(len(self.tableimages)):
@@ -2004,8 +2010,7 @@ class TEXT(GUI_ITEM):
         else:
             ui.write(screen,self.x,self.y,self.text,self.textsize,self.textcol,self.textcenter,self.font,self.bold,self.antialiasing)
     def refresh(self,ui):
-        if not self.ontable:
-            self.refreshscale(ui)
+        self.refreshscale(ui)
         self.gentext(ui)
         self.autoscale(ui)
         if not self.ontable:
@@ -2196,6 +2201,7 @@ class ANIMATION:
             self.cordlist.append((self.startpos[0]+(self.endpos[0]-self.startpos[0])*(sum(self.speedlist[:a+1])),self.startpos[1]+(self.endpos[1]-self.startpos[1])*(sum(self.speedlist[:a+1]))))
         if self.skip:
             self.findonscreen(ui)
+##        print(self.animateID,self.cordlist[0],self.cordlist[-1],self.startpos,self.endpos)
     def findonscreen(self,ui):
         tcords = list(self.cordlist[0])
         scale = ui.IDs[self.animateID].scale
@@ -2234,9 +2240,9 @@ class ANIMATION:
                 self.endpos = (ui.IDs[self.animateID].x,ui.IDs[self.animateID].y)
             if self.relativemove:
                 if (sp and not ep):
-                    self.endpos = (self.startpos[0]+self.endpos[0],self.startpos[1]+self.endpos[1])
+                    self.endpos = ((self.startpos[0]+self.endpos[0])/ui.IDs[self.animateID].dirscale[0],(self.startpos[1]+self.endpos[1])/ui.IDs[self.animateID].dirscale[1])
                 elif (ep and not sp):
-                    self.startpos = (self.startpos[0]+self.endpos[0],self.startpos[1]+self.endpos[1])
+                    self.startpos = ((self.startpos[0]+self.endpos[0])/ui.IDs[self.animateID].dirscale[0],(self.startpos[1]+self.endpos[1])/ui.IDs[self.animateID].dirscale[1])
             self.trueendpos = self.endpos[:]
             self.gencordlist(ui)
         if self.wait<1:
@@ -2269,7 +2275,7 @@ class ANIMATION:
         ui.IDs[self.animateID].x = self.trueendpos[0]
         ui.IDs[self.animateID].y = self.trueendpos[1]
         if type(ui.IDs[self.animateID]) in [TABLE,TEXTBOX,TEXT,SCROLLER,SLIDER,WINDOWEDMENU]:
-            ui.IDs[self.animateID].refreshcords(ui)
+            ui.IDs[self.animateID].resetcords(ui)
         if type(ui.IDs[self.animateID]) == WINDOWEDMENU:
             ui.IDs[self.animateID].darken = ui.IDs[self.animateID].truedarken
 
