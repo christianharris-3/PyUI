@@ -247,8 +247,6 @@ class UI:
         self.exit = False
         self.blockf11 = 0
         
-        self.loadtickdata()
-        self.checkcaps()
         self.clipboard = pygame.scrap.get('str')
 
         self.defaultfont = 'calibre'
@@ -267,7 +265,9 @@ class UI:
         self.autoscale = 'width'
         tempscreen = pygame.display.get_surface()
         self.basescreensize = [tempscreen.get_width(),tempscreen.get_height()]
-
+        self.loadtickdata()
+        self.checkcaps()
+        
     def checkcaps(self):
         hllDll = ctypes.WinDLL("User32.dll")
         self.capslock = bool(hllDll.GetKeyState(0x14))
@@ -351,7 +351,6 @@ class UI:
                 if event.key == pygame.K_F5:
                     self.scaleset(self.scale)
                 if event.key == pygame.K_F11 and self.fullscreenable and self.blockf11<0:
-                    print('f11')
                     self.togglefullscreen(pygame.display.get_surface())
                 if self.selectedtextbox!=-1:
                     if not self.textboxes[self.selectedtextbox].selected:
@@ -1333,7 +1332,7 @@ class GUI_ITEM:
     def refresh(self,ui):
         tscale = self.scale
         self.refreshscale(ui)
-        if tscale!=self.scale: self.gentext(ui)
+        self.gentext(ui)
         self.refreshcords(ui)
     def gentext(self,ui):
         self.currentframe = 0
@@ -1395,6 +1394,14 @@ class GUI_ITEM:
         if not self.scalesize: self.scale = 1
         if not self.scalex: self.dirscale[0] = 1
         if not self.scaley: self.dirscale[1] = 1
+    def smartcords(self,x='',y=''):
+        if x!='':
+            self.x = x
+            self.startx = (self.x*self.dirscale[0]+self.objanchor[0]*self.scale-self.anchor[0])/self.scale
+        if y!='':
+            self.y = y
+            self.starty = (self.y*self.dirscale[1]+self.objanchor[1]*self.scale-self.anchor[1])/self.scale
+        
     def autoscale(self,_):
         pass
     def child_gentext(self,_):
@@ -1424,8 +1431,7 @@ class GUI_ITEM:
             if self.clickedon!=0:
                 self.clickedon = 1
             if self.dragable and drag:
-                self.x = (mpos[0]-self.holdingcords[0])/self.dirscale[0]
-                self.y = (mpos[1]-self.holdingcords[1])/self.dirscale[1]
+                self.smartcords((mpos[0]-self.holdingcords[0])/self.dirscale[0],(mpos[1]-self.holdingcords[1])/self.dirscale[1])
                 self.centerx = self.x+self.width/2
                 self.centery = self.y+self.height/2
             if self.runcommandat == 1 and runcom:
@@ -2040,7 +2046,7 @@ class SCROLLER(GUI_ITEM):
             self.scroll = self.minp
         elif self.scroll>self.maxp-self.pageheight:
             self.scroll = self.maxp-self.pageheight
-##        self.refreshcords(ui)
+
     def refresh(self,ui):
         self.scheight = self.height-self.border*2
         self.refreshcords(ui)
@@ -2051,6 +2057,8 @@ class SCROLLER(GUI_ITEM):
         self.rect = pygame.Rect(self.x,self.y,self.width,self.height)
         self.sliderrect = pygame.Rect(self.x+self.border,self.y+self.border+self.scroll*(self.scheight/(self.maxp-self.minp)),self.scrollerwidth,self.scrollerheight)
     def draw(self,screen,ui):
+        if self.ID == 'info1scroller':
+            print(self.maxp,self.minp,self.pageheight)
         if (self.maxp-self.minp)>self.pageheight:
             draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
             draw.rect(screen,self.scrollercol,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale),border_radius=int(self.roundedcorners*self.scale))
@@ -2152,7 +2160,7 @@ class SLIDER(GUI_ITEM):
 class WINDOWEDMENU(GUI_ITEM):
     def reset(self,ui):
         self.truedarken = self.darken
-        self.refreshscale(ui)
+        self.resetcords(ui)
     def refresh(self,ui):
         pass 
 
@@ -2241,15 +2249,14 @@ class ANIMATION:
                 self.endpos = (ui.IDs[self.animateID].x,ui.IDs[self.animateID].y)
             if self.relativemove:
                 if (sp and not ep):
-                    self.endpos = ((self.startpos[0]+self.endpos[0])/ui.IDs[self.animateID].dirscale[0],(self.startpos[1]+self.endpos[1])/ui.IDs[self.animateID].dirscale[1])
+                    self.endpos = ((self.startpos[0]+self.endpos[0]),(self.startpos[1]+self.endpos[1]))
                 elif (ep and not sp):
-                    self.startpos = ((self.startpos[0]+self.endpos[0])/ui.IDs[self.animateID].dirscale[0],(self.startpos[1]+self.endpos[1])/ui.IDs[self.animateID].dirscale[1])
+                    self.startpos = ((self.startpos[0]+self.endpos[0]),(self.startpos[1]+self.endpos[1]))
             self.trueendpos = self.endpos[:]
             self.gencordlist(ui)
         if self.wait<1:
             if self.progress<self.length:
-                ui.IDs[self.animateID].x = self.cordlist[self.progress][0]
-                ui.IDs[self.animateID].y = self.cordlist[self.progress][1]
+                ui.IDs[self.animateID].smartcords(self.cordlist[self.progress][0],self.cordlist[self.progress][1])
                 if type(ui.IDs[self.animateID]) in [TABLE,TEXTBOX,TEXT,SCROLLER,SLIDER,WINDOWEDMENU]:
                     ui.IDs[self.animateID].refreshcords(ui)
                 if type(ui.IDs[self.animateID]) == WINDOWEDMENU:
@@ -2273,8 +2280,7 @@ class ANIMATION:
             if self.startpos == 'current':
                 self.startpos = (ui.IDs[self.animateID].x,ui.IDs[self.animateID].y)
             self.endpos = (self.startpos[0]+self.endpos[0],self.startpos[1]+self.endpos[1])
-        ui.IDs[self.animateID].x = self.trueendpos[0]
-        ui.IDs[self.animateID].y = self.trueendpos[1]
+        ui.IDs[self.animateID].smartcords(self.trueendpos[0],self.trueendpos[1])
         if type(ui.IDs[self.animateID]) in [TABLE,TEXTBOX,TEXT,SCROLLER,SLIDER,WINDOWEDMENU]:
             ui.IDs[self.animateID].resetcords(ui)
         if type(ui.IDs[self.animateID]) == WINDOWEDMENU:
@@ -2289,4 +2295,3 @@ class RECT(GUI_ITEM):
         
         
     
-
