@@ -274,8 +274,7 @@ class UI:
         
     def scaleset(self,scale):
         self.scale = scale
-        self.dirscale = [self.screenw/self.basescreensize[0],self.screenh/self.basescreensize[1]]
-        #fix this later u lazy melt
+        self.dirscale = [self.screenw/self.basescreensize[0],self.screenw/self.basescreensize[0]]
         for a in self.items:
             if not a.ontable:
                 a.refresh(self)
@@ -1408,7 +1407,7 @@ class GUI_ITEM:
         pass
     def child_refreshcords(self,_):
         pass
-    def getclickedon(self,ui,rect='default',runcom=True,drag=True):
+    def getclickedon(self,ui,rect='default',runcom=True,drag=True,smartdrag=True):
         if rect == 'default':
             rect = pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale)
         self.clickedon = -1
@@ -1431,7 +1430,10 @@ class GUI_ITEM:
             if self.clickedon!=0:
                 self.clickedon = 1
             if self.dragable and drag:
-                self.smartcords((mpos[0]-self.holdingcords[0])/self.dirscale[0],(mpos[1]-self.holdingcords[1])/self.dirscale[1])
+                if smartdrag: self.smartcords((mpos[0]-self.holdingcords[0])/self.dirscale[0],(mpos[1]-self.holdingcords[1])/self.dirscale[1])
+                else:
+                    self.x = (mpos[0]-self.holdingcords[0])/self.dirscale[0]
+                    self.y = (mpos[1]-self.holdingcords[1])/self.dirscale[1]
                 self.centerx = self.x+self.width/2
                 self.centery = self.y+self.height/2
             if self.runcommandat == 1 and runcom:
@@ -1638,7 +1640,7 @@ class TEXTBOX(GUI_ITEM):
         self.scroll = 0
         if self.scroller != 0:
             ui.delete(self.scroller.ID,False)
-        self.scroller = ui.makescroller(self.x+self.width-15-self.rightborder/2,self.y+self.upperborder,self.height-self.upperborder-self.lowerborder,emptyfunction,15,0,self.height-self.upperborder-self.lowerborder,self.height,
+        self.scroller = ui.makescroller(self.x+self.width-self.rightborder-15+self.border/2,self.y+self.upperborder,self.height-self.upperborder-self.lowerborder,emptyfunction,15,0,self.height-self.upperborder-self.lowerborder,self.height,
                                         menu=self.menu,roundedcorners=self.roundedcorners,col=self.col,scalesize=self.scalesize,scaley=self.scalesize,scalex=self.scalesize)
         self.scroller.ontextbox = True
         self.scroller.layer = self.layer+0.01
@@ -1684,9 +1686,9 @@ class TEXTBOX(GUI_ITEM):
             if self.textcenter: self.linecenter = [self.width/2-self.leftborder,self.textsize*0.3]
             else: self.linecenter = [self.horizontalspacing,self.textsize*0.3]
     def refreshscroller(self,ui):
-        self.scroller.x = self.x+self.width-15-self.rightborder/2
+        self.scroller.x = self.x+self.width-self.rightborder-15+self.border/2
         self.scroller.y = self.y+self.upperborder
-        self.scroller.startx = self.x+self.width-15-self.rightborder/2
+        self.scroller.startx = self.x+self.width-self.rightborder-15+self.border/2
         self.scroller.starty = self.y+self.upperborder
         self.scroller.scalesize = self.scalesize
         self.scroller.scaley = self.scalesize
@@ -2032,14 +2034,15 @@ class SCROLLER(GUI_ITEM):
         self.refresh(ui)
         self.resetcords(ui)
     def render(self,screen,ui):
-        temp = (self.x,self.y)
-        self.getclickedon(ui,pygame.Rect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale))
-        if self.holding:
-            self.scroll = (self.y-temp[1])/self.scale/(self.scheight/(self.maxp-self.minp))
-            
-            self.limitpos(ui)
-        self.x,self.y = temp
-        self.draw(screen,ui)
+        if (self.maxp-self.minp)>self.pageheight:
+            temp = (self.x,self.y)
+            self.getclickedon(ui,pygame.Rect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale),smartdrag=False)
+            if self.holding:
+                self.scroll = (self.y-temp[1])/self.scale/(self.scheight/(self.maxp-self.minp))
+                
+                self.limitpos(ui)
+            self.x,self.y = temp
+            self.draw(screen,ui)
             
     def limitpos(self,ui):
         if self.scroll<self.minp:
@@ -2057,8 +2060,6 @@ class SCROLLER(GUI_ITEM):
         self.rect = pygame.Rect(self.x,self.y,self.width,self.height)
         self.sliderrect = pygame.Rect(self.x+self.border,self.y+self.border+self.scroll*(self.scheight/(self.maxp-self.minp)),self.scrollerwidth,self.scrollerheight)
     def draw(self,screen,ui):
-        if self.ID == 'info1scroller':
-            print(self.maxp,self.minp,self.pageheight)
         if (self.maxp-self.minp)>self.pageheight:
             draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
             draw.rect(screen,self.scrollercol,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale),border_radius=int(self.roundedcorners*self.scale))
