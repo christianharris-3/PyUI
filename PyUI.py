@@ -309,8 +309,8 @@ class UI:
         if self.activemenu in self.windowedmenunames:
             window = self.windowedmenus[self.windowedmenunames.index(self.activemenu)]
             #window = [menu,behindmenu,x,y,width,height,col,rounedcorners,colorkey,isolated,darken]
-            self.mpos[0]-=window.x*window.scale
-            self.mpos[1]-=window.y*window.scale
+            self.mpos[0]-=window.x*self.scale
+            self.mpos[1]-=window.y*self.scale
 
             darkening = pygame.Surface((self.screenw,self.screenh),pygame.SRCALPHA)
             darkening.fill((0,0,0,window.darken))
@@ -1412,6 +1412,7 @@ class GUI_ITEM:
         self.clickedon = -1
         self.hovering = False
         mpos = ui.mpos
+##        if type(self) == TEXTBOX: print(mpos,rect)
         if rect.collidepoint(mpos) and (self.clickablerect == -1 or self.clickablerect.collidepoint(mpos)):
             if ui.mprs[self.clicktype] and (ui.mouseheld[self.clicktype][1]>0 or self.holding):
                 if ui.mouseheld[self.clicktype][1] == ui.buttondowntimer:
