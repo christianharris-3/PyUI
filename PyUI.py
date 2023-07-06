@@ -292,7 +292,7 @@ class UI:
                 if a.menu == windowedmenubackings[self.windowedmenunames.index(self.activemenu)]:
                     window = self.windowedmenus[self.windowedmenunames.index(self.activemenu)]
 ##                    print(pygame.Rect(window.x*window.dirscale[0],window.y*window.dirscale[1],window.width*window.scale,window.height*window.scale),[self.mpos[0]*self.scale,self.mpos[1]*self.scale],pygame.mouse.get_pos())
-                    if pygame.Rect(window.x*window.dirscale[0],window.y*window.dirscale[1],window.width*window.scale,window.height*window.scale).collidepoint([self.mpos[0]*self.scale,self.mpos[1]*self.scale]):
+                    if pygame.Rect(window.x*window.dirscale[0],window.y*window.dirscale[1],window.width*window.scale,window.height*window.scale).collidepoint(self.mpos):
                         self.drawguiobject(a,screen)
                     else:
                         if window.isolated:
@@ -309,8 +309,8 @@ class UI:
         if self.activemenu in self.windowedmenunames:
             window = self.windowedmenus[self.windowedmenunames.index(self.activemenu)]
             #window = [menu,behindmenu,x,y,width,height,col,rounedcorners,colorkey,isolated,darken]
-            self.mpos[0]-=window.x/self.scale
-            self.mpos[1]-=window.y/self.scale
+            self.mpos[0]-=window.x*window.scale
+            self.mpos[1]-=window.y*window.scale
 
             darkening = pygame.Surface((self.screenw,self.screenh),pygame.SRCALPHA)
             darkening.fill((0,0,0,window.darken))
@@ -331,8 +331,7 @@ class UI:
             
     def loadtickdata(self):
         self.blockf11-=1
-        mpos = pygame.mouse.get_pos()
-        self.mpos = [mpos[0]/self.scale,mpos[1]/self.scale]
+        self.mpos = list(pygame.mouse.get_pos())
         self.mprs = pygame.mouse.get_pressed()
         self.kprs = pygame.key.get_pressed()
         for a in range(3):
@@ -1412,7 +1411,7 @@ class GUI_ITEM:
             rect = pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale)
         self.clickedon = -1
         self.hovering = False
-        mpos = [ui.mpos[0]*ui.scale,ui.mpos[1]*ui.scale]
+        mpos = ui.mpos
         if rect.collidepoint(mpos) and (self.clickablerect == -1 or self.clickablerect.collidepoint(mpos)):
             if ui.mprs[self.clicktype] and (ui.mouseheld[self.clicktype][1]>0 or self.holding):
                 if ui.mouseheld[self.clicktype][1] == ui.buttondowntimer:
@@ -1734,7 +1733,7 @@ class TEXTBOX(GUI_ITEM):
             self.typeline = 0 
         self.getclickedon(ui,self.selectrect,False,False)
         self.draw(screen,ui)
-        mpos = [ui.mpos[0]*ui.scale,ui.mpos[1]*ui.scale]
+        mpos = ui.mpos
         if self.clickedon == 0:
             self.typingcursor = min([max([self.findclickloc(mpos)+1,0]),len(self.chrcorddata)])-1
             self.textselected[2] = self.typingcursor+1
@@ -2132,9 +2131,9 @@ class SLIDER(GUI_ITEM):
             self.button.holding = True
             self.button.holdingcords = [self.button.width/2,self.button.height/2]
     def movetomouse(self,ui):
-        self.slider = (ui.mpos[0]*ui.scale-self.x*self.dirscale[0]-self.leftborder*self.scale)/((self.width-self.leftborder-self.rightborder)*self.scale/(self.maxp-self.minp))+self.minp
+        self.slider = (ui.mpos[0]-self.x*self.dirscale[0]-self.leftborder*self.scale)/((self.width-self.leftborder-self.rightborder)*self.scale/(self.maxp-self.minp))+self.minp
         if self.direction == 'vertical':
-            self.slider = (ui.mpos[1]*ui.scale-self.y*self.dirscale[1]-self.upperborder*self.scale)/((self.height-self.upperborder-self.lowerborder)*self.scale/(self.maxp-self.minp))+self.minp
+            self.slider = (ui.mpos[1]-self.y*self.dirscale[1]-self.upperborder*self.scale)/((self.height-self.upperborder-self.lowerborder)*self.scale/(self.maxp-self.minp))+self.minp
         if self.increment!=0: self.slider = round(self.slider/self.increment)*self.increment
         self.limitpos(ui)
     def limitpos(self,ui):
