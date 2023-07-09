@@ -309,8 +309,8 @@ class UI:
         if self.activemenu in self.windowedmenunames:
             window = self.windowedmenus[self.windowedmenunames.index(self.activemenu)]
             #window = [menu,behindmenu,x,y,width,height,col,rounedcorners,colorkey,isolated,darken]
-            self.mpos[0]-=window.x*self.scale
-            self.mpos[1]-=window.y*self.scale
+            self.mpos[0]-=window.x*window.dirscale[0]
+            self.mpos[1]-=window.y*window.dirscale[1]
 
             darkening = pygame.Surface((self.screenw,self.screenh),pygame.SRCALPHA)
             darkening.fill((0,0,0,window.darken))
