@@ -9,7 +9,7 @@ def resourcepath(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-def loadinganimation(points):
+def loadinganimation(points=12):
     img = []
     for a in range(points):
         img.append('{loading largest='+str(a)+'}')
@@ -448,13 +448,15 @@ class UI:
     def rendershape(self,name,size,col='default',failmessage=True,backcol=(255,255,255)):
         if col == 'default': col = self.defaulttextcol
         if col == backcol: backcol = (0,0,0)
+        name = name.replace("'",'"')
         if '(' in name and ')' in name:
             col = name.split('(')[1].split(')')[0].split(',')
             col = (int(col[0]),int(col[1]),int(col[2]))
         if 'scale=' in name:
             size*=float(name.split('scale=')[1].split(' ')[0])
-        
-        if name.split(' ')[0] in self.rendershapefunctions:
+        if name[0] == '"':
+            surf = self.rendershapetext(name,size,col,backcol)
+        elif name.split(' ')[0] in self.rendershapefunctions:
             surf = self.rendershapefunctions[name.split(' ')[0]](name,size,col,backcol)
         else:
             surf = self.rendershapebezier(name,size,col,backcol,failmessage)
@@ -629,6 +631,21 @@ class UI:
             draw.circle(surf,col,(x*size+1,size/2+1),radius*size)
             x+=seperation
         return surf
+    def rendershapetext(self,name,size,col,backcol):
+        vals = self.getshapedata(name,['font','bold','italic','strikethrough','underlined','antialias'],[self.defaultfont,False,False,False,False,True])
+        font = vals[0]
+        bold = vals[1]
+        italic = vals[2]
+        strikethrough = vals[3]
+        underlined = vals[4]
+        antialias = vals[5]
+        textgen = pygame.font.SysFont(font,int(size),bold,italic)
+        textgen.set_strikethrough(strikethrough)
+        textgen.set_underline(underlined)
+        text = name.split('"')[1]
+        return textgen.render(text,antialias,col,backcol)
+        
+        
     def rendershapebezier(self,name,size,col,backcol,failmessage):
         data = [['test thing', [[[(200, 100), (490, 220), (300, 40), (850, 340)], [(850, 340), (300, 200), (450, 350), (340, 430)], [(340, 430), (310, 250), (200, 310), (200, 100)]], [[(380, 440), (540, 360), (330, 240), (850, 370)], [(850, 370), (380, 440)]]]],
                 ['search', [[[(300, 350), (150, 200), (350, 0), (500, 150)], [(500, 150), (560, 210), (520, 280), (485, 315)], [(485, 315), (585, 415)], [(585, 415), (625, 455), (595, 485), (555, 445)], [(555, 445), (455, 345)], [(455, 345), (420, 380), (350, 400), (300, 350)], [(300, 350), (325, 325)], [(325, 325), (205, 205), (365, 65), (475, 175)], [(475, 175), (555, 255), (395, 395), (325, 325)], [(325, 325), (300, 350)]]]],
@@ -699,7 +716,15 @@ class UI:
             for a in namesplit:
                 for i,b in enumerate(var):
                     if b in a:
-                        vals[i] = float(a.split('=')[1])     
+                        try:
+                            vals[i] = float(a.split('=')[1])
+                        except:
+                            if str(a.split('=')[1]).lower() == 'true':
+                                vals[i] = True
+                            elif str(a.split('=')[1]).lower() == 'false':
+                                vals[i] = False
+                            else:
+                                vals[i] = str(a.split('=')[1])
         return vals
         
     def rendertextlined(self,text,size,col='default',backingcol=(150,150,150),font='default',width=-1,bold=False,antialiasing=True,center=False,spacing=0,imgin=False,img='',scale='default',linelimit=10000,getcords=False,cutstartspaces=False):
