@@ -88,7 +88,12 @@ There are 2 main types of images, those that are drawn manually and those drawn 
 Those drawn manually have access to being edited as each has a set of variables that can be used to change properties of the image, which the vector based one is only one set image.
 The images can be added by placing the name of the image in {}, or leaving the brackets empty and setting the img variable to the image name.
 Setting an img to a loaded image with pygame.image.load('example.png') will not place it into the {}, but will completely overwrite the text.
-Manual images have variables that can be changed to edit the image, and all images can be given the suffix up, left or down to rotate it where the default direction is right.
+Manual images have variables that can be changed to edit the image, all in the form ' variable=value ' with a space on either side.
+All images can be given:
+-the suffix 'up', 'left' or 'down' to rotate it where the default direction is right.
+-'scale=float', which will directly modify the scale variable of the image allowing for different sized images to appear in text.
+-An colour in the form of an rgb value in 'col=(r,g,b)' with no spaces.
+-If the entered text is in the form {"text" variables=...} or {'text' variables=....} it will render text allowing for unique colour/size/font etc in the same text object.
 
 Example code:
 ```py
@@ -118,7 +123,7 @@ most variables that edit the image shape are a value between 0 and 1 representin
   - 'rounded' Rounds the corners of the triangle, default = 0
 - 'pause' Two rectangles to represent a pause button
   - 'rounded' Rounds the corners of the Rectangle, default = 0
-- 'skip' A rectange and play image together, giving a skip simbol.
+- 'skip' A rectange and play image together, giving a skip symbol.
   - 'rounded' Rounds the rectangle and play image, defulat = 0
   - 'thickness' Changes the width of the rectangle, default = 0.25
   - 'offset' Changes the x position of the rectangle relative to the triangle, default = -0.35
@@ -128,6 +133,21 @@ most variables that edit the image shape are a value between 0 and 1 representin
   - 'minutehandwidth' sets the width of the minute hand, default = 0.05
   - 'hourhandwidth' sets the width of the hour hand, default = 0.05
   - 'circlewidth' sets the width of the outer circle, default = 0.05
+- 'loading' Makes some dots spinning in a circle, it returns a single image. If you want to animate it set img=[PyUI.loadinganimation()], which will return a list of all the image names to make an animated loading symbol.
+  - 'points' Sets the number of points around the circle, default = 12
+  - 'largest' Sets the point which is the largest, then trailing in size as it goes round, default = 0
+  -  'traildrop' The size the circles decrease by moving round, default = 0.015
+  -  'spotsize' The size of the largest dot, default = 0.1
+- 'dots' Makes an image of default 3 dots for a more button.
+  - 'num' The number of dots, default = 3
+  - 'seperation' The distance between each dot, default = 0.3
+  - 'radius' The radius of each dot, default 0.1
+- '"sample text"' must be inside quotes to work, can take any text and text in it will not be processed by the in built image system, so works as a way to put {} in text.
+  - 'bold' Boolean dictating if the text is bold, default = False
+  - 'italic' Boolean dictating if the text is italic, default = False
+  - 'strikethrough' Boolean dictating if the text has a line though it, default = False
+  - 'underlined' Boolean dictating if the text is underlined, default = False
+  - 'antialias' Boolean dictating if the text is antialiased, default = True
 
 ### Vector in built images
 - 'heart' A heart
@@ -136,6 +156,12 @@ most variables that edit the image shape are a value between 0 and 1 representin
 - 'search' The magnifying glass image generally used for a search function
 - 'shuffle' The twisting arrows image used to represent shuffle 
 - 'pfp' The monochrome head and shoulders shape
+- 'speaker' A speaker symbol
+- 'mute' The speaker with an X instead of lines to represent mute
+- 'pencil' A simple pencil design.
+- 'youtube' A symbol that looks like the youtube play button
+- 'queue' The youtube symbol but with some lines behind to try and be a queue symbol (idk this one didnt turn out great)
+- 'star' A 5 pointed star
 
 ## Object variables
 All objects have a range of variables that can be changed to edit the object being made, most objects share similar variables and do the same job for each object so can be described in one, rather than a different set for each object.
@@ -151,6 +177,7 @@ All objects have a range of variables that can be changed to edit the object bei
 - **menuexceptions** = if menu = 'universal', a list of the menus it doesnt display on
 - **anchor** = The point treated as the origin by the object, refer to Object Positioning for more info.
 - **objanchor** = The point on the object its x and y act on, refer to Object Positioning for more info.
+- **enabled** = stops the object from being rendered if False.
 - **center** = Auto sets objanchor to the center of the object.
 - **centery** = Auto sets specifically the vertical center of the object.
 - **scalesize** = Boolean that allows/doesnt allow the object to scale in size when the screen is resized.
@@ -171,6 +198,7 @@ command=lambda: testfunction('function arguements')
 ```
 
 - **runcommandat** = Used to control when a command is ran when clicking a button, 0=when first clicked, 1=every tick the button is held, 2=when the button is released.
+- **clickablerect** = The actual on screen rect (must be Pygame.Rect) that the object can be clicked on in, this is unaffected by any scale variables.
 - **col** = The overall colour of the object, other colours used if not set by the user will be based off this colour. If not set col defaults to the ui.default col variable.
 - **backingcol** = the colour of the backing,mostly interchangeable with bordercol, if unset it will default to adding 20 to the the r,g and b number of col.
 - **bordercol** = interchangable with backingcol, just used as it is more intuative for some objects.
@@ -243,6 +271,7 @@ sliderroundedcorners
 button
 direction
 containedslider
+movetoclick
 
 ### Windowed menu specific
 behindmenu
