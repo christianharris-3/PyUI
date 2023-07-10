@@ -451,6 +451,8 @@ class UI:
         if '(' in name and ')' in name:
             col = name.split('(')[1].split(')')[0].split(',')
             col = (int(col[0]),int(col[1]),int(col[2]))
+        if 'scale=' in name:
+            size*=float(name.split('scale=')[1].split(' ')[0])
         
         if name.split(' ')[0] in self.rendershapefunctions:
             surf = self.rendershapefunctions[name.split(' ')[0]](name,size,col,backcol)
