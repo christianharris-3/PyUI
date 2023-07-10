@@ -259,6 +259,9 @@ class UI:
         self.scrollwheelscrolls = True
         self.idmessages = False
         self.queuemenumove = True
+        self.rendershapefunctions = {'tick':self.rendershapetick,'cross':self.rendershapecross,'arrow':self.rendershapearrow,'settings':self.rendershapesettings,
+                                     'play':self.rendershapeplay,'pause':self.rendershapepause,'skip':self.rendershapeskip,'circle':self.rendershapecircle,
+                                     'rect':self.rendershaperect,'clock':self.rendershapeclock,'loading':self.rendershapeloading,'dots':self.rendershapedots}
         
         self.resizable = True
         self.fullscreenable = True
@@ -445,30 +448,12 @@ class UI:
     def rendershape(self,name,size,col='default',failmessage=True,backcol=(255,255,255)):
         if col == 'default': col = self.defaulttextcol
         if col == backcol: backcol = (0,0,0)
-        if name[:4] == 'tick':
-            surf = self.rendershapetick(name,size,col,backcol)
-        elif name[:5] == 'arrow':
-            surf = self.rendershapearrow(name,size,col,backcol)
-        elif name[:5] == 'cross':
-            surf = self.rendershapecross(name,size,col,backcol)
-        elif name[:8] == 'settings':
-            surf = self.rendershapesettings(name,size,col,backcol)
-        elif name[:4] == 'play':
-            surf = self.rendershapeplay(name,size,col,backcol)
-        elif name[:5] == 'pause':
-            surf = self.rendershapepause(name,size,col,backcol)
-        elif name[:4] == 'skip':
-            surf = self.rendershapeskip(name,size,col,backcol)
-        elif name[:6] == 'circle':
-            surf = self.rendershapecircle(name,size,col,backcol)
-        elif name[:4] == 'rect':
-            surf = self.rendershaperect(name,size,col,backcol)
-        elif name[:5] == 'clock':
-            surf = self.rendershapeclock(name,size,col,backcol)
-        elif name[:7] == 'loading':
-            surf = self.rendershapeloading(name,size,col,backcol)
-        elif name[:4] == 'dots':
-            surf = self.rendershapedots(name,size,col,backcol)
+        if '(' in name and ')' in name:
+            col = name.split('(')[1].split(')')[0].split(',')
+            col = (int(col[0]),int(col[1]),int(col[2]))
+        
+        if name.split(' ')[0] in self.rendershapefunctions:
+            surf = self.rendershapefunctions[name.split(' ')[0]](name,size,col,backcol)
         else:
             surf = self.rendershapebezier(name,size,col,backcol,failmessage)
         if 'left' in name:
