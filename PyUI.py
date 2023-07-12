@@ -1438,6 +1438,9 @@ class GUI_ITEM:
                     self.holding = True
                     self.holdingcords = [(mpos[0])-rect.x,(mpos[1])-rect.y]
                     if self.runcommandat<2 and runcom:
+                        for a in self.bindtoggle:
+                            if a!=self.ID:
+                                ui.IDs[a].toggle = False
                         if self.toggleable:
                             if self.toggle: self.toggle = False
                             else: self.toggle = True
@@ -1460,6 +1463,9 @@ class GUI_ITEM:
             if self.holding:
                 self.clickedon = 2
                 if rect.collidepoint(mpos) and self.runcommandat>0 and runcom:
+                    for a in self.bindtoggle:
+                        if a!=self.ID:
+                            ui.IDs[a].toggle = False
                     if self.toggleable and self.runcommandat!=1:
                         if self.toggle: self.toggle = False
                         else: self.toggle = True
@@ -1523,9 +1529,6 @@ class BUTTON(GUI_ITEM):
             self.getclickedon(ui,self.clickrect)
             if self.clickedon > -1:
                 if self.clickedon == 0: ui.mouseheld[self.clicktype][1]-=1
-                for a in self.bindtoggle:
-                    if a!=self.ID:
-                        ui.IDs[a].toggle = False
             if not self.onslider:
                 self.draw(screen,ui)
     def draw(self,screen,ui):
