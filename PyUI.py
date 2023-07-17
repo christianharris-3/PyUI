@@ -67,7 +67,7 @@ def linecross(L1,L2):
         if min(distances)<0.1:
             return False,10
         else: 
-            dis = 0
+            dis = 0.1
             if a<b:
                 if xcross<a-dis or xcross>b+dis:
                     return False,1
@@ -216,6 +216,7 @@ class draw:
 class UI:
     def __init__(self,scale=1):
         pygame.key.set_repeat(350,31)
+        pygame.scrap.init()
         
         self.scale = scale
         self.dirscale = [1,1]
@@ -1165,7 +1166,7 @@ class UI:
                 self.delete(self.IDs[ID].button.ID)
                 self.sliders.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == ANIMATION: self.animations.remove(self.IDs[ID])
-            elif type(self.IDs[ID]) == RECT: self.rects.append(self.IDs[ID])
+            elif type(self.IDs[ID]) == RECT: self.rects.remove(self.IDs[ID])
             del self.IDs[ID]
             self.refreshitems()
             return True
