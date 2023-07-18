@@ -278,7 +278,7 @@ class UI:
         
     def scaleset(self,scale):
         self.scale = scale
-        self.dirscale = [self.screenw/self.basescreensize[0],self.screenw/self.basescreensize[0]]
+        self.dirscale = [self.screenw/self.basescreensize[0],self.screenh/self.basescreensize[1]]
         for a in self.items:
             if not a.ontable:
                 a.refresh(self)
@@ -396,18 +396,24 @@ class UI:
         else: screen = pygame.display.set_mode((self.screenw,self.screenh),pygame.RESIZABLE)       
         self.blockf11 = 10
         
-    def write(self,screen,x,y,text,size,col='default',center=True,font='default',bold=False,antialiasing=True):
+    def write(self,screen,x,y,text,size,col='default',center=True,font='default',bold=False,antialiasing=True,scale=False):
         if font=='default': font=self.defaultfont
         if col == 'default': col = self.defaulttextcol
-        largetext = pygame.font.SysFont(font,int(size*self.scale),bold)
+        if scale:
+            dirscale = self.dirscale
+            scale = self.scale
+        else:
+            dirscale = [1,1]
+            scale = 1
+        largetext = pygame.font.SysFont(font,int(size*scale),bold)
         textsurf = largetext.render(text, antialiasing, col)
         textrect = textsurf.get_rect()
         if center:
-            textrect.center = (int(x)*self.dirscale[0],int(y)*self.dirscale[1])
-            textrect.y = y*self.dirscale[1]
+            textrect.center = (int(x)*dirscale[0],int(y)*dirscale[1])
+            textrect.y = y*dirscale[1]
         else:
-            textrect.x = int(x)*self.dirscale[0]
-            textrect.y = int(y)*self.dirscale[1]
+            textrect.x = int(x)*dirscale[0]
+            textrect.y = int(y)*dirscale[1]
         screen.blit(textsurf, textrect)
 
     def rendertext(self,text,size,col='default',font='default',bold=False,antialiasing=True,backingcol=(150,150,150),imgin=False,img=''):
