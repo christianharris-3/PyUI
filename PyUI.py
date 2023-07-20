@@ -48,6 +48,39 @@ def autoshiftcol(col,default=(150,150,150),editamount=0):
         return shiftcolor(col,editamount)
     return col
 
+##def stress(num=10000):
+####    items = [[[(random.gauss(0,1000),random.gauss(0,1000)),(random.gauss(0,1000),random.gauss(0,1000))],[(random.gauss(0,1000),random.gauss(0,1000)),(random.gauss(0,1000),random.gauss(0,1000))]] for a in range(num)]
+##    items = [(random.gauss(0,1000),random.gauss(0,1000)) for a in range(num)]
+##    poly = [[6121.418823168169, 2540.4649881431005], [5902.418823100715, 2551.4649881504115], [5773.418823092922, 2553.464988151256], [5620.418823088219, 2550.4649881517657], [5490.418823085731, 2545.4649881520363], [5378.418823084146, 2527.464988152208], [5286.418823083264, 2489.4649881523032], [5091.924628306851, 2332.387747678128], [5036.921068889245, 2246.1805067546848], [4992.968283297781, 2160.3846598957725], [4960.878762510003, 2066.520712568027], [4927.625408027907, 1969.9715330965237], [4902.238222271764, 1874.3132243192679], [4832.185483354941, 1596.2392434177348], [4746.037533214347, 1294.3999832223974], [4668.196053825487, 1123.9184982530383], [4388.045581531835, 852.6694429143116], [4234.770978869179, 742.7471765057273], [4023.5661500620718, 657.4162418848409], [3881.367373533748, 619.2805369612004], [3362.504158675401, 560.7525398940218], [3012.495293479294, 518.6831357669186], [2663.48521220508, 473.7023164851081], [1921.305458538932, 440.7934343278041], [1206.2112352050306, 441.18459194927823], [163.12564768061986, 487.04410206501905], [303.07450108395574, 1400.8082649197895], [3428.1258279353483, 1750.02606706993], [4628.002315536618, 3522.9779499727438], [6105.462208231702, 3263.3031797131207]]
+##    print('starting')
+##    start = time.time()
+##    for a in items:
+##        polyescape(a,poly)
+##    total = time.time()-start
+##    print('total:',total,'per:',total/num)
+##
+##def stress2(num=100000):
+##    items = [[[(random.gauss(0,1000),random.gauss(0,1000)),(random.gauss(0,1000),random.gauss(0,1000))],[(random.gauss(0,1000),random.gauss(0,1000)),(random.gauss(0,1000),random.gauss(0,1000))]] for a in range(num)]
+##    print('starting')
+##    start = time.time()
+##    for a in items:
+##        linecross(a[0],a[1])
+##    total = time.time()-start
+##    print('total:',total,'per:',total/num)
+    
+def polycollide(point,poly,angle=0.5):
+    center = point
+    crosses = 0
+    dis = 100000
+    for a in range(len(poly)):
+        awayline = [center,[center[0]+(dis*math.cos(angle/180*math.pi)),center[1]+(dis*math.sin(angle/180*math.pi))]]
+        collide = linecross(awayline,[poly[a],poly[a-1]])
+        if collide[0]:
+            crosses+=1
+    if crosses%2:
+        return True
+    return False
+
 def linecross(L1,L2):
     #print(L1,L2)
 ##    x1,x2,x3,x4,y1,y2,y3 ,y4 = L1[0][0],L1[1][0],L2[0][0],L2[1][0],L1[0][1],L1[1][1],L2[0][1],L2[1][1]
@@ -60,38 +93,26 @@ def linecross(L1,L2):
         else:
             ycross = ((e-f)*(xcross-a))/(a-b)+e
 
-        distances = []
-        for x in L1+L2:
-            distances.append(((x[0]-xcross)**2+(x[1]-ycross)**2)**0.5)
-##        print(distances,L1,L2,xcross,ycross)
-        if min(distances)<0.1:
-            return False,10
-        else: 
-            dis = 0.1
-            if a<b:
-                if xcross<a-dis or xcross>b+dis:
-                    return False,1
-            elif b<a:
-                if xcross<b-dis or xcross>a+dis:
-                    return False,2
-            if c<d:
-                if xcross<c-dis or xcross>d+dis:
-                    return False,3
-            elif d<c:
-                if xcross<d-dis or xcross>c+dis:
-                    return False,4
-            if e<f:
-                if ycross<e-dis or ycross>f+dis:
-                    return False,5
-            elif f<e:
-                if ycross<f-dis or ycross>e+dis:
-                    return False,6
-            if g<h:
-                if ycross<g-dis or ycross>h+dis:
-                    return False,7
-            elif h<g:
-                if ycross<h-dis or ycross>g+dis:
-                    return False,8
+##        if xcross<min([a,b]) or xcross>max([a,b]) or ycross<min([e,f]) or ycross>max([e,f]) or xcross<min([c,d]) or xcross>max([c,d]) or ycross<min([g,h]) or ycross>max([g,h]):
+##            return False,1
+
+        dis = 0.1
+        if a<b:
+            if xcross<a-dis or xcross>b+dis: return False,1
+        else:
+            if xcross<b-dis or xcross>a+dis: return False,2
+        if c<d:
+            if xcross<c-dis or xcross>d+dis: return False,3
+        else:
+            if xcross<d-dis or xcross>c+dis: return False,4
+        if e<f:
+            if ycross<e-dis or ycross>f+dis: return False,5
+        else:
+            if ycross<f-dis or ycross>e+dis: return False,6
+        if g<h:
+            if ycross<g-dis or ycross>h+dis: return False,7
+        else:
+            if ycross<h-dis or ycross>g+dis: return False,8
 
         return True,xcross,ycross
     except:
@@ -199,6 +220,7 @@ class draw:
         draw.circle(surf,col,point2,width)
     def rect(surf,col,rect,width=0,border_radius=0):
         x,y,w,h = rect
+        
         radius = abs(int(min([border_radius,rect[2]/2,rect[3]/2])))
         pygame.draw.rect(surf,col,roundrect(x,y,w,h),int(width),int(border_radius))
         if border_radius != 0 and (radius*(1+(2**0.5)/2)<width or width==0):
@@ -212,6 +234,23 @@ class draw:
     def polygon(surf,col,points):
         pygame.gfxdraw.aapolygon(surf,points,col)
         pygame.gfxdraw.filled_polygon(surf,points,col)
+    def glow(surf,rect,distances,col,scale=1,detail=-1,shade=100,roundedcorners=-1):
+        if distances!=0:
+            if type(distances) == int: distances = [distances for a in range(4)]
+            if roundedcorners == -1: roundedcorners=max(distances)
+            if detail == -1: detail=max(distances)
+            colorkey = (255,255,255)
+            if col == colorkey: colorkey = (0,0,0)
+            if len(col) == 3: col = [col[0],col[1],col[2],shade/detail]
+            else: shade = col[3]
+            for a in range(detail,0,-1):
+                w = rect.width+(a/detail)*(distances[1]+distances[3])
+                h = rect.height+(a/detail)*(distances[0]+distances[2])
+                rec = pygame.Surface((w,h),pygame.SRCALPHA)
+                pygame.draw.rect(rec,col,pygame.Rect(0,0,w,h),0,int(roundedcorners-(1-a/detail)*distances[0]))
+                surf.blit(rec,(rect.x-(a/detail)*distances[3],rect.y-(a/detail)*distances[0]))
+            
+            
     
 class UI:
     def __init__(self,scale=1):
@@ -396,9 +435,10 @@ class UI:
         else: screen = pygame.display.set_mode((self.screenw,self.screenh),pygame.RESIZABLE)       
         self.blockf11 = 10
         
-    def write(self,screen,x,y,text,size,col='default',center=True,font='default',bold=False,antialiasing=True,scale=False):
+    def write(self,screen,x,y,text,size,col='default',center=True,font='default',bold=False,antialiasing=True,scale=False,centery=-1):
         if font=='default': font=self.defaultfont
         if col == 'default': col = self.defaulttextcol
+        if centery == -1: centery = center
         if scale:
             dirscale = self.dirscale
             scale = self.scale
@@ -410,10 +450,11 @@ class UI:
         textrect = textsurf.get_rect()
         if center:
             textrect.center = (int(x)*dirscale[0],int(y)*dirscale[1])
-            textrect.y = y*dirscale[1]
+            if not centery: textrect.y = y*dirscale[1]
         else:
-            textrect.x = int(x)*dirscale[0]
             textrect.y = int(y)*dirscale[1]
+            if centery: textrect.center = (int(x)*dirscale[0],int(y)*dirscale[1])
+            textrect.x = int(x)*dirscale[0]
         screen.blit(textsurf, textrect)
 
     def rendertext(self,text,size,col='default',font='default',bold=False,antialiasing=True,backingcol=(150,150,150),imgin=False,img=''):
@@ -669,6 +710,7 @@ class UI:
                 ['youtube', [[[(295.0, 215.0), (295.0, 185.0), (305.0, 175.0), (345.0, 175.0)], [(345.0, 175.0), (445.0, 175.0)], [(445.0, 175.0), (485.0, 175.0), (495.0, 185.0), (495.0, 215.0)], [(495.0, 215.0), (495.0, 255.0)], [(495.0, 255.0), (495.0, 285.0), (485.0, 295.0), (445.0, 295.0)], [(445.0, 295.0), (345.0, 295.0)], [(345.0, 295.0), (305.0, 295.0), (295.0, 285.0), (295.0, 255.0)], [(295.0, 255.0), (295.0, 235.0)], [(295.0, 235.0), (375.0, 235.0)], [(375.0, 235.0), (375.0, 265.0)], [(375.0, 265.0), (425.0, 235.0)], [(425.0, 235.0), (375.0, 205.0)], [(375.0, 205.0), (375.0, 235.0)], [(375.0, 235.0), (295.0, 235.0)], [(295.0, 235.0), (295.0, 215.0)]]]],
                 ['queue', [[[(295.0, 215.0), (295.0, 185.0), (305.0, 175.0), (345.0, 175.0)], [(345.0, 175.0), (445.0, 175.0)], [(445.0, 175.0), (485.0, 175.0), (495.0, 185.0), (495.0, 215.0)], [(495.0, 215.0), (495.0, 255.0)], [(495.0, 255.0), (495.0, 285.0), (485.0, 295.0), (445.0, 295.0)], [(445.0, 295.0), (345.0, 295.0)], [(345.0, 295.0), (305.0, 295.0), (295.0, 285.0), (295.0, 255.0)], [(295.0, 255.0), (295.0, 235.0)], [(295.0, 235.0), (375.0, 235.0)], [(375.0, 235.0), (375.0, 265.0)], [(375.0, 265.0), (425.0, 235.0)], [(425.0, 235.0), (375.0, 205.0)], [(375.0, 205.0), (375.0, 235.0)], [(375.0, 235.0), (295.0, 235.0)], [(295.0, 235.0), (295.0, 215.0)]], [[(345.0, 155.0), (475.0, 155.0)], [(475.0, 155.0), (505.0, 155.0), (515.0, 165.0), (515.0, 195.0)], [(515.0, 195.0), (515.0, 245.0)], [(515.0, 245.0), (515.0, 275.0), (535.0, 275.0), (535.0, 245.0)], [(535.0, 245.0), (535.0, 185.0)], [(535.0, 185.0), (535.0, 155.0), (515.0, 135.0), (485.0, 135.0)], [(485.0, 135.0), (345.0, 135.0)], [(345.0, 135.0), (315.0, 135.0), (315.0, 155.0), (345.0, 155.0)]], [[(515.0, 115.0), (375.0, 115.0)], [(375.0, 115.0), (345.0, 115.0), (345.0, 95.0), (375.0, 95.0)], [(375.0, 95.0), (525.0, 95.0)], [(525.0, 95.0), (555.0, 95.0), (575.0, 115.0), (575.0, 145.0)], [(575.0, 145.0), (575.0, 215.0)], [(575.0, 215.0), (575.0, 245.0), (555.0, 245.0), (555.0, 215.0)], [(555.0, 215.0), (555.0, 155.0)], [(555.0, 155.0), (555.0, 135.0), (545.0, 115.0), (515.0, 115.0)]]]],
                 ['star', [[[(425.0, 225.0), (705.0, 225.0)], [(705.0, 225.0), (565.0, 315.0)], [(565.0, 315.0), (425.0, 225.0)]], [[(565.0, 135.0), (475.0, 375.0)], [(475.0, 375.0), (565.0, 315.0)], [(565.0, 315.0), (655.0, 375.0)], [(655.0, 375.0), (565.0, 135.0)]]]],
+                ['on', [[[(485.0, 275.0), (445.0, 285.0), (425.0, 345.0), (425.0, 375.0)], [(425.0, 375.0), (425.0, 435.0), (465.0, 485.0), (535.0, 485.0)], [(535.0, 485.0), (605.0, 485.0), (645.0, 435.0), (645.0, 375.0)], [(645.0, 375.0), (645.0, 345.0), (625.0, 285.0), (585.0, 275.0)], [(585.0, 275.0), (565.0, 275.0), (575.0, 295.0)], [(575.0, 295.0), (645.0, 375.0), (645.0, 505.0), (425.0, 505.0), (425.0, 375.0), (495.0, 295.0)], [(495.0, 295.0), (505.0, 275.0), (485.0, 275.0)]], [[(520.0, 315.0), (520.0, 355.0), (550.0, 355.0), (550.0, 315.0)], [(550.0, 315.0), (550.0, 265.0)], [(550.0, 265.0), (550.0, 225.0), (520.0, 225.0), (520.0, 265.0)], [(520.0, 265.0), (520.0, 315.0)]]]],
                 ]
         for a in self.images:
             data.append(a)
@@ -886,7 +928,7 @@ class UI:
         
     def makebutton(self,x,y,text,textsize=50,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,menuexceptions=[],width=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',font='default',bold=False,antialiasing=True,pregenerated=True,enabled=True,
-                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,
+                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,maxwidth=-1,
                  dragable=False,colorkey=(255,255,255),toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=0,horizontalspacing=8,clickablerect=-1,clickableborder=0,
                  backingdraw=True,borderdraw=True,animationspeed=5,linelimit=1000):
@@ -894,7 +936,7 @@ class UI:
         if backingcol == -1: backingcol = bordercol
         obj = BUTTON(self,x,y,width,height,menu,ID,layer,roundedcorners,menuexceptions,
                  anchor,objanchor,center,centery,text,textsize,img,font,bold,antialiasing,pregenerated,enabled,
-                 border,upperborder,lowerborder,rightborder,leftborder,scalesize,scalex,scaley,
+                 border,upperborder,lowerborder,rightborder,leftborder,scalesize,scalex,scaley,glow,glowcol,
                  command,runcommandat,col,textcol,backingcol,hovercol,clickdownsize,clicktype,textoffsetx,textoffsety,maxwidth,
                  dragable,colorkey,toggle,toggleable,toggletext,toggleimg,togglecol,togglehovercol,bindtoggle,spacing,verticalspacing,horizontalspacing,clickablerect,clickableborder,
                  animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit)
@@ -1091,7 +1133,7 @@ class UI:
                 self.menuback(slide+' flip',length)
             else:
                 if backchainadd:
-                    self.backchain.append([self.activemenu,slide])
+                    self.backchain.append([self.activemenu,slide,length])
                 if slide=='none':
                     self.activemenu = moveto
                 else:
@@ -1104,6 +1146,7 @@ class UI:
         if len(self.backchain)>0:
             if slide=='none' and self.backchain[-1][1] != 'none':
                 slide = self.backchain[-1][1]+' flip'
+            length = self.backchain[-1][2]
         if length == 'default':
             length = self.defaultanimationspeed
         if self.queuedmenumove[0]<0 or slide=='none':
@@ -1190,7 +1233,7 @@ class UI:
 class GUI_ITEM:
     def __init__(self,ui,x,y,width,height,menu='main',ID='',layer=1,roundedcorners=0,menuexceptions=[],
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,text='',textsize=50,img='none',font='default',bold=False,antialiasing=True,pregenerated=True,enabled=True,
-                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,
+                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
                  command=emptyfunction,runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,maxwidth=-1,
                  dragable=False,colorkey=(255,255,255),toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=0,horizontalspacing=8,clickablerect=-1,clickableborder=0,
                  lines=1,linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=True,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,
@@ -1221,6 +1264,7 @@ class GUI_ITEM:
         self.scalex = scalex
         if scaley == -1: scaley = self.scalesize
         self.scaley = scaley
+        self.glow = glow
 
         self.border = border
         if upperborder == -1: upperborder = border
@@ -1253,6 +1297,7 @@ class GUI_ITEM:
         self.textcol = autoshiftcol(textcol,ui.defaulttextcol)
         self.backingcol = autoshiftcol(backingcol,self.col,20)
         self.bordercol = self.backingcol
+        self.glowcol = autoshiftcol(glowcol,self.col,-20)
         self.hovercol = autoshiftcol(hovercol,self.col,-20)
         self.togglecol = autoshiftcol(togglecol,self.col,-50)
         self.togglehovercol = autoshiftcol(togglehovercol,self.togglecol,-20)
@@ -1357,6 +1402,7 @@ class GUI_ITEM:
         self.refreshscale(ui)
         self.gentext(ui)
         self.refreshcords(ui)
+        self.refreshglow(ui)
     def gentext(self,ui):
         self.currentframe = 0
         if type(self.img) != list: imgs = [self.img]
@@ -1375,6 +1421,11 @@ class GUI_ITEM:
         if len(self.textimages) != 1:
             self.animating = True
         self.child_gentext(ui)
+    def refreshglow(self,ui):
+        if self.glow!=0:
+            self.glowimage = pygame.Surface(((self.glow*2+self.width)*self.scale,(self.glow*2+self.height)*self.scale),pygame.SRCALPHA)
+            draw.glow(self.glowimage,roundrect(self.glow*self.scale,self.glow*self.scale,self.width*self.scale,self.height*self.scale),self.glow,self.glowcol)
+        
     def animatetext(self,ui):
         if self.animating:
             self.animate+=1
@@ -1499,6 +1550,7 @@ class BUTTON(GUI_ITEM):
         if tscale!=self.scale:
             self.gentext(ui)
         self.autoscale(ui)
+        self.refreshglow(ui)
     def child_gentext(self,ui):
         if (self.img != self.toggleimg) or (self.text != self.toggletext):
             if type(self.img) != list: imgs = [self.toggleimg]
@@ -1547,6 +1599,8 @@ class BUTTON(GUI_ITEM):
             if self.holding or self.hovering:
                 if not self.toggle: col = self.togglehovercol
                 else: col = self.hovercol
+            if self.glow!=0:
+                screen.blit(self.glowimage,(self.x*self.dirscale[0]-self.glow*self.scale,self.y*self.dirscale[1]-self.glow*self.scale))
             if self.borderdraw:
                 if self.backingdraw: draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
                 else: draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),int((self.border+self.clickdownsize*self.holding)*self.scale),border_radius=int(self.roundedcorners*self.scale))
@@ -1582,6 +1636,11 @@ class TEXTBOX(GUI_ITEM):
             self.height = self.upperborder+self.lowerborder+heightgetter.get_height()*self.lines
         if self.cursorsize == -1:
             self.cursorsize = ui.gettextsize('Tg',self.font,self.textsize,self.bold)[1]-2
+    def select(self,ui):
+        for a in ui.textboxes:
+            a.selected = False
+        ui.selectedtextbox = ui.textboxes.index(self)
+        self.selected = True
     def inputkey(self,caps,event,kprs,ui):
         if kprs[pygame.K_LSHIFT] or kprs[pygame.K_RSHIFT]:
             if caps: caps = False
