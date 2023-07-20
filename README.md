@@ -200,10 +200,12 @@ command=lambda: testfunction('function arguements')
 - **runcommandat** = Used to control when a command is ran when clicking a button, 0=when first clicked, 1=every tick the button is held, 2=when the button is released.
 - **clickablerect** = The actual on screen rect (must be Pygame.Rect) that the object can be clicked on in, this is unaffected by any scale variables.
 - **col** = The overall colour of the object, other colours used if not set by the user will be based off this colour. If not set col defaults to the ui.default col variable.
-- **backingcol** = the colour of the backing,mostly interchangeable with bordercol, if unset it will default to adding 20 to the the r,g and b number of col.
-- **bordercol** = interchangable with backingcol, just used as it is more intuative for some objects.
-- **backingdraw** = boolean that toggles if the backing is drawn.
-- **borderdraw** = boolean that toggles if the border is drawn.
+- **backingcol** = The colour of the backing,mostly interchangeable with bordercol, if unset it will default to adding 20 to the the r,g and b number of col.
+- **bordercol** = Interchangable with backingcol, just used as it is more intuative for some objects.
+- **backingdraw** = Boolean that toggles if the backing is drawn.
+- **borderdraw** = Boolean that toggles if the border is drawn.
+- **glow** = An int that changes the size of the glow effect around an object, defaults to no glow.
+- **glowcol** = Edits the colour of the glow specifically.
 
 ### Text variables
 text
