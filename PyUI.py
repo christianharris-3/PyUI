@@ -37,7 +37,8 @@ def normalizelist(lis,sumto=1):
         return lis
 
 def colav(col1,col2,weight):
-    return (col1[0]+(col2[0]-col1[0])*weight,col1[1]+(col2[1]-col1[1])*weight,col1[2]+(col2[2]-col1[2])*weight)
+    if len(col1) == 3: return (col1[0]+(col2[0]-col1[0])*weight,col1[1]+(col2[1]-col1[1])*weight,col1[2]+(col2[2]-col1[2])*weight)
+    else: return (col1[0]+(col2[0]-col1[0])*weight,col1[1]+(col2[1]-col1[1])*weight,col1[2]+(col2[2]-col1[2])*weight,col1[3]+(col2[3]-col1[3])*weight)
 
 def genfade(colourlist,sizeperfade):
     cols = []
@@ -2168,6 +2169,7 @@ class TEXT(GUI_ITEM):
         self.autoscale(ui)
         self.resetcords(ui)
         self.refreshcords(ui)
+        self.refreshglow(ui)
     def autoscale(self,ui):
         if self.startwidth == -1:
             self.width = self.textimage.get_width()/self.scale+self.horizontalspacing*2
@@ -2194,11 +2196,11 @@ class TEXT(GUI_ITEM):
                         print('drawing',self.ID)
                 else:
                     try:
-                        screen.blit(self.textimage,(self.x*self.dirscale[0]+self.horizontalspacing*self.scale,self.y*self.dirscale[1]+self.verticalspacing*self.scale))
+                        screen.blit(self.textimage,(self.x*self.dirscale[0]+(self.horizontalspacing+self.textoffsetx)*self.scale,self.y*self.dirscale[1]+(self.verticalspacing+self.textoffsetx)*self.scale))
                     except:
                         print('drawing',self.ID)
             else:
-                ui.write(screen,self.x,self.y,self.text,self.textsize,self.textcol,self.textcenter,self.font,self.bold,self.antialiasing)
+                ui.write(screen,self.x*self.dirscale[0]+(self.horizontalspacing+self.textoffsetx)*self.scale,self.y*self.dirscale[1]+(self.verticalspacing+self.textoffsetx)*self.scale,self.text,self.textsize*self.scale,self.textcol,self.textcenter,self.font,self.bold,self.antialiasing)
     def refresh(self,ui):
         self.refreshscale(ui)
         self.gentext(ui)
