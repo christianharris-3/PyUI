@@ -38,6 +38,14 @@ def normalizelist(lis,sumto=1):
 
 def colav(col1,col2,weight):
     return (col1[0]+(col2[0]-col1[0])*weight,col1[1]+(col2[1]-col1[1])*weight,col1[2]+(col2[2]-col1[2])*weight)
+
+def genfade(colourlist,sizeperfade):
+    cols = []
+    for a in range(len(colourlist)-1):
+        for b in range(sizeperfade):
+            cols.append(colav(colourlist[a],colourlist[a+1],b/sizeperfade))
+    return cols
+            
 def shiftcolor(col,shift):
     return [max([min([255,a+shift]),0]) for a in col]
 def autoshiftcol(col,default=(150,150,150),editamount=0):
