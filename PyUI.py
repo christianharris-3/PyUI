@@ -258,8 +258,16 @@ class draw:
                 rec = pygame.Surface((w,h),pygame.SRCALPHA)
                 pygame.draw.rect(rec,col,pygame.Rect(0,0,w,h),0,int(roundedcorners-(1-a/detail)*distances[0]))
                 surf.blit(rec,(rect.x-(a/detail)*distances[3],rect.y-(a/detail)*distances[0]))
-            
-            
+    def pichart(surf,center,radius,col,ang1,ang2=0,innercol=-1,border=2):
+        draw.circle(surf,col,center,radius)
+        if ang1!=ang2:
+            poly = [center]
+            rad = radius-border
+            segments = max(int(radius*abs(ang1-ang2)),1)
+            innercol = autoshiftcol(innercol,col,-20)
+            for a in range(segments+1):
+                poly.append([center[0]-rad*math.sin(ang2+ang1*a/segments),center[1]-rad*math.cos(ang2+ang1*a/segments)])
+            draw.polygon(surf,innercol,poly)
     
 class UI:
     def __init__(self,scale=1):
