@@ -233,13 +233,21 @@ class draw:
         radius = abs(int(min([border_radius,rect[2]/2,rect[3]/2])))
         pygame.draw.rect(surf,col,roundrect(x,y,w,h),int(width),int(border_radius))
         if border_radius != 0 and (radius*(1+(2**0.5)/2)<width or width==0):
-            pygame.gfxdraw.aacircle(surf,x+radius,y+radius,radius,col)
-            pygame.gfxdraw.aacircle(surf,x+w-radius-1,y+radius,radius,col)
-            pygame.gfxdraw.aacircle(surf,x+w-radius-1,y+h-radius-1,radius,col)
-            pygame.gfxdraw.aacircle(surf,x+radius,y+h-radius-1,radius,col)
+            try:
+                pygame.gfxdraw.aacircle(surf,x+radius,y+radius,radius,col)
+                pygame.gfxdraw.aacircle(surf,x+w-radius-1,y+radius,radius,col)
+                pygame.gfxdraw.aacircle(surf,x+w-radius-1,y+h-radius-1,radius,col)
+                pygame.gfxdraw.aacircle(surf,x+radius,y+h-radius-1,radius,col)
+            except:
+                ## catches error with integer overflow when drawn at large coordinates
+                pass
     def circle(surf,col,center,radius):
-        pygame.gfxdraw.filled_circle(surf,int(center[0]),int(center[1]),int(radius),col)
-        pygame.gfxdraw.aacircle(surf,int(center[0]),int(center[1]),int(radius),col)
+        try:
+            pygame.gfxdraw.filled_circle(surf,int(center[0]),int(center[1]),int(radius),col)
+            pygame.gfxdraw.aacircle(surf,int(center[0]),int(center[1]),int(radius),col)
+        except:
+            ## catches error with integer overflow when drawn at large coordinates
+            pass
     def polygon(surf,col,points):
         pygame.gfxdraw.aapolygon(surf,points,col)
         pygame.gfxdraw.filled_polygon(surf,points,col)
@@ -317,6 +325,7 @@ class UI:
         self.defaulttextcol = (0,0,0)
         self.defaultbackingcol = (255,255,255)
         self.defaultanimationspeed = 30
+        self.scrolllimit = 100
         self.escapeback = True
         self.backquits = True
         self.scrollwheelscrolls = True
@@ -431,7 +440,7 @@ class UI:
                 for a in self.textboxes:
                     if a.scrolleron and a.selected and a.menu == self.activemenu:
                         if a.pageheight<(a.maxp-a.minp):
-                            a.scroller.scroll-=(event.y*(a.scroller.maxp-a.scroller.minp)/20)
+                            a.scroller.scroll-=(event.y*min((a.scroller.maxp-a.scroller.minp)/20,self.scrolllimit))
                             a.scroller.limitpos(self)
                             a.command()
                             moved = True
@@ -439,7 +448,7 @@ class UI:
                     for a in self.scrollers:
                         if a.menu == self.activemenu and not a.ontextbox:
                             if a.pageheight<(a.maxp-a.minp):
-                                a.scroll-=(event.y*(a.maxp-a.minp)/20)
+                                a.scroll-=(event.y*min((a.maxp-a.minp)/20,self.scrolllimit))
                                 a.limitpos(self)
                                 a.command()
                                 break
