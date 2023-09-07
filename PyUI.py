@@ -351,9 +351,8 @@ class UI:
         self.scale = scale
         self.dirscale = [self.screenw/self.basescreensize[0],self.screenh/self.basescreensize[1]]
         for a in self.items:
-            if not a.ontable:
-                a.refresh(self)
-                a.resetcords(self)
+            a.refresh(self)
+            a.resetcords(self)
         
     def getscreen(self):
         sc = pygame.display.get_surface()
@@ -1136,7 +1135,7 @@ class UI:
         if menu:
             for a in self.items:
                 if ((a.menu == animateID) or (type(a) == WINDOWEDMENU and a.behindmenu == animateID)):
-                    if not(a.ontable or a.ontextbox or a.onslider):
+                    if not a.onitem:
                         self.makeanimation(a.ID,startpos,endpos,movetype,length,command,runcommandat,queued,False,relativemove,skiptoscreen,acceleration)
                         runcommandat = -2
         else:
@@ -1469,7 +1468,7 @@ class GUI_ITEM:
         if self.glow!=0:
             self.glowimage = pygame.Surface(((self.glow*2+self.width)*self.scale,(self.glow*2+self.height)*self.scale),pygame.SRCALPHA)
             draw.glow(self.glowimage,roundrect(self.glow*self.scale,self.glow*self.scale,self.width*self.scale,self.height*self.scale),self.glow,self.glowcol)
-        
+    
     def animatetext(self,ui):
         if self.animating:
             self.animate+=1
@@ -1535,7 +1534,10 @@ class GUI_ITEM:
         if y!='':
             self.y = y
             self.starty = (self.y*self.dirscale[1]+self.objanchor[1]*self.scale-self.anchor[1])/self.scale
-        
+    def binditem(self,item):
+        self.bounditems.append(item)
+        item.onitem = True
+        item.master = self
     def autoscale(self,_):
         pass
     def child_gentext(self,_):
@@ -2253,8 +2255,7 @@ class TEXT(GUI_ITEM):
         self.refreshscale(ui)
         self.gentext(ui)
         self.autoscale(ui)
-        if not self.ontable:
-            self.refreshcords(ui)
+        self.refreshcords(ui)
         self.refreshglow(ui)
 
 class SCROLLER(GUI_ITEM):
@@ -2317,6 +2318,21 @@ class SLIDER(GUI_ITEM):
         self.slidercenter = (self.x+self.border+(self.width-self.border*2)*(self.slider/(self.maxp-self.minp)),self.y+self.height/2)    
         self.innerrect = pygame.Rect(self.slidercenter[0]-self.slidersize/2+self.border,self.slidercenter[1]-self.slidersize/2+self.border,self.slidersize-self.border*2,self.slidersize-self.border*2)
         self.refreshbutton(ui)
+##    def resetbutton(self,ui):
+##        try:
+##            self.bounditems.remove(self.button)
+##            ui.delete(self.button.ID,False)
+##        except:
+##            pass
+##        if type(self.data) == BUTTON: self.button = self.data
+##        else:
+##            self.button = ui.makebutton(0,0,self.text,self.textsize,self.command,self.menu,self.ID+'button',self.layer+0.01,self.roundedcorners,self.menuexceptions,width=self.slidersize,height=self.slidersize,img=self.img,dragable=self.dragable,
+##                                        clickdownsize=int(self.slidersize/15),col=shiftcolor(self.col,-30),runcommandat=self.runcommandat)
+##
+##        if self.direction == 'vertical': self.button.startobjanchor = [self.button.width/2,self.button.height/2]
+##        else: self.button.startobjanchor = ['w/2','h/2']
+##        self.binditem(self.button)
+        
     def resetbutton(self,ui):
         try:
             ui.delete(self.button.ID,False)
@@ -2330,6 +2346,7 @@ class SLIDER(GUI_ITEM):
         self.button.onsliderbox = True
         self.button.layer = self.layer+0.1
         self.refreshbutton(ui)
+        
     def refreshbuttoncords(self,ui):
         offset = 0
         if self.containedslider: offset = self.button.width/2
@@ -2348,6 +2365,7 @@ class SLIDER(GUI_ITEM):
         self.button.resetcords(ui,False)
         self.button.refreshcords(ui)
         self.button.onslider=True
+        
     def refreshbutton(self,ui):
         self.refreshscale(ui)
         self.button.startanchor = [self.x*self.dirscale[0],self.y*self.dirscale[1]+self.height/2*self.scale]
@@ -2378,6 +2396,7 @@ class SLIDER(GUI_ITEM):
             self.slider = self.maxp
         elif self.slider<self.minp:
             self.slider = self.minp
+        
         self.refreshbuttoncords(ui)
 
     def draw(self,screen,ui):
