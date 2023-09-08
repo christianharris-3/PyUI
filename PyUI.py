@@ -1792,12 +1792,12 @@ class TEXTBOX(GUI_ITEM):
     def resetscroller(self,ui):
         self.scroll = 0
         if self.scroller != 0:
+            self.bounditems.remove(self.scroller)
             ui.delete(self.scroller.ID,False)
-        self.scroller = ui.makescroller(self.x+self.width-self.rightborder-15+self.border/2,self.y+self.upperborder,self.height-self.upperborder-self.lowerborder,emptyfunction,15,0,self.height-self.upperborder-self.lowerborder,self.height,
+            
+        self.scroller = ui.makescroller(0,self.upperborder,self.height-self.upperborder-self.lowerborder,emptyfunction,15,0,self.height-self.upperborder-self.lowerborder,self.height,anchor=('w',0),objanchor=('w',0),
                                         menu=self.menu,roundedcorners=self.roundedcorners,col=self.col,scalesize=self.scalesize,scaley=self.scalesize,scalex=self.scalesize)
-        self.scroller.ontextbox = True
-        self.scroller.layer = self.layer+0.01
-        self.scrolleron = False
+        self.binditem(self.scroller)
         
     def refresh(self,ui):
         self.refreshscale(ui)
@@ -1844,17 +1844,8 @@ class TEXTBOX(GUI_ITEM):
         if self.textselected[2]>len(self.chrcorddata): self.textselected[2]=len(self.chrcorddata)
         elif self.textselected[2]<0: self.textselected[2] = 0
     def refreshscroller(self,ui):
-        self.scroller.x = self.x+self.width-self.rightborder-15+self.border/2
-        self.scroller.y = self.y+self.upperborder
-        self.scroller.startx = self.x+self.width-self.rightborder-15+self.border/2
-        self.scroller.starty = self.y+self.upperborder
-        self.scroller.scalesize = self.scalesize
-        self.scroller.scaley = self.scalesize
-        self.scroller.scalex = self.scalesize
-        self.scroller.layer = self.layer+1
-        ui.refreshitems()
+        self.scroller.resetcords(ui)
         
-        self.scroller.menu = self.menu
         inc = 0
         if self.linecenter[1]-self.scroller.scroll>self.height-self.upperborder-self.lowerborder:
             inc = self.textsize
