@@ -446,7 +446,7 @@ class UI:
                             moved = True
                 if not moved:
                     for a in self.scrollers:
-                        if a.menu == self.activemenu and not a.ontextbox:
+                        if a.menu == self.activemenu and not a.onitem:
                             if a.pageheight<(a.maxp-a.minp):
                                 a.scroll-=(event.y*min((a.maxp-a.minp)/20,self.scrolllimit))
                                 a.limitpos(self)
@@ -1795,7 +1795,7 @@ class TEXTBOX(GUI_ITEM):
             self.bounditems.remove(self.scroller)
             ui.delete(self.scroller.ID,False)
             
-        self.scroller = ui.makescroller(0,self.upperborder,self.height-self.upperborder-self.lowerborder,emptyfunction,15,0,self.height-self.upperborder-self.lowerborder,self.height,anchor=('w',0),objanchor=('w',0),
+        self.scroller = ui.makescroller(-self.rightborder-15+self.border/2,self.upperborder,self.height-self.upperborder-self.lowerborder,emptyfunction,15,0,self.height-self.upperborder-self.lowerborder,self.height,anchor=('w',0),
                                         menu=self.menu,roundedcorners=self.roundedcorners,col=self.col,scalesize=self.scalesize,scaley=self.scalesize,scalex=self.scalesize)
         self.binditem(self.scroller)
         
@@ -1945,7 +1945,6 @@ class TEXTBOX(GUI_ITEM):
                 draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
             if self.selected:
                 draw.rect(screen,self.selectcol,self.selectrect,int(self.selectbordersize*self.scale),border_radius=int((self.roundedcorners+self.selectbordersize)*self.scale))
-
             surf = pygame.Surface(((self.width-self.leftborder-self.rightborder-self.scrolleron*self.scroller.width)*self.scale,(self.height-self.upperborder-self.lowerborder)*self.scale))
             surf.fill(self.backingcol)
             draw.rect(surf,self.col,(0,0,surf.get_width(),surf.get_height()),border_radius=int(self.roundedcorners*self.scale))
@@ -2001,6 +2000,7 @@ class TABLE(GUI_ITEM):
         self.refreshcords(ui)
         self.refreshglow(ui)
         self.enable()
+        
         self.threadactive = False
     def threadrefresh(self,ui):
         if not self.threadactive:
@@ -2027,6 +2027,7 @@ class TABLE(GUI_ITEM):
                 for b in a:
                     b[1].enabled = True
     def labeldata(self,ui):
+        print(self.data)
         self.labeleddata = []
         temp = copy.copy(self.data)
         if len(self.titles)!=0:
@@ -2065,37 +2066,34 @@ class TABLE(GUI_ITEM):
                                       font=self.font,bold=self.bold,antialiasing=self.antialiasing,pregenerated=self.pregenerated,maxwidth=max([self.boxwidth[i]-self.horizontalspacing*2,-1]),
                                       scalesize=self.scalesize,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,backingcol=self.col,enabled=False)
                     self.tableimages[-1].append(['textobj',obj])
-                    self.itemrefreshcords(ui,obj,i,a)
-                    obj.enabled = True
+                    self.itemintotable(ui,obj,i,a)
                 elif b[0] == 'button':
                     b[1].scalesize = self.scalesize
                     b[1].scalex = self.scalesize
                     b[1].scaley = self.scalesize
                     b[1].enabled = self.enabled
-                    b[1].refresh(ui)
                     self.tableimages[-1].append(['button',b[1]])
-                    self.itemrefreshcords(ui,b[1],i,a)
-                    b[1].enabled = True
+                    self.itemintotable(ui,b[1],i,a)
+                    b[1].refresh(ui)
                 elif b[0] == 'textbox':
                     b[1].enabled = self.enabled
                     self.tableimages[-1].append(['textbox',b[1]])
-                    self.itemrefreshcords(ui,b[1],i,a)
-                    b[1].enabled = True
+                    self.itemintotable(ui,b[1],i,a)
+                    b[1].refresh(ui)
                 elif b[0] == 'textobj':
                     b[1].scalesize = self.scalesize
                     b[1].scalex = self.scalesize
                     b[1].scaley = self.scalesize
                     b[1].enabled = self.enabled
-                    b[1].refresh(ui)
                     self.tableimages[-1].append(['textobj',b[1]])
-                    self.itemrefreshcords(ui,b[1],i,a)
-                    b[1].enabled = True
+                    self.itemintotable(ui,b[1],i,a)
+                    b[1].refresh(ui)
                 elif b[0] == 'image':
                     ui.delete('tabletext'+self.ID+str(a)+str(i),False)
-                    obj = ui.maketext(0,0,'',self.textsize,self.menu,'tabletext'+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,self.menuexceptions,textcenter=self.textcenter,img=b[1],maxwidth=self.boxwidth[i],scalesize=self.scalesize,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,enabled=False)
+                    obj = ui.maketext(0,0,'',self.textsize,self.menu,'tabletext'+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,self.menuexceptions,textcenter=self.textcenter,img=b[1],maxwidth=self.boxwidth[i],
+                                      scalesize=self.scalesize,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,enabled=False)
                     self.tableimages[-1].append(['textobj',obj])
-                    self.itemrefreshcords(ui,obj,i,a)
-                    obj.enabled = True
+                    self.itemintotable(ui,obj,i,a)
                 else:
                     print(b[0])
     def child_refreshcords(self,ui):
@@ -2103,25 +2101,27 @@ class TABLE(GUI_ITEM):
             for a in range(len(self.tableimages)):
                 for i,b in enumerate(self.tableimages[a]):
                     self.itemrefreshcords(ui,b[1],i,a)
-            ui.refreshitems()
-    def itemrefreshcords(self,ui,item,x,y):
-        item.startanchor = [self.x*self.dirscale[0],self.y*self.dirscale[1]]
-        item.startobjanchor = [0,0]
-        item.startx = (self.linesize*(x+1)+self.boxwidthsinc[x])
-        item.starty = (self.linesize*(y+1)+self.boxheightsinc[y])
-        item.startwidth = self.boxwidths[x]
-        item.startheight = self.boxheights[y]
-        item.width = self.boxwidths[x]
-        item.height = self.boxheights[y]
-        item.backingdraw = self.backingdraw
-        item.scalex = self.scalesize
-        item.scaley = self.scalesize
-        item.scalesize = self.scalesize
-        item.menu = self.menu
-        item.clickablerect = self.clickablerect
-        item.resetcords(ui,False)
-        item.layer = self.layer+0.1
-        item.ontable = True
+
+    def itemintotable(self,ui,obj,x,y):
+        self.itemrefreshcords(ui,obj,x,y)
+            
+        self.binditem(obj)
+        obj.enabled = True
+    def itemrefreshcords(self,ui,obj,x,y):
+        obj.startx = (self.linesize*(x+1)+self.boxwidthsinc[x])
+        obj.starty = (self.linesize*(y+1)+self.boxheightsinc[y])
+        if type(obj) in (TEXTBOX,BUTTON,TEXT):
+            obj.width = self.boxwidths[x]
+            obj.height = self.boxheights[y]
+        
+        obj.backingdraw = self.backingdraw
+        obj.scalex = self.scalesize
+        obj.scaley = self.scalesize
+        obj.scalesize = self.scalesize
+        obj.menu = self.menu
+        obj.clickablerect = self.clickablerect
+        obj.resetcords(ui,False)
+
     def initheightwidth(self):
         if type(self.boxwidth) == int:
             if self.columns == 0: self.boxwidth = [self.boxwidth]
