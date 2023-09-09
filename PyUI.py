@@ -1554,7 +1554,6 @@ class GUI_ITEM:
         self.clickedon = -1
         self.hovering = False
         mpos = ui.mpos
-##        if type(self) == TEXTBOX: print(mpos,rect)
         if rect.collidepoint(mpos) and (self.clickablerect == -1 or self.clickablerect.collidepoint(mpos)):
             if ui.mprs[self.clicktype] and (ui.mouseheld[self.clicktype][1]>0 or self.holding):
                 if ui.mouseheld[self.clicktype][1] == ui.buttondowntimer:
@@ -1569,6 +1568,7 @@ class GUI_ITEM:
                             if self.toggle: self.toggle = False
                             else: self.toggle = True
                         self.command()
+##                        print(self.ID)
             else:
                 self.hovering = True
         if ui.mprs[self.clicktype] and self.holding:
@@ -1613,10 +1613,9 @@ class GUI_ITEM:
     
 class BUTTON(GUI_ITEM):
     def refresh(self,ui):
-        tscale = self.scale
+        self.refreshscale(ui)
         self.refreshcords(ui)
-        if tscale!=self.scale:
-            self.gentext(ui)
+        self.gentext(ui)
         self.autoscale(ui)
         self.refreshglow(ui)
     def child_gentext(self,ui):
@@ -2066,7 +2065,7 @@ class TABLE(GUI_ITEM):
             for i,b in enumerate(self.labeleddata[a]):
                 if b[0] == 'text':
                     ui.delete('tabletext'+self.ID+str(a)+str(i),False)
-                    obj = ui.maketext(0,0,b[1],self.textsize,self.menu,'tabletext'+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,self.menuexceptions,textcenter=self.textcenter,textcol=self.textcol,
+                    obj = ui.maketext(0,0,b[1],self.textsize,self.menu,'tabletext'+self.ID+str(a)+str(i),self.layer,self.roundedcorners,self.menuexceptions,textcenter=self.textcenter,textcol=self.textcol,
                                       font=self.font,bold=self.bold,antialiasing=self.antialiasing,pregenerated=self.pregenerated,maxwidth=max([self.boxwidth[i]-self.horizontalspacing*2,-1]),
                                       scalesize=self.scalesize,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,backingcol=self.col,enabled=False)
                     self.tableimages[-1].append(['textobj',obj])
@@ -2078,13 +2077,12 @@ class TABLE(GUI_ITEM):
                     b[1].enabled = self.enabled
                     self.tableimages[-1].append(['button',b[1]])
                     self.itemintotable(ui,b[1],i,a)
-                    b[1].resetcords(ui)
-##                    b[1].refresh(ui)
+                    b[1].refresh(ui)
                 elif b[0] == 'textbox':
                     b[1].enabled = self.enabled
                     self.tableimages[-1].append(['textbox',b[1]])
                     self.itemintotable(ui,b[1],i,a)
-##                    b[1].refresh(ui)
+                    b[1].refresh(ui)
                 elif b[0] == 'textobj':
                     b[1].scalesize = self.scalesize
                     b[1].scalex = self.scalesize
@@ -2092,7 +2090,7 @@ class TABLE(GUI_ITEM):
                     b[1].enabled = self.enabled
                     self.tableimages[-1].append(['textobj',b[1]])
                     self.itemintotable(ui,b[1],i,a)
-##                    b[1].refresh(ui)
+                    b[1].refresh(ui)
                 elif b[0] == 'image':
                     ui.delete('tabletext'+self.ID+str(a)+str(i),False)
                     obj = ui.maketext(0,0,'',self.textsize,self.menu,'tabletext'+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,self.menuexceptions,textcenter=self.textcenter,img=b[1],maxwidth=self.boxwidth[i],
@@ -2121,6 +2119,7 @@ class TABLE(GUI_ITEM):
         obj.scaley = self.scalesize
         obj.scalesize = self.scalesize
         obj.clickablerect = self.clickablerect
+        obj.refreshscale(ui)
         obj.resetcords(ui,False)
 
     def initheightwidth(self):
