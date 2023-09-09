@@ -1541,6 +1541,9 @@ class GUI_ITEM:
         item.onitem = True
         item.master = self
         item.menu = self.menu
+        item.scalesize = self.scalesize
+        item.scalex = self.scalesize
+        item.scaley = self.scalesize
         item.menuexceptions = self.menuexceptions
     def autoscale(self,_):
         pass
@@ -2114,6 +2117,8 @@ class TABLE(GUI_ITEM):
         obj.starty = (self.linesize*(y+1)+self.boxheightsinc[y])
         obj.width = self.boxwidths[x]
         obj.height = self.boxheights[y]
+        obj.startwidth = self.boxwidths[x]
+        obj.startheight = self.boxheights[y]
         obj.backingdraw = self.backingdraw
         obj.scalex = self.scalesize
         obj.scaley = self.scalesize
@@ -2469,32 +2474,29 @@ class ANIMATION:
             self.cordlist.append((self.startpos[0]+(self.endpos[0]-self.startpos[0])*(sum(self.speedlist[:a+1])),self.startpos[1]+(self.endpos[1]-self.startpos[1])*(sum(self.speedlist[:a+1]))))
         if self.skip:
             self.findonscreen(ui)
-##        print(self.animateID,self.cordlist[0],self.cordlist[-1],self.startpos,self.endpos)
-    def findonscreen(self,ui):
-        tcords = list(self.cordlist[0])
+    def findonscreen(self,ui):        
         scale = ui.IDs[self.animateID].scale
         dirscale = ui.IDs[self.animateID].dirscale
-        prog = 0
-        prev = pygame.Rect(0,0,ui.screenw,ui.screenh).colliderect(pygame.Rect(tcords[0]*dirscale[0],tcords[1]*dirscale[1],ui.IDs[self.animateID].width*scale,ui.IDs[self.animateID].height*scale))
-        while 1:
-            if not((pygame.Rect(0,0,ui.screenw,ui.screenh).colliderect(pygame.Rect(tcords[0]*dirscale[0],tcords[1]*dirscale[1],ui.IDs[self.animateID].width*scale,ui.IDs[self.animateID].height*scale)) != prev) or prog>self.length-2):
-                prog+=1
-                prev = pygame.Rect(0,0,ui.screenw,ui.screenh).colliderect(pygame.Rect(tcords[0]*dirscale[0],tcords[1]*dirscale[1],ui.IDs[self.animateID].width*scale,ui.IDs[self.animateID].height*scale))
-                tcords[0] = self.cordlist[prog][0]
-                tcords[1] = self.cordlist[prog][1]
-            else:
-                break
-        if pygame.Rect(0,0,ui.screenw,ui.screenh).colliderect(pygame.Rect(tcords[0]*dirscale[0],tcords[1]*dirscale[1],ui.IDs[self.animateID].width*scale,ui.IDs[self.animateID].height*scale)):
-            self.cordlist = self.cordlist[prog:]
-            self.fadeout = False
-        else:
-            self.cordlist = self.cordlist[:prog]
-            self.fadeout = True
-        self.skip = False
-        self.startpos = self.cordlist[0]
-        self.endpos = self.cordlist[-1]
-        self.gencordlist(ui)
-    
+        scords = list(self.cordlist[0])
+        ecords = list(self.cordlist[1])
+        start = self.checkonscreen(ui,dirscale,scale,scords)
+        end = self.checkonscreen(ui,dirscale,scale,ecords)
+        cross = scords[:]
+        if end!=start:
+            if end: out = ecords
+            else: out = scords
+            
+            if out[0]<0: cross[0] = -ui.IDs[self.animateID].width*scale
+            elif out[0]>ui.screenw: cross[0] = ui.screenw
+            if out[1]<0: cross[1] = -ui.IDs[self.animateID].height*scale
+            elif out[1]>ui.screenh: cross[1] = ui.screenh
+            
+            if end: self.startpos = cross
+            else: self.endpos = cross
+            
+            self.gencordlist(ui)
+    def checkonscreen(self,ui,dirscale,scale,cords):
+        return pygame.Rect(0,0,ui.screenw,ui.screenh).colliderect(pygame.Rect(cords[0]*dirscale[0],cords[1]*dirscale[1],ui.IDs[self.animateID].width*scale,ui.IDs[self.animateID].height*scale))
         
     def animate(self,ui):
         self.wait-=1
