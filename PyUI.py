@@ -734,7 +734,7 @@ class UI:
         data = [['test thing', [[[(200, 100), (490, 220), (300, 40), (850, 340)], [(850, 340), (300, 200), (450, 350), (340, 430)], [(340, 430), (310, 250), (200, 310), (200, 100)]], [[(380, 440), (540, 360), (330, 240), (850, 370)], [(850, 370), (380, 440)]]]],
                 ['search', [[[(300, 350), (150, 200), (350, 0), (500, 150)], [(500, 150), (560, 210), (520, 280), (485, 315)], [(485, 315), (585, 415)], [(585, 415), (625, 455), (595, 485), (555, 445)], [(555, 445), (455, 345)], [(455, 345), (420, 380), (350, 400), (300, 350)], [(300, 350), (325, 325)], [(325, 325), (205, 205), (365, 65), (475, 175)], [(475, 175), (555, 255), (395, 395), (325, 325)], [(325, 325), (300, 350)]]]],
                 ['shuffle', [[[(275, 200), (450, 200), (450, 400), (600, 400)], [(600, 400), (600, 350)], [(600, 350), (675, 425)], [(675, 425), (600, 500)], [(600, 500), (600, 450)], [(600, 450), (425, 450), (425, 250), (275, 250)], [(275, 250), (275, 200)]], [[(275, 400), (275, 450)], [(275, 450), (360, 450), (420, 390)], [(420, 390), (385, 345)], [(385, 345), (350, 390), (275, 400)]], [[(600, 250), (600, 300)], [(600, 300), (675, 225)], [(675, 225), (600, 150)], [(600, 150), (600, 200)], [(600, 200), (500, 200), (455, 260)], [(455, 260), (490, 300)], [(490, 300), (530, 255), (600, 250)]]]],
-                ['penis', [[[(560, 540), (670, 440), (690, 320), (690, 200)], [(690, 200), (680, -10), (620, 60), (610, 190)], [(610, 190), (600, 310), (570, 410), (510, 470)], [(510, 470), (440, 520), (480, 570), (560, 540)]], [[(490, 500), (370, 560), (280, 420), (440, 300), (570, 420), (540, 460)], [(540, 460), (490, 500)]], [[(560, 500), (650, 430), (810, 470), (610, 730), (470, 650), (530, 540)], [(530, 540), (560, 500)]]]],
+                ['pp', [[[(560, 540), (670, 440), (690, 320), (690, 200)], [(690, 200), (680, -10), (620, 60), (610, 190)], [(610, 190), (600, 310), (570, 410), (510, 470)], [(510, 470), (440, 520), (480, 570), (560, 540)]], [[(490, 500), (370, 560), (280, 420), (440, 300), (570, 420), (540, 460)], [(540, 460), (490, 500)]], [[(560, 500), (650, 430), (810, 470), (610, 730), (470, 650), (530, 540)], [(530, 540), (560, 500)]]]],
                 ['pfp', [[[(340, 430), (710, 430)], [(710, 430), (650, 280), (380, 280), (340, 430)]], [[(510, 280), (400, 280), (400, 50), (630, 50), (630, 280), (510, 280)]]]],
                 ['smiley', [[[(560, 460), (310, 460), (310, 40), (810, 40), (810, 460), (560, 460)], [(560, 460), (560, 430)], [(560, 430), (380, 430), (380, 120), (740, 120), (740, 430), (560, 430)], [(560, 430), (560, 460)]], [[(630, 350), (560, 470), (500, 350)], [(500, 350), (560, 420), (630, 350)]], [[(490, 290), (520, 340), (550, 290)], [(550, 290), (520, 280), (490, 290)]], [[(570, 290), (600, 340), (630, 290)], [(630, 290), (600, 280), (570, 290)]]]],
                 ['happy face', [[[(560, 460), (310, 460), (310, 40), (810, 40), (810, 460), (560, 460)], [(560, 460), (560, 430)], [(560, 430), (380, 430), (380, 120), (740, 120), (740, 430), (560, 430)], [(560, 430), (560, 460)]], [[(590, 350), (560, 470), (530, 350)], [(530, 350), (570, 360), (590, 350)]], [[(490, 290), (520, 340), (550, 290)], [(550, 290), (520, 280), (490, 290)]], [[(570, 290), (600, 340), (630, 290)], [(630, 290), (600, 280), (570, 290)]]]],
@@ -1309,6 +1309,11 @@ class GUI_ITEM:
         self.leftborder = leftborder
         self.rightborder = rightborder
 
+        self.onitem = False
+        self.bounditems = bounditems[:]
+        if not emptyobject:
+            self.master = GUI_ITEM(ui,0,0,ui.screenw,ui.screenh,emptyobject=True)
+            
         self.menu = menu
         self.menuexceptions = menuexceptions
         if killtime == -1: self.killtime = killtime
@@ -1392,11 +1397,6 @@ class GUI_ITEM:
         self.boxheight = boxheight
         self.guessheight = pageheight
         self.guesswidth = scrollerwidth
-        
-        self.onitem = False
-        self.bounditems = bounditems
-        if not emptyobject:
-            self.master = GUI_ITEM(ui,0,0,ui.screenw,ui.screenh,emptyobject=True)
 
         self.backingdraw = backingdraw
         self.borderdraw = borderdraw
@@ -1540,6 +1540,8 @@ class GUI_ITEM:
             self.bounditems.append(item)
         item.onitem = True
         item.master = self
+        item.menu = self.menu
+        item.menuexceptions = self.menuexceptions
     def autoscale(self,_):
         pass
     def child_gentext(self,_):
@@ -2076,12 +2078,13 @@ class TABLE(GUI_ITEM):
                     b[1].enabled = self.enabled
                     self.tableimages[-1].append(['button',b[1]])
                     self.itemintotable(ui,b[1],i,a)
-                    b[1].refresh(ui)
+                    b[1].resetcords(ui)
+##                    b[1].refresh(ui)
                 elif b[0] == 'textbox':
                     b[1].enabled = self.enabled
                     self.tableimages[-1].append(['textbox',b[1]])
                     self.itemintotable(ui,b[1],i,a)
-                    b[1].refresh(ui)
+##                    b[1].refresh(ui)
                 elif b[0] == 'textobj':
                     b[1].scalesize = self.scalesize
                     b[1].scalex = self.scalesize
@@ -2089,7 +2092,7 @@ class TABLE(GUI_ITEM):
                     b[1].enabled = self.enabled
                     self.tableimages[-1].append(['textobj',b[1]])
                     self.itemintotable(ui,b[1],i,a)
-                    b[1].refresh(ui)
+##                    b[1].refresh(ui)
                 elif b[0] == 'image':
                     ui.delete('tabletext'+self.ID+str(a)+str(i),False)
                     obj = ui.maketext(0,0,'',self.textsize,self.menu,'tabletext'+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,self.menuexceptions,textcenter=self.textcenter,img=b[1],maxwidth=self.boxwidth[i],
@@ -2105,9 +2108,8 @@ class TABLE(GUI_ITEM):
                     self.itemrefreshcords(ui,b[1],i,a)
 
     def itemintotable(self,ui,obj,x,y):
-        self.itemrefreshcords(ui,obj,x,y)
-            
         self.binditem(obj)
+        self.itemrefreshcords(ui,obj,x,y)
         obj.enabled = True
     def itemrefreshcords(self,ui,obj,x,y):
         obj.startx = (self.linesize*(x+1)+self.boxwidthsinc[x])
@@ -2118,7 +2120,6 @@ class TABLE(GUI_ITEM):
         obj.scalex = self.scalesize
         obj.scaley = self.scalesize
         obj.scalesize = self.scalesize
-        obj.menu = self.menu
         obj.clickablerect = self.clickablerect
         obj.resetcords(ui,False)
 
