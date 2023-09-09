@@ -352,7 +352,8 @@ class UI:
         self.dirscale = [self.screenw/self.basescreensize[0],self.screenh/self.basescreensize[1]]
         for a in self.items:
             a.refresh(self)
-            a.resetcords(self)
+            if not a.onitem:
+                a.resetcords(self)
         
     def getscreen(self):
         sc = pygame.display.get_surface()
@@ -362,7 +363,7 @@ class UI:
         windowedmenubackings = [a.behindmenu for a in self.windowedmenus]
         self.breakrenderloop = False
         for i,a in enumerate(self.items):
-            if (a.menu in windowedmenubackings or (a.menu == 'universal' and not(self.activemenu in a.menuexceptions))) and (self.activemenu in self.windowedmenunames) and type(a)!=WINDOWEDMENU:
+            if type(a)!=WINDOWEDMENU and (not a.onitem) and (a.menu in windowedmenubackings or (a.menu == 'universal' and not(self.activemenu in a.menuexceptions))) and (self.activemenu in self.windowedmenunames):
                 if a.menu == windowedmenubackings[self.windowedmenunames.index(self.activemenu)]:
                     window = self.windowedmenus[self.windowedmenunames.index(self.activemenu)]
 ##                    print(pygame.Rect(window.x*window.dirscale[0],window.y*window.dirscale[1],window.width*window.scale,window.height*window.scale),[self.mpos[0]*self.scale,self.mpos[1]*self.scale],pygame.mouse.get_pos())
@@ -403,6 +404,8 @@ class UI:
             a.render(screen,self)
     def drawguiobject(self,a,screen):
         a.draw(screen,self)
+        for b in a.bounditems:
+            b.draw(screen,self)
             
     def loadtickdata(self):
         self.blockf11-=1
@@ -1234,27 +1237,23 @@ class UI:
 
     def delete(self,ID,failmessage=True):
         try:
+            if self.IDs[ID].onitem:
+                self.IDs[ID].master.bounditems.remove(self.IDs[ID])
+            for a in self.IDs[ID].bounditems:
+                self.delete(ID,failmessage)
             if type(self.IDs[ID]) == BUTTON: self.buttons.remove(self.IDs[ID])
-            elif type(self.IDs[ID]) == TEXTBOX:
-                self.delete(self.IDs[ID].scroller.ID)
-                self.textboxes.remove(self.IDs[ID])
-            elif type(self.IDs[ID]) == TABLE:
-                for a in self.IDs[ID].tableimages:
-                    for b in a:
-                        self.delete(b[1].ID)
-                self.tables.remove(self.IDs[ID])
+            elif type(self.IDs[ID]) == TEXTBOX: self.textboxes.remove(self.IDs[ID])
+            elif type(self.IDs[ID]) == TABLE: self.tables.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == TEXT: self.texts.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == SCROLLER: self.scrollers.remove(self.IDs[ID])
-            elif type(self.IDs[ID]) == SLIDER:
-                self.delete(self.IDs[ID].button.ID)
-                self.sliders.remove(self.IDs[ID])
+            elif type(self.IDs[ID]) == SLIDER: self.sliders.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == ANIMATION: self.animations.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == RECT: self.rects.remove(self.IDs[ID])
             del self.IDs[ID]
             self.refreshitems()
             return True
-        except:
-            if failmessage: print('failed to delete object:',ID)
+        except Exception as e:
+            if failmessage: print('Failed to delete object:',ID,'Error:',e)
             return False
     def onmenu(self,menu):
         lis = []
@@ -1316,7 +1315,8 @@ class GUI_ITEM:
         else: self.killtime = time.time()+killtime
         self.layer = layer
         if ID == '': ID = text
-        ui.addid(ID,self)
+        if not emptyobject:
+            ui.addid(ID,self)
 
         self.text = text
         self.textsize = textsize
@@ -1428,6 +1428,7 @@ class GUI_ITEM:
         if not emptyobject:
             self.reset(ui)
         
+        
     def reset(self,ui):
         self.refreshscale(ui)
         self.gentext(ui)
@@ -1535,7 +1536,8 @@ class GUI_ITEM:
             self.y = y
             self.starty = (self.y*self.dirscale[1]+self.objanchor[1]*self.scale-self.anchor[1])/self.scale
     def binditem(self,item):
-        self.bounditems.append(item)
+        if not(item in self.bounditems):
+            self.bounditems.append(item)
         item.onitem = True
         item.master = self
     def autoscale(self,_):
@@ -1991,6 +1993,7 @@ class TABLE(GUI_ITEM):
         self.resetcords(ui)
         self.enable()
     def refresh(self,ui):
+        self.refreshscale(ui)
         self.labeldata(ui)
         self.initheightwidth()
         self.estimatewidths(ui)
@@ -2027,7 +2030,6 @@ class TABLE(GUI_ITEM):
                 for b in a:
                     b[1].enabled = True
     def labeldata(self,ui):
-        print(self.data)
         self.labeleddata = []
         temp = copy.copy(self.data)
         if len(self.titles)!=0:
@@ -2110,10 +2112,8 @@ class TABLE(GUI_ITEM):
     def itemrefreshcords(self,ui,obj,x,y):
         obj.startx = (self.linesize*(x+1)+self.boxwidthsinc[x])
         obj.starty = (self.linesize*(y+1)+self.boxheightsinc[y])
-        if type(obj) in (TEXTBOX,BUTTON,TEXT):
-            obj.width = self.boxwidths[x]
-            obj.height = self.boxheights[y]
-        
+        obj.width = self.boxwidths[x]
+        obj.height = self.boxheights[y]
         obj.backingdraw = self.backingdraw
         obj.scalex = self.scalesize
         obj.scaley = self.scalesize
@@ -2155,7 +2155,6 @@ class TABLE(GUI_ITEM):
                 self.boxwidths.append(self.boxwidth[a])
         self.boxwidthtotal = sum(self.boxwidths)
         self.width = self.boxwidthtotal+self.linesize*(self.columns+1)
-        
     def gettableheights(self,ui):
         self.boxheightsinc = [] 
         self.boxheights = []
@@ -2173,6 +2172,12 @@ class TABLE(GUI_ITEM):
                 self.boxheights.append(self.boxheight[a])
         self.boxheighttotal = sum(self.boxheights)
         self.height = self.boxheighttotal+self.linesize*(self.rows+1)
+
+##        print('true height:',self.boxheights)
+##        print('at scale:',self.scale)
+##        for a in self.tableimages:
+##            for b in a:
+##                print(b[1].textimage.get_width(),b[1].textimage.get_height())
     def estimatewidths(self,ui):
         self.boxheightsinc = []
         self.boxheights = []
@@ -2198,6 +2203,7 @@ class TABLE(GUI_ITEM):
         self.draw(screen,ui)
         
     def draw(self,screen,ui):
+##        print(self.width,self.height,self.scale)
         if self.enabled:
             if self.glow!=0:
                 screen.blit(self.glowimage,(self.x*self.dirscale[0]-self.glow*self.scale,self.y*self.dirscale[1]-self.glow*self.scale))
@@ -2234,12 +2240,12 @@ class TEXT(GUI_ITEM):
                     try:
                         screen.blit(self.textimage,(self.x*self.dirscale[0]+self.width/2*self.scale-self.textimage.get_width()/2,self.y*self.dirscale[1]+self.height/2*self.scale-self.textimage.get_height()/2))
                     except:
-                        print('drawing',self.ID)
+                        print('error in drawing',self.ID)
                 else:
                     try:
                         screen.blit(self.textimage,(self.x*self.dirscale[0]+(self.horizontalspacing+self.textoffsetx)*self.scale,self.y*self.dirscale[1]+(self.verticalspacing+self.textoffsetx)*self.scale))
                     except:
-                        print('drawing',self.ID)
+                        print('error in drawing',self.ID)
             else:
                 ui.write(screen,self.x*self.dirscale[0]+(self.horizontalspacing+self.textoffsetx)*self.scale,self.y*self.dirscale[1]+(self.verticalspacing+self.textoffsetx)*self.scale,self.text,self.textsize*self.scale,self.textcol,self.textcenter,self.font,self.bold,self.antialiasing)
     def refresh(self,ui):
@@ -2435,6 +2441,9 @@ class ANIMATION:
         self.wait = wait
         self.skip = skiptoscreen
         self.fadeout = False
+
+        self.onitem = False
+        self.bounditems = []
     def gencordlist(self,ui):
         self.speedlist = [1 for a in range(self.length)]
         speed = 0
