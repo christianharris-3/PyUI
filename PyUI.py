@@ -1298,6 +1298,7 @@ class GUI_ITEM:
         if scaley == -1: scaley = self.scalesize
         self.scaley = scaley
         self.glow = glow
+        self.refreshscale(ui)
 
         self.border = border
         if upperborder == -1: upperborder = border
@@ -1425,6 +1426,8 @@ class GUI_ITEM:
         self.behindmenu = behindmenu
         self.isolated = isolated
         self.darken = darken
+        for a in self.bounditems:
+            self.binditem(a)
         if not emptyobject:
             self.reset(ui)
         
@@ -1484,8 +1487,8 @@ class GUI_ITEM:
         w = ui.screenw
         h = ui.screenh
         if self.onitem:
-            w = self.master.width
-            h = self.master.height
+            w = self.master.width*self.master.scale
+            h = self.master.height*self.master.scale
         global returnedexecvalue
         if type(self.anchor[0]) == str:
             exec('returnedexecvalue='+self.anchor[0].replace('w',str(w)),globals())
@@ -2495,6 +2498,7 @@ class ANIMATION:
             else: self.endpos = cross
             
             self.gencordlist(ui)
+            
     def checkonscreen(self,ui,dirscale,scale,cords):
         return pygame.Rect(0,0,ui.screenw,ui.screenh).colliderect(pygame.Rect(cords[0]*dirscale[0],cords[1]*dirscale[1],ui.IDs[self.animateID].width*scale,ui.IDs[self.animateID].height*scale))
         
