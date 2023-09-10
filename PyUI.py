@@ -2267,7 +2267,7 @@ class TABLE(GUI_ITEM):
             return True
         else:
             return False
-    def row_exchange(self,ui,row,index):
+    def row_replace(self,ui,row,index):
         self.row_remove(ui,index)
         return self.row_insert(ui,row,index)
         
