@@ -2236,16 +2236,41 @@ class TABLE(GUI_ITEM):
         self.boxheight.append(-1)
         self.__row_init__(ui,len(self.labeleddata)-1)
     def row_insert(self,ui,row,index):
-        self.rows+=1
-        self.data.insert(index,row)
-        if len(self.titles)!=0: index+=1
-        self.labeleddata.insert(index,self.labellist(row))
-        self.boxheight.insert(index,-1)
-        self.__row_init__(ui,index)
+        if index<len(self.tableimages):
+            self.rows+=1
+            self.data.insert(index,row)
+            if len(self.titles)!=0: index+=1
+            self.labeleddata.insert(index,self.labellist(row))
+            self.boxheight.insert(index,-1)
+            self.__row_init__(ui,index)
+            return True
+        else: return False
     def row_remove(self,ui,index):
-        pass
+        if index<len(self.tableimages)-1:
+            self.rows-=1
+            if index == -1:
+                self.titles = 0
+                index = 0
+            else:
+                del self.data[index]
+                if len(self.titles)!=0: index+=1
+            for a in self.tableimages[index]:
+                ui.delete(a[1].ID)
+            del self.labeleddata[index]
+            del self.boxheight[index]
+            del self.tableimages[index]
+            self.gettableheights(ui)
+            for a in range(index,len(self.tableimages)):
+                for i,b in enumerate(self.tableimages[a]):
+                    ui.reID('tabletext'+self.tableitemID+self.ID+str(a)+str(i),b[1])
+                    self.itemrefreshcords(ui,b[1],i,a)
+            return True
+        else:
+            return False
     def row_exchange(self,ui,row,index):
-        pass
+        self.row_remove(ui,index)
+        return self.row_insert(ui,row,index)
+        
     def __row_init__(self,ui,index):
         self.estimatewidths(ui)
         for a in range(len(self.tableimages)-1,index-1,-1):
