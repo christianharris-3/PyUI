@@ -418,46 +418,49 @@ class UI:
             elif self.mprs[a]: self.mouseheld[a][1] -= 1
             if not self.mprs[a]: self.mouseheld[a][0] = 0
         events = pygame.event.get()
+        repeatchecker = []
         for event in events:
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_CAPSLOCK:
-                    if self.capslock: self.capslock = False
-                    else: self.capslock = True
-                if event.key == pygame.K_ESCAPE and self.escapeback:
-                    self.menuback()
-                if event.key == pygame.K_F5:
-                    self.scaleset(self.scale)
-                if event.key == pygame.K_F11 and self.fullscreenable and self.blockf11<0:
-                    self.togglefullscreen(pygame.display.get_surface())
-                if self.selectedtextbox!=-1:
-                    if not self.textboxes[self.selectedtextbox].selected:
-                        self.selectedtextbox = -1
-                    else:
-                        self.textboxes[self.selectedtextbox].inputkey(self.capslock,event,self.kprs,self)
-            if event.type == pygame.VIDEORESIZE:
-                self.screenw = event.w
-                self.screenh = event.h
-                self.resetscreen(pygame.display.get_surface())
-            if event.type == pygame.MOUSEWHEEL:
-                moved = False
-                for a in self.textboxes:
-                    if a.scrolleron and a.selected and a.menu == self.activemenu:
-                        if a.pageheight<(a.maxp-a.minp):
-                            a.scroller.scroll-=(event.y*min((a.scroller.maxp-a.scroller.minp)/20,self.scrolllimit))
-                            a.scroller.limitpos(self)
-                            a.command()
-                            moved = True
-                if not moved:
-                    for a in self.scrollers:
-                        if a.menu == self.activemenu and not a.onitem:
+            if not(event in repeatchecker):
+                repeatchecker.append(event)
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_CAPSLOCK:
+                        if self.capslock: self.capslock = False
+                        else: self.capslock = True
+                    if event.key == pygame.K_ESCAPE and self.escapeback:
+                        self.menuback()
+                    if event.key == pygame.K_F5:
+                        self.scaleset(self.scale)
+                    if event.key == pygame.K_F11 and self.fullscreenable and self.blockf11<0:
+                        self.togglefullscreen(pygame.display.get_surface())
+                    if self.selectedtextbox!=-1:
+                        if not self.textboxes[self.selectedtextbox].selected:
+                            self.selectedtextbox = -1
+                        else:
+                            self.textboxes[self.selectedtextbox].inputkey(self.capslock,event,self.kprs,self)
+                if event.type == pygame.VIDEORESIZE:
+                    self.screenw = event.w
+                    self.screenh = event.h
+                    self.resetscreen(pygame.display.get_surface())
+                if event.type == pygame.MOUSEWHEEL:
+                    moved = False
+                    for a in self.textboxes:
+                        if a.scrolleron and a.selected and a.menu == self.activemenu:
                             if a.pageheight<(a.maxp-a.minp):
-                                a.scroll-=(event.y*min((a.maxp-a.minp)/20,self.scrolllimit))
-                                a.limitpos(self)
+                                a.scroller.scroll-=(event.y*min((a.scroller.maxp-a.scroller.minp)/20,self.scrolllimit))
+                                a.scroller.limitpos(self)
                                 a.command()
-                                break
+                                moved = True
+                    if not moved:
+                        for a in self.scrollers:
+                            if a.menu == self.activemenu and not a.onitem:
+                                if a.pageheight<(a.maxp-a.minp):
+                                    a.scroll-=(event.y*min((a.maxp-a.minp)/20,self.scrolllimit))
+                                    a.limitpos(self)
+                                    a.command()
+                                    break
         if self.exit:
             events.append(pygame.event.Event(pygame.QUIT))
-        return events
+        return repeatchecker
     def togglefullscreen(self,screen):
         if self.fullscreen: self.fullscreen = False
         else: self.fullscreen = True
@@ -959,6 +962,17 @@ class UI:
         elif type(obj) == ANIMATION: self.animations.append(obj)
         elif type(obj) == RECT: self.rects.append(obj)
         self.refreshitems()
+    def reID(self,ID,obj):
+        newid = ID
+        if ID in self.IDs:
+            adder = 1
+            ID+=str(adder)
+            while ID in self.IDs:
+                ID = ID.removesuffix(str(adder))
+                adder+=1
+                ID+=str(adder)
+        self.IDs[newid] = self.IDs.pop(obj.ID)
+        obj.ID = newid
     def refreshitems(self):
         self.items = self.buttons+self.textboxes+self.tables+self.texts+self.scrollers+self.sliders+self.windowedmenus+self.rects
         self.items.sort(key=lambda x: x.layer,reverse=False)
@@ -1057,7 +1071,7 @@ class UI:
     def makescroller(self,x,y,height,command=emptyfunction,width=15,minp=0,maxp=100,pageheight=15,menu='main',ID='scroller',layer=1,roundedcorners=0,bounditems=[],menuexceptions=[],killtime=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
-                 runcommandat=0,col=-1,backingcol=-1,clicktype=0,clickablerect=-1,
+                 runcommandat=1,col=-1,backingcol=-1,clicktype=0,clickablerect=-1,
                  dragable=True,backingdraw=True,borderdraw=True,scrollercol=-1,scrollerwidth=-1,increment=0,startp=0):
 
         if maxp == -1:
@@ -1853,8 +1867,9 @@ class TEXTBOX(GUI_ITEM):
         if self.textselected[2]>len(self.chrcorddata): self.textselected[2]=len(self.chrcorddata)
         elif self.textselected[2]<0: self.textselected[2] = 0
     def refreshscroller(self,ui):
+        self.scroller.height = self.height-self.upperborder-self.lowerborder
+        self.scroller.pageheight = self.height-self.upperborder-self.lowerborder
         self.scroller.resetcords(ui)
-        
         inc = 0
         if self.linecenter[1]-self.scroller.scroll>self.height-self.upperborder-self.lowerborder:
             inc = self.textsize
@@ -1985,6 +2000,7 @@ class TEXTBOX(GUI_ITEM):
 
 class TABLE(GUI_ITEM):
     def reset(self,ui):
+        self.tableitemID = str(random.randint(1000000,10000000))
         self.threadactive = False
         self.tableimages=0
         self.refreshscale(ui)
@@ -2047,64 +2063,64 @@ class TABLE(GUI_ITEM):
             self.columns = max([len(a) for a in temp])
             if type(self.boxwidth) == list:
                 self.columns = max(self.columns,len(self.boxwidth))
-        for a in range(len(temp)):
-            while len(temp[a])<self.columns:
-                temp[a].append('')
         for a in temp:
-            self.labeleddata.append([])
-            for b in a:
-                if type(b) in [BUTTON,TEXT,TEXTBOX]: b.enabled = False
-                if type(b) == str: self.labeleddata[-1].append(['text',b])
-                elif type(b) == int: self.labeleddata[-1].append(['text',str(b)])
-                elif type(b) == list: self.labeleddata[-1].append(['text',str(b)])
-                elif type(b) == BUTTON: self.labeleddata[-1].append(['button',b])
-                elif type(b) == TEXTBOX: self.labeleddata[-1].append(['textbox',b])
-                elif type(b) == TEXT: self.labeleddata[-1].append(['textobj',b])
-                elif type(b) == pygame.Surface:self.labeleddata[-1].append(['image',b])
-                else: print('unrecognised data type in table:',b)
+            self.labeleddata.append(self.labellist(a))
+    def labellist(self,lis):
+        labeled = []
+        while len(lis)<self.columns:
+            lis.append('')
+        for b in lis:
+            if type(b) in [BUTTON,TEXT,TEXTBOX]: b.enabled = False
+            if type(b) == str: labeled.append(['text',b])
+            elif type(b) == int: labeled.append(['text',str(b)])
+            elif type(b) == list: labeled.append(['text',str(b)])
+            elif type(b) == BUTTON: labeled.append(['button',b])
+            elif type(b) == TEXTBOX: labeled.append(['textbox',b])
+            elif type(b) == TEXT: labeled.append(['textobj',b])
+            elif type(b) == pygame.Surface: labeled.append(['image',b])
+            else: print('unrecognised data type in table:',b)
+        return labeled
                 
     def gentext(self,ui):
         self.enabled = True
         self.tableimages = []
         for a in range(len(self.labeleddata)):
-            self.tableimages.append([])
-            for i,b in enumerate(self.labeleddata[a]):
-                if b[0] == 'text':
-                    ui.delete('tabletext'+self.ID+str(a)+str(i),False)
-                    obj = ui.maketext(0,0,b[1],self.textsize,self.menu,'tabletext'+self.ID+str(a)+str(i),self.layer,self.roundedcorners,self.menuexceptions,textcenter=self.textcenter,textcol=self.textcol,
-                                      font=self.font,bold=self.bold,antialiasing=self.antialiasing,pregenerated=self.pregenerated,maxwidth=max([self.boxwidth[i]-self.horizontalspacing*2,-1]),
-                                      scalesize=self.scalesize,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,backingcol=self.col,enabled=False)
-                    self.tableimages[-1].append(['textobj',obj])
-                    self.itemintotable(ui,obj,i,a)
-                elif b[0] == 'button':
-                    b[1].scalesize = self.scalesize
-                    b[1].scalex = self.scalesize
-                    b[1].scaley = self.scalesize
-                    b[1].enabled = self.enabled
-                    self.tableimages[-1].append(['button',b[1]])
-                    self.itemintotable(ui,b[1],i,a)
-                    b[1].refresh(ui)
-                elif b[0] == 'textbox':
-                    b[1].enabled = self.enabled
-                    self.tableimages[-1].append(['textbox',b[1]])
-                    self.itemintotable(ui,b[1],i,a)
-                    b[1].refresh(ui)
-                elif b[0] == 'textobj':
-                    b[1].scalesize = self.scalesize
-                    b[1].scalex = self.scalesize
-                    b[1].scaley = self.scalesize
-                    b[1].enabled = self.enabled
-                    self.tableimages[-1].append(['textobj',b[1]])
-                    self.itemintotable(ui,b[1],i,a)
-                    b[1].refresh(ui)
-                elif b[0] == 'image':
-                    ui.delete('tabletext'+self.ID+str(a)+str(i),False)
-                    obj = ui.maketext(0,0,'',self.textsize,self.menu,'tabletext'+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,self.menuexceptions,textcenter=self.textcenter,img=b[1],maxwidth=self.boxwidth[i],
-                                      scalesize=self.scalesize,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,enabled=False)
-                    self.tableimages[-1].append(['textobj',obj])
-                    self.itemintotable(ui,obj,i,a)
-                else:
-                    print(b[0])
+            self.tableimages.append(self.row_gentext(ui,a))
+    def row_gentext(self,ui,index):
+        lis = []
+        a = index
+        for i,b in enumerate(self.labeleddata[a]):
+            if b[0] == 'text':
+                ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+str(i),False)
+                obj = ui.maketext(0,0,b[1],self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+str(i),self.layer,self.roundedcorners,self.menuexceptions,textcenter=self.textcenter,textcol=self.textcol,
+                                  font=self.font,bold=self.bold,antialiasing=self.antialiasing,pregenerated=self.pregenerated,maxwidth=max([self.boxwidth[i]-self.horizontalspacing*2,-1]),
+                                  scalesize=self.scalesize,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,backingcol=self.col,enabled=False)
+                lis.append(['textobj',obj])
+                self.itemintotable(ui,obj,i,a)
+            elif b[0] == 'button':
+                b[1].enabled = self.enabled
+                lis.append(['button',b[1]])
+                self.itemintotable(ui,b[1],i,a)
+                b[1].refresh(ui)
+            elif b[0] == 'textbox':
+                b[1].enabled = self.enabled
+                lis.append(['textbox',b[1]])
+                self.itemintotable(ui,b[1],i,a)
+                b[1].refresh(ui)
+            elif b[0] == 'textobj':
+                b[1].enabled = self.enabled
+                lis.append(['textobj',b[1]])
+                self.itemintotable(ui,b[1],i,a)
+                b[1].refresh(ui)
+            elif b[0] == 'image':
+                ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+str(i),False)
+                obj = ui.maketext(0,0,'',self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,self.menuexceptions,textcenter=self.textcenter,img=b[1],maxwidth=self.boxwidth[i],
+                                  scalesize=self.scalesize,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,enabled=False)
+                lis.append(['textobj',obj])
+                self.itemintotable(ui,obj,i,a)
+            else:
+                print(b[0])
+        return lis
     def child_refreshcords(self,ui):
         if self.tableimages!=0:
             for a in range(len(self.tableimages)):
@@ -2181,11 +2197,6 @@ class TABLE(GUI_ITEM):
         self.boxheighttotal = sum(self.boxheights)
         self.height = self.boxheighttotal+self.linesize*(self.rows+1)
 
-##        print('true height:',self.boxheights)
-##        print('at scale:',self.scale)
-##        for a in self.tableimages:
-##            for b in a:
-##                print(b[1].textimage.get_width(),b[1].textimage.get_height())
     def estimatewidths(self,ui):
         self.boxheightsinc = []
         self.boxheights = []
@@ -2218,6 +2229,37 @@ class TABLE(GUI_ITEM):
             if self.borderdraw:
                 draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))                            
 
+    def row_append(self,ui,row):
+        self.rows+=1
+        self.data.append(row)
+        self.labeleddata.append(self.labellist(row))
+        self.boxheight.append(-1)
+        self.__row_init__(ui,len(self.labeleddata)-1)
+    def row_insert(self,ui,row,index):
+        self.rows+=1
+        self.data.insert(index,row)
+        if len(self.titles)!=0: index+=1
+        self.labeleddata.insert(index,self.labellist(row))
+        self.boxheight.insert(index,-1)
+        self.__row_init__(ui,index)
+    def row_remove(self,ui,index):
+        pass
+    def row_exchange(self,ui,row,index):
+        pass
+    def __row_init__(self,ui,index):
+        self.estimatewidths(ui)
+        for a in range(len(self.tableimages)-1,index-1,-1):
+            for i,b in enumerate(self.tableimages[a]):
+                ui.reID('tabletext'+self.tableitemID+self.ID+str(a+1)+str(i),b[1])
+        self.tableimages.insert(index,self.row_gentext(ui,index))
+        self.gettableheights(ui)
+        for a in range(index,len(self.tableimages)):
+            for i,b in enumerate(self.tableimages[a]):
+                self.itemrefreshcords(ui,b[1],i,a)
+        self.refreshglow(ui)
+        self.enable()
+    
+    
 class TEXT(GUI_ITEM):
     def reset(self,ui):
         self.refreshscale(ui)
