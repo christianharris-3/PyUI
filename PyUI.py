@@ -1118,7 +1118,7 @@ class UI:
         self.windowedmenunames = [a.menu for a in self.windowedmenus]
     def makerect(self,x,y,width,height,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,bounditems=[],menuexceptions=[],killtime=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,enabled=True,
-                 border=-1,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
+                 border=0,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
                  runcommandat=0,col=-1,dragable=False):
         obj = RECT(self,x,y,command=emptyfunction,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,menuexceptions=menuexceptions,killtime=killtime,width=width,height=height,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,enabled=enabled,
