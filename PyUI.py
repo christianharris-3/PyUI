@@ -1828,7 +1828,7 @@ class TEXTBOX(GUI_ITEM):
         self.refreshcursor()
         self.refreshscroller(ui)
         
-        self.scroller.maxp = self.textimage.get_height()/self.scale+self.upperborder+self.lowerborder
+        self.scroller.maxp = self.textimage.get_height()/self.scale
         self.scroller.refresh(ui)
         if (self.scroller.maxp-self.scroller.minp)>self.scroller.pageheight:
             self.scrolleron = True
@@ -2359,6 +2359,7 @@ class SCROLLER(GUI_ITEM):
         self.scheight = self.height-self.border*2
         self.refreshcords(ui)
     def child_refreshcords(self,ui):
+        if self.maxp-self.minp == 0: self.maxp = self.minp+0.1
         self.scrollerheight = (self.pageheight/(self.maxp-self.minp))*self.scheight
         self.scrollerwidth = self.width-self.leftborder-self.rightborder
         
