@@ -2389,69 +2389,43 @@ class SLIDER(GUI_ITEM):
     def child_refreshcords(self,ui):
         self.slidercenter = (self.x+self.border+(self.width-self.border*2)*(self.slider/(self.maxp-self.minp)),self.y+self.height/2)    
         self.innerrect = pygame.Rect(self.slidercenter[0]-self.slidersize/2+self.border,self.slidercenter[1]-self.slidersize/2+self.border,self.slidersize-self.border*2,self.slidersize-self.border*2)
-        self.refreshbutton(ui)
-##    def resetbutton(self,ui):
-##        try:
-##            self.bounditems.remove(self.button)
-##            ui.delete(self.button.ID,False)
-##        except:
-##            pass
-##        if type(self.data) == BUTTON: self.button = self.data
-##        else:
-##            self.button = ui.makebutton(0,0,self.text,self.textsize,self.command,self.menu,self.ID+'button',self.layer+0.01,self.roundedcorners,self.menuexceptions,width=self.slidersize,height=self.slidersize,img=self.img,dragable=self.dragable,
-##                                        clickdownsize=int(self.slidersize/15),col=shiftcolor(self.col,-30),runcommandat=self.runcommandat)
-##
-##        if self.direction == 'vertical': self.button.startobjanchor = [self.button.width/2,self.button.height/2]
-##        else: self.button.startobjanchor = ['w/2','h/2']
-##        self.binditem(self.button)
-        
+        self.refreshbuttoncords(ui)
     def resetbutton(self,ui):
         try:
+            self.bounditems.remove(self.button)
             ui.delete(self.button.ID,False)
         except:
             pass
         if type(self.data) == BUTTON: self.button = self.data
         else:
-            self.button = ui.makebutton(self.x,self.y,self.text,self.textsize,self.command,self.menu,self.ID+'button',self.layer+0.01,self.roundedcorners,self.menuexceptions,width=self.slidersize,height=self.slidersize,img=self.img,dragable=self.dragable,clickdownsize=int(self.slidersize/15),col=shiftcolor(self.col,-30),runcommandat=self.runcommandat)
+            self.button = ui.makebutton(0,0,self.text,self.textsize,self.command,self.menu,self.ID+'button',self.layer+0.01,self.roundedcorners,self.menuexceptions,width=self.slidersize,height=self.slidersize,img=self.img,dragable=self.dragable,
+                                        clickdownsize=int(self.slidersize/15),col=shiftcolor(self.col,-30),runcommandat=self.runcommandat)
+
         if self.direction == 'vertical': self.button.startobjanchor = [self.button.width/2,self.button.height/2]
         else: self.button.startobjanchor = ['w/2','h/2']
-        self.button.onsliderbox = True
-        self.button.layer = self.layer+0.1
-        self.refreshbutton(ui)
+        self.button.dragable = False
+        self.binditem(self.button)
         
     def refreshbuttoncords(self,ui):
         offset = 0
         if self.containedslider: offset = self.button.width/2
-        self.slidercenter = (self.x+self.leftborder+offset+(self.width-self.leftborder-self.rightborder-offset*2)*((self.slider-self.minp)/(self.maxp-self.minp)),self.y+self.height/2)
-        self.button.startx = self.slidercenter[0]-self.x
-        self.button.starty = 0
+        self.slidercenter = (self.leftborder+offset+(self.width-self.leftborder-self.rightborder-offset*2)*((self.slider-self.minp)/(self.maxp-self.minp)),self.height/2)
         if self.direction == 'vertical':
             if self.containedslider: offset = self.button.height/2
-            self.slidercenter = (self.x+self.width/2,self.y+self.upperborder+offset+(self.height-self.upperborder-self.lowerborder-offset*2)*((self.slider-self.minp)/(self.maxp-self.minp)))
-            self.button.startx = 0
-            self.button.starty = self.slidercenter[1]-self.y
-
-        self.button.scalex = self.scalesize
-        self.button.scaley = self.scalesize
-        self.button.scalesize = self.scalesize
+            self.slidercenter = (self.width/2,self.upperborder+offset+(self.height-self.upperborder-self.lowerborder-offset*2)*((self.slider-self.minp)/(self.maxp-self.minp)))
+        self.button.startx = self.slidercenter[0]
+        self.button.starty = self.slidercenter[1]
+        self.button.startanchor = [0,0]
         self.button.resetcords(ui,False)
-        self.button.refreshcords(ui)
-        self.button.onslider=True
         
     def refreshbutton(self,ui):
-        self.refreshscale(ui)
-        self.button.startanchor = [self.x*self.dirscale[0],self.y*self.dirscale[1]+self.height/2*self.scale]
-        if self.direction == 'vertical':
-            self.button.startanchor = [self.x*self.dirscale[0]+self.width/2*self.scale,self.y*self.dirscale[1]]
-        self.button.menu = self.menu
-        self.button.gentext(ui)
+        self.button.refrsh(ui)
         self.refreshbuttoncords(ui)
         
     def child_render(self,screen,ui):
         self.draw(screen,ui)
         if self.button.holding: self.movetomouse(ui)
         if self.movetoclick: self.movebuttontoclick(ui)
-        self.button.draw(screen,ui)
     def movebuttontoclick(self,ui):
         self.getclickedon(ui,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),False,False)
         if self.clickedon == 0:
