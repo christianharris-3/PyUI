@@ -223,6 +223,8 @@ most variables that edit the image shape are a value between 0 and 1 representin
 - 'youtube' A symbol that looks like the youtube play button
 - 'queue' The youtube symbol but with some lines behind to try and be a queue symbol (idk this one didnt turn out great)
 - 'star' A 5 pointed star
+- 'on' An on button
+- 'lock' A lock symbol
 
 ## Object variables
 All objects have a range of variables that can be changed to edit the object being made, most objects share similar variables and do the same job for each object so can be described in one, rather than a different set for each object.
@@ -269,18 +271,18 @@ command=lambda: testfunction('function arguements')
 - **glowcol** = Edits the colour of the glow specifically.
 
 ### Text variables
-text
-textsize
-img
-colorkey
-font
-bold
-antialiasing
-pregenerated
-textcol
-textoffsetx
-textoffsety
-animationspeed
+**text** = The text that is displayed, can be used with in built images with all objects except textboxes.
+**textsize** = The size of the text.
+**img** = Used inside the in build image system, can also be used to input an image through pygame with img=pygame.image.load('image.png')
+**colorkey** = The rgb colorkey used for the text image. [more info](https://www.pygame.org/docs/ref/surface.html)
+**font** = The font of the text.
+**bold** = Boolean to control if text is in bold.
+**antialiasing** = Boolean to control if text is antialiased.
+**pregenerated** = Default is False, if True it regenerates the text image every frame resulting in no antialiasing problems.
+**textcol**
+**textoffsetx**
+**textoffsety**
+**animationspeed**
 
 ### Button specific
 hovercol
