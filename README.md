@@ -30,10 +30,11 @@ This is the same code from [basic start.py](https://github.com/LazerWolfeGod/PyU
 ```py
 ## importing modules
 import pygame
-import PyUI
-#if installed through pip use
-#from UIpygame import PyUI
 pygame.init()
+
+#use depending on installed through github or pip
+import PyUI
+from UIpygame import PyUI
 
 ## setting up pygame and PyUI
 screenw = 1200
