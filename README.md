@@ -159,8 +159,8 @@ All images can be given:
 Example code:
 ```py
 ui.maketext(100,100,'This is a cross {cross}')
-ui.makebutton(200,100,'This is lots of crosses {}{}{}{}{}',img='cross')
-ui.makebutton(300,100,'This is an small arrow pointing up {arrow stick=0.3 up}')
+ui.makebutton(100,200,'This is lots of crosses {}{}{}{}{}',img='cross')
+ui.makebutton(100,300,'This is an small arrow pointing up {arrow stick=0.3 up}')
 ```
 
 ### Manual in built images
