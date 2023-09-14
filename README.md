@@ -8,6 +8,21 @@ The only module used is pygame, and the base code to integrate PyUI into a pygam
 - [pyuitesting.py](https://github.com/LazerWolfeGod/PyUI/blob/master/pyuitesting.py) The program I use to develope and test PyUI, it contains several buttons,tables, textboxes etc.
 - [/old PyUI versions](https://github.com/LazerWolfeGod/PyUI/tree/master/old%20PyUI%20versions) A file containing all of the previous versions of PyUI while I was not using github.
 
+# Installation
+The entire module is inside The single [PyUI.py](https://github.com/LazerWolfeGod/PyUI/blob/master/PyUI.py) file. To download throught github simply download that file and either place it in the same folder as the project it is being used in, or the lib folder where python is installed on your computer.
+
+It can be installed through pip, however the name PyUI was taken so its under the name [UIpygame](https://pypi.org/project/UIpygame/).
+```
+pip install uipygame
+```
+When importing the module, if installed through github use:
+```
+import PyUI
+```
+If installed though pip use:
+```
+from UIpygame import PyUI
+```
 
 # Documentation
 ## Initialiazation
