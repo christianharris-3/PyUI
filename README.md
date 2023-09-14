@@ -25,6 +25,51 @@ from UIpygame import PyUI
 ```
 
 # Documentation
+## Base code
+This is the same code from [basic start.py](https://github.com/LazerWolfeGod/PyUI/blob/master/_basic%20start_.py) but commented.
+```py
+## importing modules
+import pygame
+import PyUI
+#if installed through pip use
+#from UIpygame import PyUI
+pygame.init()
+
+## setting up pygame and PyUI
+screenw = 1200
+screenh = 900
+# creates screen objects of size screenw and screenh
+# resizable tag allows the screen to be scaled, remove it to lock screen size
+screen = pygame.display.set_mode((screenw, screenh),pygame.RESIZABLE)
+pygame.scrap.init()
+# ui object is how most of the PyUI module is operated through
+ui = PyUI.UI()
+# when done is set to True the gameloop ends
+done = False
+# clock keeps fps consistant at 60
+clock = pygame.time.Clock()
+
+
+# main game loop
+while not done:
+    # grabs event data like button inputs and mouse position
+    pygameeventget = ui.loadtickdata()
+    for event in pygameeventget:
+        if event.type == pygame.QUIT:
+            done = True
+    # fills screen with white
+    screen.fill((255,255,255))
+
+    # draws and processes all gui objects
+    ui.rendergui(screen)
+    # displays all changes to the monitor screen
+    pygame.display.flip()
+    # maintains 60 fps
+    clock.tick(60)
+# shuts pygame window                                           
+pygame.quit() 
+```
+
 ## Initialiazation
 The ui object is how the user accesses all of PyUIs features, it contains all of the necessary functions and variables for using and manipulating the gui. It must be initially created at the start of any program using PyUI with.
 the ui object has mutltiple in built defaults vaiables that are used to set the default values when creating a gui object, these can be changed from the in built defaults at the begining of the program.
