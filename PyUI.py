@@ -9,6 +9,7 @@ def resourcepath(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
+
 def loadinganimation(points=12):
     img = []
     for a in range(points):
@@ -255,7 +256,7 @@ class draw:
         if distances!=0:
             if type(distances) == int: distances = [distances for a in range(4)]
             if roundedcorners == -1: roundedcorners=max(distances)
-            if detail == -1: detail=max(distances)
+            if detail == -1: detail=int(max(distances))
             colorkey = (255,255,255)
             if col == colorkey: colorkey = (0,0,0)
             if len(col) == 3: col = [col[0],col[1],col[2],shade/detail]
