@@ -367,7 +367,6 @@ class UI:
             if type(a)!=WINDOWEDMENU and (not a.onitem) and (a.menu in windowedmenubackings or (a.menu == 'universal' and not(self.activemenu in a.menuexceptions))) and (self.activemenu in self.windowedmenunames):
                 if a.menu == windowedmenubackings[self.windowedmenunames.index(self.activemenu)]:
                     window = self.windowedmenus[self.windowedmenunames.index(self.activemenu)]
-##                    print(pygame.Rect(window.x*window.dirscale[0],window.y*window.dirscale[1],window.width*window.scale,window.height*window.scale),[self.mpos[0]*self.scale,self.mpos[1]*self.scale],pygame.mouse.get_pos())
                     if pygame.Rect(window.x*window.dirscale[0],window.y*window.dirscale[1],window.width*window.scale,window.height*window.scale).collidepoint(self.mpos):
                         self.drawguiobject(a,screen)
                     else:
@@ -384,22 +383,22 @@ class UI:
         self.animate()
         if self.activemenu in self.windowedmenunames:
             window = self.windowedmenus[self.windowedmenunames.index(self.activemenu)]
+            window.render(screen,self)
+            
+##            window = self.windowedmenus[self.windowedmenunames.index(self.activemenu)]
             #window = [menu,behindmenu,x,y,width,height,col,rounedcorners,colorkey,isolated,darken]
-            self.mpos[0]-=window.x*window.dirscale[0]
-            self.mpos[1]-=window.y*window.dirscale[1]
+##            self.mpos[0]-=window.x*window.dirscale[0]
+##            self.mpos[1]-=window.y*window.dirscale[1]
 
-            darkening = pygame.Surface((self.screenw,self.screenh),pygame.SRCALPHA)
-            darkening.fill((0,0,0,window.darken))
-            screen.blit(darkening,(0,0))
 
-            windowsurf = pygame.Surface((window.width*window.scale,window.height*window.scale))
-            windowsurf.fill(window.colorkey)
-            pygame.draw.rect(windowsurf,window.col,pygame.Rect(0,0,window.width*window.scale,window.height*window.scale),border_radius=int(window.roundedcorners*window.scale))
-            windowsurf.set_colorkey(window.colorkey)
-            for i,a in enumerate(self.items):
-                if (a.menu == self.activemenu or (a.menu == 'universal' and not(self.activemenu in a.menuexceptions)))and type(a)!=WINDOWEDMENU:
-                    self.renderguiobject(a,windowsurf)
-            screen.blit(windowsurf,(window.x*window.dirscale[0],window.y*window.dirscale[1]))
+##            windowsurf = pygame.Surface((window.width*window.scale,window.height*window.scale))
+##            windowsurf.fill(window.colorkey)
+##            pygame.draw.rect(windowsurf,window.col,pygame.Rect(0,0,window.width*window.scale,window.height*window.scale),border_radius=int(window.roundedcorners*window.scale))
+##            windowsurf.set_colorkey(window.colorkey)
+##            for i,a in enumerate(self.items):
+##                if (a.menu == self.activemenu or (a.menu == 'universal' and not(self.activemenu in a.menuexceptions)))and type(a)!=WINDOWEDMENU:
+##                    self.renderguiobject(a,windowsurf)
+##            screen.blit(windowsurf,(window.x*window.dirscale[0],window.y*window.dirscale[1]))
     def renderguiobject(self,a,screen):
         if not a.onitem:
             a.render(screen,self)
@@ -963,6 +962,8 @@ class UI:
         elif type(obj) == ANIMATION: self.animations.append(obj)
         elif type(obj) == RECT: self.rects.append(obj)
         self.refreshitems()
+        if not type(obj) in [ANIMATION] and obj.menu in self.windowedmenunames and not obj.onitem:
+            self.windowedmenus[self.windowedmenunames.index(obj.menu)].binditem(obj)
     def reID(self,ID,obj):
         newid = ID
         if ID in self.IDs:
@@ -1114,7 +1115,7 @@ class UI:
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,
                  scalesize=scalesize,scalex=scalex,scaley=scaley,
                  command=emptyfunction,runcommandat=runcommandat,col=col,
-                 dragable=dragable,colorkey=colorkey,
+                 dragable=dragable,colorkey=colorkey,border=0,
                  behindmenu=behindmenu,isolated=isolated,darken=darken)
         self.windowedmenunames = [a.menu for a in self.windowedmenus]
     def makerect(self,x,y,width,height,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,bounditems=[],menuexceptions=[],killtime=-1,
@@ -1830,6 +1831,9 @@ class TEXTBOX(GUI_ITEM):
         self.refreshscroller(ui)
         
         self.scroller.maxp = self.textimage.get_height()/self.scale
+        self.scroller.scalesize = self.scalesize
+        self.scroller.scalex = self.scalesize
+        self.scroller.scaley = self.scalesize
         self.scroller.refresh(ui)
         if (self.scroller.maxp-self.scroller.minp)>self.scroller.pageheight:
             self.scrolleron = True
@@ -2421,7 +2425,7 @@ class SLIDER(GUI_ITEM):
         self.button.resetcords(ui,False)
         
     def refreshbutton(self,ui):
-        self.button.refrsh(ui)
+        self.button.refresh(ui)
         self.refreshbuttoncords(ui)
         
     def child_render(self,screen,ui):
@@ -2468,8 +2472,29 @@ class WINDOWEDMENU(GUI_ITEM):
     def reset(self,ui):
         self.truedarken = self.darken
         self.resetcords(ui)
+        self.refresh(ui)
+        for a in ui.items:
+            if a.menu == self.menu and a!=self and not a.onitem:
+                self.binditem(a)
     def refresh(self,ui):
+        self.refreshscale(ui)
+        self.refreshcords(ui)
         self.refreshglow(ui)
+    def child_refreshcords(self,ui):
+        for a in self.bounditems:
+            a.resetcords(ui)
+    def child_render(self,screen,ui):
+        self.draw(screen,ui)
+    def draw(self,screen,ui):
+        if self.enabled:
+            darkening = pygame.Surface((ui.screenw,ui.screenh),pygame.SRCALPHA)
+            darkening.fill((0,0,0,self.darken))
+            screen.blit(darkening,(0,0))
+            if self.glow!=0:
+                screen.blit(self.glowimage,(self.x*self.dirscale[0]-self.glow*self.scale,self.y*self.dirscale[1]-self.glow*self.scale))
+            if self.backingdraw:
+                draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.border,border_radius=int(self.roundedcorners*self.scale))
+
 
 
 class ANIMATION:
@@ -2496,7 +2521,7 @@ class ANIMATION:
 
         self.onitem = False
         self.bounditems = []
-    def gencordlist(self,ui):
+    def gencordlist(self,ui,regenerating=False):
         self.speedlist = [1 for a in range(self.length)]
         speed = 0
         pos = 0
@@ -2519,32 +2544,36 @@ class ANIMATION:
         self.cordlist = []
         for a in range(self.length):
             self.cordlist.append((self.startpos[0]+(self.endpos[0]-self.startpos[0])*(sum(self.speedlist[:a+1])),self.startpos[1]+(self.endpos[1]-self.startpos[1])*(sum(self.speedlist[:a+1]))))
-        if self.skip:
+        if self.skip and not regenerating:
             self.findonscreen(ui)
-    def findonscreen(self,ui):        
+    def findonscreen(self,ui):
         scale = ui.IDs[self.animateID].scale
         dirscale = ui.IDs[self.animateID].dirscale
-        scords = list(self.cordlist[0])
-        ecords = list(self.cordlist[1])
+        scords = self.startpos[:]
+        ecords = self.endpos[:]
         start = self.checkonscreen(ui,dirscale,scale,scords)
         end = self.checkonscreen(ui,dirscale,scale,ecords)
-        cross = scords[:]
+        cross = list(self.startpos[:])
+        self.fadeout = False
         if end!=start:
-            if end: out = ecords
-            else: out = scords
+            if end: out = scords
+            else: out = ecords
+            if out[0]<0: cross[0] = -ui.IDs[self.animateID].width
+            elif out[0]>ui.screenw: cross[0] = ui.screenw/dirscale[0]
+            if out[1]<0: cross[1] = -ui.IDs[self.animateID].height
+            elif out[1]>ui.screenh: cross[1] = ui.screenh/dirscale[1]
+
             
-            if out[0]<0: cross[0] = -ui.IDs[self.animateID].width*scale
-            elif out[0]>ui.screenw: cross[0] = ui.screenw
-            if out[1]<0: cross[1] = -ui.IDs[self.animateID].height*scale
-            elif out[1]>ui.screenh: cross[1] = ui.screenh
             
-            if end: self.startpos = cross
-            else: self.endpos = cross
+            if end:
+                self.startpos = cross
+            else:
+                self.endpos = cross
+                self.fadeout = True
             
-            self.gencordlist(ui)
-            
+            self.gencordlist(ui,True)
     def checkonscreen(self,ui,dirscale,scale,cords):
-        return pygame.Rect(0,0,ui.screenw,ui.screenh).colliderect(pygame.Rect(cords[0]*dirscale[0],cords[1]*dirscale[1],ui.IDs[self.animateID].width*scale,ui.IDs[self.animateID].height*scale))
+        return pygame.Rect(0,0,ui.screenw,ui.screenh).colliderect(pygame.Rect(cords[0],cords[1],ui.IDs[self.animateID].width*scale,ui.IDs[self.animateID].height*scale))
         
     def animate(self,ui):
         self.wait-=1
@@ -2606,5 +2635,4 @@ class RECT(GUI_ITEM):
             if self.backingdraw:
                 draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.border,border_radius=int(self.roundedcorners*self.scale))
             
-        
     
