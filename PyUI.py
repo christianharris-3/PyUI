@@ -384,21 +384,7 @@ class UI:
         if self.activemenu in self.windowedmenunames:
             window = self.windowedmenus[self.windowedmenunames.index(self.activemenu)]
             window.render(screen,self)
-            
-##            window = self.windowedmenus[self.windowedmenunames.index(self.activemenu)]
-            #window = [menu,behindmenu,x,y,width,height,col,rounedcorners,colorkey,isolated,darken]
-##            self.mpos[0]-=window.x*window.dirscale[0]
-##            self.mpos[1]-=window.y*window.dirscale[1]
 
-
-##            windowsurf = pygame.Surface((window.width*window.scale,window.height*window.scale))
-##            windowsurf.fill(window.colorkey)
-##            pygame.draw.rect(windowsurf,window.col,pygame.Rect(0,0,window.width*window.scale,window.height*window.scale),border_radius=int(window.roundedcorners*window.scale))
-##            windowsurf.set_colorkey(window.colorkey)
-##            for i,a in enumerate(self.items):
-##                if (a.menu == self.activemenu or (a.menu == 'universal' and not(self.activemenu in a.menuexceptions)))and type(a)!=WINDOWEDMENU:
-##                    self.renderguiobject(a,windowsurf)
-##            screen.blit(windowsurf,(window.x*window.dirscale[0],window.y*window.dirscale[1]))
     def renderguiobject(self,a,screen):
         if not a.onitem:
             a.render(screen,self)
@@ -1555,6 +1541,8 @@ class GUI_ITEM:
             self.y = y
             if startset: self.starty = (self.y*self.dirscale[1]+self.objanchor[1]*self.scale-self.anchor[1])/self.scale
     def binditem(self,item):
+        if item.onitem:
+            item.master.bounditems.remove(item)
         if not(item in self.bounditems):
             self.bounditems.append(item)
         item.onitem = True
@@ -1564,6 +1552,7 @@ class GUI_ITEM:
         item.scalex = self.scalesize
         item.scaley = self.scalesize
         item.menuexceptions = self.menuexceptions
+        self.bounditems.sort(key=lambda x: x.layer,reverse=False)
     def autoscale(self,_):
         pass
     def child_gentext(self,_):
@@ -2476,6 +2465,7 @@ class WINDOWEDMENU(GUI_ITEM):
         for a in ui.items:
             if a.menu == self.menu and a!=self and not a.onitem:
                 self.binditem(a)
+        self.bounditems.sort(key=lambda x: x.layer,reverse=False)
     def refresh(self,ui):
         self.refreshscale(ui)
         self.refreshcords(ui)
@@ -2635,4 +2625,5 @@ class RECT(GUI_ITEM):
             if self.backingdraw:
                 draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.border,border_radius=int(self.roundedcorners*self.scale))
             
+        
     
