@@ -12,15 +12,14 @@ The only module used is pygame, and the base code to integrate PyUI into a pygam
 The entire module is inside The single [PyUI.py](https://github.com/LazerWolfeGod/PyUI/blob/master/PyUI.py) file. To download throught github simply download that file and either place it in the same folder as the project it is being used in, or the lib folder where python is installed on your computer.
 
 It can be installed through pip, however the name PyUI was taken so its under the name [UIpygame](https://pypi.org/project/UIpygame/).
-```
+```cmd
 pip install uipygame
 ```
-When importing the module, if installed through github use:
-```
+```py
+# When importing the module, if installed through github use:
 import PyUI
-```
-If installed though pip use:
-```
+
+# If installed though pip use:
 from UIpygame import PyUI
 ```
 
@@ -99,14 +98,40 @@ The menumove function will swap the activemenu to the menu entered, with an opti
 There are several objects that can be made, each being produced through a command in the ui object, then being rendered through the rendergui() function.
 ### Buttons
 A button is simple object that can be clicked on to run a command. Buttons can be made toggleable, meaning they swap between a toggled and not toggled state, its state can be accessed by the variable "toggle".
+```py
+# Creates a button that when clicked deletes itself
+ui.makebutton(20,20,'This Button Deletes Itself',40,lambda: ui.delete('delete button'),ID='delete button',maxwidth=200,spacing=5,roundedcorners=10)
+```
 ### Checkbox
 A checkbox is a button with in built defaults to make it into a textbox, it can be treated in the same way a button is.
+```py
+# Makes 3 bound checkboxes, so only 1 can be toggled at once
+ui.makecheckbox(30,110,60,ID='checkbox 1',bindtoggle=['checkbox 2','checkbox 3'],toggle=True)
+ui.makecheckbox(90,110,60,ID='checkbox 2',bindtoggle=['checkbox 1','checkbox 3'],toggle=False)
+ui.makecheckbox(150,110,60,ID='checkbox 3',bindtoggle=['checkbox 1','checkbox 2'],toggle=False)
+```
 ### Text
 Text is an object that displays text, it can be given a command.
+```py
+# makes a text object bound to the bottom right of the screen
+ui.maketext(0,0,'Bottom Right',60,anchor=('w-10','h-10'),objanchor=('w','h'),backingcol=(255,255,255))
+```
 ### Textbox
 Textboxes can be typed in, a command can be attached for when keys are pressed, or when enter is pressed. If the end of the textbox is reached a scroller is added to the side. The text in the textbox can be accessed by the varible "text".
+```py
+# A simple textbox with 2 lines for text
+ui.maketextbox(20,170,'',200,2)
+```
 ### Table
 Tables are grids of objects, they can contain text objects, buttons or textboxes. If strings are entered it auto generates a text objected to fill the space.
+```py
+# Makes a table with a variety of different features
+data = [['Test',ui.maketext(0,0,'Colour',textcol=(255,100,0),backingcol=(50,0,255),spacing=5,textcenter=True,roundedcorners=4)],
+        [ui.maketextbox(0,0,textsize=25,spacing=3),'{clock}'],
+        [ui.makebutton(0,0,'Button',border=5,spacing=10),6]]
+
+ui.maketable(240,20,data,spacing=10,roundedcorners=4)
+```
 ### Slider
 Sliders contain a bar that a button is moved back and forth on when clicked and dragged. The amount the slider is slid can be accessed by the "slider"
 ### Scroller
