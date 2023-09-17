@@ -1432,6 +1432,7 @@ class GUI_ITEM:
             self.binditem(a)
         if not emptyobject:
             self.reset(ui)
+        pygame.event.pump()
         
         
     def reset(self,ui):
@@ -1506,8 +1507,8 @@ class GUI_ITEM:
         if type(self.objanchor[1]) == str:
             exec('returnedexecvalue='+self.objanchor[1].replace('h',str(self.height)),globals())
             self.objanchor[1] = returnedexecvalue
-        self.x = self.master.x+int(self.anchor[0]+self.startx*self.scale-self.objanchor[0]*self.scale)/self.dirscale[0]
-        self.y = self.master.y+int(self.anchor[1]+self.starty*self.scale-self.objanchor[1]*self.scale)/self.dirscale[1]
+        self.x = self.master.x*self.master.dirscale[0]+int(self.anchor[0]+self.startx*self.scale-self.objanchor[0]*self.scale)/self.dirscale[0]
+        self.y = self.master.y*self.master.dirscale[1]+int(self.anchor[1]+self.starty*self.scale-self.objanchor[1]*self.scale)/self.dirscale[1]
         self.refreshcords(ui)
         for a in self.bounditems:
             a.resetcords(ui)
