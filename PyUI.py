@@ -1042,7 +1042,7 @@ class UI:
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',font='default',bold=False,antialiasing=True,pregenerated=True,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
                  command=emptyfunction,runcommandat=0,col=-1,textcol=-1,clicktype=0,backingcol=-1,bordercol=-1,textoffsetx=0,textoffsety=0,
-                 dragable=False,colorkey=-1,spacing=-1,verticalspacing=3,horizontalspacing=3,maxwidth=-1,animationspeed=5,clickablerect=-1,
+                 dragable=False,colorkey=-1,spacing=3,verticalspacing=0,horizontalspacing=8,maxwidth=-1,animationspeed=5,clickablerect=-1,
                  textcenter=False,backingdraw=False,borderdraw=False):
         if col == -1: col = backingcol
         backingcol = bordercol
@@ -1359,8 +1359,8 @@ class GUI_ITEM:
         self.verticalspacing = verticalspacing
         self.horizontalspacing = horizontalspacing
         if spacing!=-1:
-            if verticalspacing == 0:self.verticalspacing = spacing
-            if horizontalspacing == 8:self.horizontalspacing = spacing
+            if verticalspacing == 0: self.verticalspacing = spacing
+            if horizontalspacing == 8: self.horizontalspacing = spacing
 
         self.toggle = toggle
         self.toggleable = toggleable
@@ -2290,9 +2290,9 @@ class TEXT(GUI_ITEM):
         self.refreshglow(ui)
     def autoscale(self,ui):
         if self.startwidth == -1:
-            self.width = self.textimage.get_width()/self.scale+self.horizontalspacing*2
+            self.width = max([a.get_width() for a in self.textimages])/self.scale+self.horizontalspacing*2
         if self.startheight == -1:
-            self.height = self.textimage.get_height()/self.scale+self.verticalspacing*2
+            self.height = max([a.get_height() for a in self.textimages])/self.scale+self.verticalspacing*2
     def child_render(self,screen,ui):
         self.getclickedon(ui)
         self.draw(screen,ui)
