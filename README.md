@@ -296,77 +296,77 @@ command=lambda: testfunction('function arguements')
 - **glowcol** = Edits the colour of the glow specifically.
 
 ### Text variables
-**text** = The text that is displayed, can be used with in built images with all objects except textboxes.
-**textsize** = The size of the text.
-**img** = Used inside the in build image system, can also be used to input an image through pygame with img=pygame.image.load('image.png')
-**colorkey** = The rgb colorkey used for the text image. [more info](https://www.pygame.org/docs/ref/surface.html)
-**font** = The font of the text.
-**bold** = Boolean to control if text is in bold.
-**antialiasing** = Boolean to control if text is antialiased.
-**pregenerated** = Default is False, if True it regenerates the text image every frame resulting in no antialiasing problems.
-**textcol**
-**textoffsetx**
-**textoffsety**
-**animationspeed**
+- **text** = The text that is displayed, can be used with in built images with all objects except textboxes.
+- **textsize** = The size of the text.
+- **img** = Used inside the in build image system, can also be used to input an image through pygame with img=pygame.image.load('image.png'), if a list of items are inputed it will animate through each item.
+- **colorkey** = The rgb colorkey used for the text image. [more info](https://www.pygame.org/docs/ref/surface.html)
+- **font** = The font of the text.
+- **bold** = Boolean to control if text is in bold.
+- **antialiasing** = Boolean to control if text is antialiased.
+- **pregenerated** = Default is False, if True it regenerates the text image every frame resulting in no antialiasing problems, may result in large drop in fps is used too much.
+- **textcol** = The colour of the text displayed.
+- **textoffsetx** = Used to configure the x position of where the text is placed on the object, postive most right and negative moves left.
+- **textoffsety** = Same as textoffsetx but for y position, up is negative down is positive.
+- **animationspeed** = The number of frames of each animation frame.
 
 ### Button specific
-hovercol
-clickdownsize
-clicktype
-maxwidth
-dragable
-toggle
-toggleable
-toggletext
-toggleimg
-togglecol
-togglehovercol
-bindtoggle
+- **hovercol** = The colour the backing goes when the mouse hovers over it.
+- **clickdownsize** = The number of pixels the moved in by when the button is clicked down.
+- **clicktype** = The mousebutton used to click the button, default = 0 (left click), 1 is middle click, 2 is right click.
+- **maxwidth** = The max width of the text, the text will move onto a new line to keep within this limit.
+- **dragable** = Boolean that controls if the button can be dragged
+- **toggle** = Sets the starting toggle varible of the obect, this variable is toggled by a toggleable button and is used to access if it is toggled or not.
+- **toggleable** = Sets if the button can be toggled.
+- **toggletext** = The display text when the button is toggled, all same functions as normal text and defaults to normal text if empty.
+- **toggleimg** = Same as toggletext except for img variable.
+- **togglecol** = The backingcol for the text for when it is toggled
+- **togglehovercol** = The colour when hovering and toggled.
+- **bindtoggle** = A list of objejct IDs that are toggled off when it is toggled on, the object can have its own ID in the list and be unaffected.
 
 ### Textbox specific
-lines
-linelimit
-selectcol
-selectbordersize
-selectshrinksize
-cursorsize
-textcenter
-chrlimit
-numsonly
-enterreturns
-commandifenter
-commandifkey
+- **lines** = 
+- **linelimit** = 
+- **selectcol** = 
+- **selectbordersize** = 
+- **selectshrinksize** = 
+- **cursorsize** = 
+- **textcenter** = 
+- **chrlimit** = 
+- **numsonly** = 
+- **enterreturns** = 
+- **commandifenter** = 
+- **commandifkey** = 
 
 ### Table specific
-data
-titles
-boxwidth
-boxheight
-linesize
+- **data** = 
+- **titles** = 
+- **boxwidth** = 
+- **boxheight** = 
+- **linesize** = 
 
 ### Scroller/Slider specific
-minp
-maxp
-startp
+- **minp** = 
+- **maxp** = 
+- **startp** = 
 #### Scroller
-scrollercol
-scrollerwidth
-pageheight
+- **scrollercol** = 
+- **scrollerwidth** = 
+- **pageheight** = 
 #### Slider
-slidercol
-sliderbordercol
-slidersize
-increment
-sliderroundedcorners
-button
-direction
-containedslider
-movetoclick
+- **slidercol** = 
+- **sliderbordercol** = 
+- **slidersize** = 
+- **increment** = 
+- **sliderroundedcorners** = 
+- **button** = 
+- **direction** = 
+- **containedslider** = 
+- **movetoclick** = 
 
 ### Windowed menu specific
-behindmenu
-isolated
-darken
+- **behindmenu** = 
+- **isolated** = 
+- **darken** = 
 
 
 
