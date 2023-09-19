@@ -446,7 +446,7 @@ class UI:
                                     a.command()
                                     break
         if self.exit:
-            events.append(pygame.event.Event(pygame.QUIT))
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
         return repeatchecker
     def togglefullscreen(self,screen):
         if self.fullscreen: self.fullscreen = False
