@@ -1,11 +1,11 @@
 import pygame,math,random,sys,os
-import PyUI
+from UIpygame import PyUI as pyui
 pygame.init()
 screenw = 1200
 screenh = 900
 screen = pygame.display.set_mode((screenw, screenh),pygame.RESIZABLE)
 pygame.scrap.init()
-ui = PyUI.UI()
+ui = pyui.UI()
 done = False
 clock = pygame.time.Clock()
 
