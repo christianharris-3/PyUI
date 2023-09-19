@@ -334,7 +334,8 @@ class UI:
         self.queuemenumove = True
         self.rendershapefunctions = {'tick':self.rendershapetick,'cross':self.rendershapecross,'arrow':self.rendershapearrow,'settings':self.rendershapesettings,
                                      'play':self.rendershapeplay,'pause':self.rendershapepause,'skip':self.rendershapeskip,'circle':self.rendershapecircle,
-                                     'rect':self.rendershaperect,'clock':self.rendershapeclock,'loading':self.rendershapeloading,'dots':self.rendershapedots}
+                                     'rect':self.rendershaperect,'clock':self.rendershapeclock,'loading':self.rendershapeloading,'dots':self.rendershapedots,
+                                     'logo':self.rendershapelogo}
         
         self.resizable = True
         self.fullscreenable = True
@@ -604,7 +605,7 @@ class UI:
         prongwidth = vals[3]
         prongsteepness = vals[4]
         draw.circle(surf,col,(size*0.5,size*0.5),size*outercircle)
-        draw.circle(surf,backcol,(size*0.5,size*0.5),size*innercircle)
+##        print(surf)
         width=prongwidth
         innerwidth=width+math.sin(width)*prongsteepness
         points = []
@@ -614,7 +615,16 @@ class UI:
             points.append([((math.sin(ang-width)*0.5*0.95+0.5)*size,(math.cos(ang-width)*0.5*0.95+0.5)*size),((math.sin(ang+width)*0.5*0.95+0.5)*size,(math.cos(ang+width)*0.5*0.95+0.5)*size),((math.sin(ang+innerwidth)*0.5*(outercircle*2)+0.5)*size,(math.cos(ang+innerwidth)*0.5*(outercircle*2)+0.5)*size),((math.sin(ang-innerwidth)*0.5*(outercircle*2)+0.5)*size,(math.cos(ang-innerwidth)*0.5*(outercircle*2)+0.5)*size)])
         for a in points:
             draw.polygon(surf,col,a)
+        draw.circle(surf,backcol,(size*0.5,size*0.5),size*innercircle)
         return surf
+    def rendershapelogo(self,name,size,col,backcol):
+        surf = pygame.Surface((size,size))
+        surf.fill(backcol)
+        surf = self.rendershapesettings(name,size,(66,129,180),backcol)
+        self.write(surf,size*0.5,size*0.5,'PyUI',size*(360/600),(62,63,75),True)
+        self.write(surf,size*0.5,size*0.5,'PyUI',size*(380/600),(253,226,93),True)
+        return surf
+        
     def rendershapeplay(self,name,size,col,backcol):
         vals = self.getshapedata(name,['rounded'],[0.0])
         rounded = vals[0]
