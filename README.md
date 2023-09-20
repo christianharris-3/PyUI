@@ -142,6 +142,8 @@ A windowed menu is a replacement for a menu, give it a menu and a behindmenu and
 A simple rectangle with no additional function.
 ### Circle
 A circle is actually a rect object, with equal width and height and roundedcorners set to half the width(radius), creating a circle from the same rect object. This means it can be treated the same way a Rect is.
+### Search Bar
+A composite object made of a textbox, 2 buttons and some text. Whatever function is inputed as the command will be run when a user clicks the enter key, or the search button. The cross just wipes the textbox, and text arguement is used to create the display text.
 
 ## Using Gui Objects
 Using the ui object, objects can be accessed and deleted.
