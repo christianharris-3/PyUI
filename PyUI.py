@@ -26,6 +26,15 @@ def roundrect(x,y,width,height):
 
 def emptyfunction():
     pass
+class emptyobject:
+    def __init__(self,x,y,w,h):
+        self.x = x
+        self.y = y
+        self.width = w
+        self.height = h
+        self.scale = 1
+        self.dirscale = [1,1]
+        self.empty = True
 
 def normalizelist(lis,sumto=1):
     total = sum(lis)
@@ -316,6 +325,7 @@ class UI:
         self.buttondowntimer = 9
 
         self.fullscreen = False
+        self.exit = False
         self.blockf11 = 0
         
         self.clipboard = pygame.scrap.get('str')
@@ -444,6 +454,8 @@ class UI:
                                     a.limitpos(self)
                                     a.command()
                                     break
+        if self.exit:
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
         return repeatchecker
     def togglefullscreen(self,screen):
         if self.fullscreen: self.fullscreen = False
@@ -1203,7 +1215,7 @@ class UI:
                     self.slidemenu(self.activemenu,self.backchain[-1][0],slide,length) 
                 del self.backchain[-1]
             elif self.backquits and self.queuedmenumove[0]<0:
-                pygame.event.post(pygame.event.Event(pygame.QUIT))
+                self.exit = True
             for a in self.mouseheld:
                 a[1]-=1
         elif self.queuemenumove:
@@ -1282,7 +1294,7 @@ class GUI_ITEM:
                  data='empty',titles=[],boxwidth=-1,boxheight=-1,linesize=2,
                  backingdraw=True,borderdraw=True,animationspeed=5,scrollercol=-1,scrollerwidth=-1,pageheight=15,
                  slidercol=-1,sliderbordercol=-1,slidersize=-1,increment=0,sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',containedslider=False,movetoclick=False,
-                 behindmenu='main',isolated=True,darken=60,emptyobject=False):
+                 behindmenu='main',isolated=True,darken=60):
         self.enabled = enabled
         self.center = center
         if centery == -1: centery = center
@@ -1321,8 +1333,8 @@ class GUI_ITEM:
 
         self.onitem = False
         self.bounditems = bounditems[:]
-        if not emptyobject:
-            self.master = GUI_ITEM(ui,0,0,ui.screenw,ui.screenh,emptyobject=True)
+        self.master = emptyobject(0,0,ui.screenw,ui.screenh)
+        self.empty = False
             
         self.menu = menu
         self.menuexceptions = menuexceptions
@@ -1330,8 +1342,7 @@ class GUI_ITEM:
         else: self.killtime = time.time()+killtime
         self.layer = layer
         if ID == '': ID = text
-        if not emptyobject:
-            ui.addid(ID,self)
+        ui.addid(ID,self)
 
         self.text = text
         self.textsize = textsize
@@ -1437,8 +1448,7 @@ class GUI_ITEM:
         self.darken = darken
         for a in self.bounditems:
             self.binditem(a)
-        if not emptyobject:
-            self.reset(ui)
+        self.reset(ui)
         pygame.event.pump()
         
         
@@ -1514,8 +1524,8 @@ class GUI_ITEM:
         if type(self.objanchor[1]) == str:
             exec('returnedexecvalue='+self.objanchor[1].replace('h',str(self.height)),globals())
             self.objanchor[1] = returnedexecvalue
-        self.x = self.master.x*self.master.dirscale[0]+int(self.anchor[0]+self.startx*self.scale-self.objanchor[0]*self.scale)/self.dirscale[0]
-        self.y = self.master.y*self.master.dirscale[1]+int(self.anchor[1]+self.starty*self.scale-self.objanchor[1]*self.scale)/self.dirscale[1]
+        self.x = int(self.master.x*self.master.dirscale[0]+self.anchor[0]+self.startx*self.scale-self.objanchor[0]*self.scale)/self.dirscale[0]
+        self.y = int(self.master.y*self.master.dirscale[1]+self.anchor[1]+self.starty*self.scale-self.objanchor[1]*self.scale)/self.dirscale[1]
         self.refreshcords(ui)
         for a in self.bounditems:
             a.resetcords(ui)
