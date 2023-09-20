@@ -316,7 +316,6 @@ class UI:
         self.buttondowntimer = 9
 
         self.fullscreen = False
-        self.exit = False
         self.blockf11 = 0
         
         self.clipboard = pygame.scrap.get('str')
@@ -445,8 +444,6 @@ class UI:
                                     a.limitpos(self)
                                     a.command()
                                     break
-        if self.exit:
-            pygame.event.post(pygame.event.Event(pygame.QUIT))
         return repeatchecker
     def togglefullscreen(self,screen):
         if self.fullscreen: self.fullscreen = False
@@ -1206,7 +1203,7 @@ class UI:
                     self.slidemenu(self.activemenu,self.backchain[-1][0],slide,length) 
                 del self.backchain[-1]
             elif self.backquits and self.queuedmenumove[0]<0:
-                self.exit = True
+                pygame.event.post(pygame.event.Event(pygame.QUIT))
             for a in self.mouseheld:
                 a[1]-=1
         elif self.queuemenumove:
