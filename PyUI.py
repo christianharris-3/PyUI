@@ -1123,6 +1123,7 @@ class UI:
                  dragable=dragable,colorkey=colorkey,border=0,
                  behindmenu=behindmenu,isolated=isolated,darken=darken)
         self.windowedmenunames = [a.menu for a in self.windowedmenus]
+        return obj
     def makerect(self,x,y,width,height,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,bounditems=[],menuexceptions=[],killtime=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,enabled=True,
                  border=0,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
@@ -1137,10 +1138,50 @@ class UI:
                  border=-1,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
                  runcommandat=0,col=-1,dragable=False):
         if roundedcorners==-1: roundedcorners=radius
-        self.makerect(x,y,radius*2,radius*2,command,menu,ID,layer,roundedcorners,bounditems,menuexceptions,killtime,
+        obj = self.makerect(x,y,radius*2,radius*2,command,menu,ID,layer,roundedcorners,bounditems,menuexceptions,killtime,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,enabled=enabled,
                  border=border,scalesize=scalesize,scalex=scalex,scaley=scaley,glow=glow,glowcol=glowcol,
                  runcommandat=runcommandat,col=col,dragable=dragable)
+        return obj
+        
+    def makesearchbar(self,x,y,text='Search',width=400,lines=1,menu='main',command=emptyfunction,ID='textbox',layer=1,roundedcorners=0,bounditems=[],menuexceptions=[],killtime=-1,height=-1,
+                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',textsize=50,font='default',bold=False,antialiasing=True,pregenerated=True,enabled=True,
+                 border=3,upperborder=-1,lowerborder=-1,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
+                 runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,
+                 colorkey=-1,spacing=-1,verticalspacing=1,horizontalspacing=4,clickablerect=-1,
+                 linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=False,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,
+                 backingdraw=True,borderdraw=True):
+        
+        if upperborder == -1: upperborder = border
+        if lowerborder == -1: lowerborder = border
+        if height == -1:
+            heightgetter = self.rendertext('Tg',textsize,(255,255,255),font,bold)
+            height = upperborder+lowerborder+heightgetter.get_height()*lines
+        col = autoshiftcol(col,self.defaultcol)
+
+        txt = self.maketext(int(border+horizontalspacing)/2,0,text,textsize,anchor=(0,'h/2'),objanchor=(0,'h/2'),img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,textcol=textcol,backingcol=autoshiftcol(backingcol,col,-20),animationspeed=5)
+        
+        bsize = height-upperborder-lowerborder
+        search = self.makebutton(0,0,'{search}',textsize*0.55,command=command,roundedcorners=roundedcorners,width=bsize,height=bsize,
+                 anchor=(f'w-{border*2+bsize}','h/2'),objanchor=('w','h/2'),border=0,col=col,textcol=textcol,backingcol=backingcol,bordercol=col,
+                 clickdownsize=1,textoffsetx=0,textoffsety=0,spacing=2,clickablerect=clickablerect,hovercol=autoshiftcol(hovercol,col,-6),borderdraw=False)
+        cross = self.makebutton(0,0,'{cross}',textsize*0.5,command=emptyfunction,roundedcorners=roundedcorners,width=bsize,height=bsize,
+                 anchor=(f'w-{border}','h/2'),objanchor=('w','h/2'),border=0,col=col,textcol=textcol,backingcol=backingcol,bordercol=col,
+                 clickdownsize=1,textoffsetx=1,textoffsety=1,spacing=2,clickablerect=clickablerect,hovercol=autoshiftcol(hovercol,col,-6),borderdraw=False)
+        
+        obj = self.maketextbox(x,y,'',width,lines,menu,command,ID,layer,roundedcorners,bounditems+[txt,search,cross],menuexceptions,killtime,height,
+                 anchor,objanchor,center,centery,img,textsize,font,bold,antialiasing,pregenerated,enabled,
+                 border,upperborder,lowerborder,bsize*2+border*3,txt.textimage.get_width()+border+horizontalspacing*2,scalesize,scalex,scaley,glow,glowcol,
+                 runcommandat,col,textcol,backingcol,hovercol,clickdownsize,clicktype,textoffsetx,textoffsety,
+                 colorkey,spacing,verticalspacing,horizontalspacing,clickablerect,
+                 linelimit,selectcol,selectbordersize,selectshrinksize,cursorsize,textcenter,chrlimit,numsonly,enterreturns,commandifenter,commandifkey,
+                 backingdraw,borderdraw)
+        
+        cross.command = lambda: obj.settext(self)
+
+
+            
+    
     def animate(self):
         self.queuedmenumove[0]-=1
         if self.queuedmenumove[0]<0 and self.queuedmenumove[1] != []:
@@ -1736,6 +1777,9 @@ class TEXTBOX(GUI_ITEM):
             a.selected = False
         ui.selectedtextbox = ui.textboxes.index(self)
         self.selected = True
+    def settext(self,ui,text=''):
+        self.text = text
+        self.refresh(ui)
     def inputkey(self,caps,event,kprs,ui):
         if kprs[pygame.K_LSHIFT] or kprs[pygame.K_RSHIFT]:
             if caps: caps = False
