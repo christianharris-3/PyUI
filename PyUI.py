@@ -363,9 +363,11 @@ class UI:
         self.scale = scale
         self.dirscale = [self.screenw/self.basescreensize[0],self.screenh/self.basescreensize[1]]
         for a in self.items:
+            if a.scalesize:
+                a.refresh(self)
+        for a in self.automenus+self.windowedmenus:
             a.refresh(self)
-            if not a.onitem:
-                a.resetcords(self)
+            a.resetcords(self)
         
     def getscreen(self):
         sc = pygame.display.get_surface()
@@ -1446,8 +1448,10 @@ class GUI_ITEM:
             if verticalspacing == -1: self.verticalspacing = spacing
             if horizontalspacing == -1: self.horizontalspacing = spacing
         else:
-            if verticalspacing == -1: self.verticalspacing = 0
-            if horizontalspacing == -1: self.horizontalspacing = 8
+            defaults = (0,8)
+            if type(self) == TEXT: defaults = (3,3)
+            if verticalspacing == -1: self.verticalspacing = defaults[0]
+            if horizontalspacing == -1: self.horizontalspacing = defaults[1]
 
         self.toggle = toggle
         self.toggleable = toggleable
@@ -2576,10 +2580,12 @@ class WINDOWEDMENU(GUI_ITEM):
 
 class MENU(GUI_ITEM):
     def reset(self,ui):
-        pass
+        self.scalesize = False
     def refresh(self,ui):
         self.refreshscale(ui)
         self.refreshcords(ui)
+        self.width = ui.screenw
+        self.height = ui.screenh
     def child_refreshcords(self,ui):
         for a in self.bounditems:
             a.resetcords(ui)
