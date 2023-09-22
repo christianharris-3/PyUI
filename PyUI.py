@@ -319,6 +319,7 @@ class UI:
 
         self.activemenu = 'main'
         self.windowedmenus = []
+        self.automenus = []
         self.windowedmenunames = []
         self.backchain = []
         self.queuedmenumove = [0,[]]
@@ -966,6 +967,7 @@ class UI:
         elif type(obj) == WINDOWEDMENU: self.windowedmenus.append(obj)
         elif type(obj) == ANIMATION: self.animations.append(obj)
         elif type(obj) == RECT: self.rects.append(obj)
+        elif type(obj) == MENU: self.automenus.append(obj)
         self.refreshitems()
         if not type(obj) in [ANIMATION] and obj.menu in self.windowedmenunames and not obj.onitem:
             self.windowedmenus[self.windowedmenunames.index(obj.menu)].binditem(obj)
@@ -982,7 +984,19 @@ class UI:
         obj.ID = newid
     def refreshitems(self):
         self.items = self.buttons+self.textboxes+self.tables+self.texts+self.scrollers+self.sliders+self.windowedmenus+self.rects
+        for a in self.items:
+            if not a.onitem:
+                if not('auto_generate_menu:'+a.menu in self.IDs):
+                    obj = self.automakemenu(a.menu)
+                else:
+                    obj = self.IDs['auto_generate_menu:'+a.menu]
+                obj.binditem(a)
+        self.items+=self.automenus
         self.items.sort(key=lambda x: x.layer,reverse=False)
+        
+                    
+                
+                    
         
     def makebutton(self,x,y,text,textsize=50,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,bounditems=[],menuexceptions=[],killtime=-1,width=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',font='default',bold=False,antialiasing=True,pregenerated=True,enabled=True,
@@ -1179,6 +1193,9 @@ class UI:
         
         cross.command = lambda: obj.settext(self)
 
+    def automakemenu(self,menu):
+        obj = MENU(self,0,0,self.screenw,self.screenh,menu,ID='auto_generate_menu:'+menu)
+        return obj
 
             
     
@@ -1596,7 +1613,7 @@ class GUI_ITEM:
         if x!='':
             self.x = x
             if startset: self.startx = (self.x*self.dirscale[0]+self.objanchor[0]*self.scale-self.anchor[0])/self.scale
-        if y!='':
+        if y!='':self.automenus = []
             self.y = y
             if startset: self.starty = (self.y*self.dirscale[1]+self.objanchor[1]*self.scale-self.anchor[1])/self.scale
     def binditem(self,item):
@@ -1607,10 +1624,10 @@ class GUI_ITEM:
         item.onitem = True
         item.master = self
         item.menu = self.menu
-        item.scalesize = self.scalesize
-        item.scalex = self.scalesize
-        item.scaley = self.scalesize
-        item.menuexceptions = self.menuexceptions
+##        item.scalesize = self.scalesize
+##        item.scalex = self.scalesize
+##        item.scaley = self.scalesize
+##        item.menuexceptions = self.menuexceptions
         self.bounditems.sort(key=lambda x: x.layer,reverse=False)
     def autoscale(self,_):
         pass
@@ -2547,7 +2564,20 @@ class WINDOWEDMENU(GUI_ITEM):
             if self.backingdraw:
                 draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.border,border_radius=int(self.roundedcorners*self.scale))
 
-
+class MENU(GUI_ITEM):
+    def reset(self,ui):
+        pass
+    def refresh(self,ui):
+        self.refreshscale(ui)
+        self.refreshcords(ui)
+    def child_refreshcords(self,ui):
+        return
+        for a in self.bounditems:
+            a.resetcords(ui)
+    def child_render(self,screen,ui):
+        pass
+    def draw(self,screen,ui):
+        pass
 
 class ANIMATION:
     def __init__(self,animateID,startpos,endpos,movetype,length,wait,relativemove,command,runcommandat,skiptoscreen,acceleration,permamove,ID):
