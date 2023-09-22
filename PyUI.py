@@ -1216,7 +1216,8 @@ class UI:
             length = self.defaultanimationspeed
         if menu:
             for a in self.items:
-                if ((a.menu == animateID) or (type(a) == WINDOWEDMENU and a.behindmenu == animateID)):
+                print(a.ID,a.menu)
+                if ((a.menu == animateID) and (type(a) == MENU)):
                     if not a.onitem:
                         self.makeanimation(a.ID,startpos,endpos,movetype,length,command,runcommandat,queued,False,relativemove,skiptoscreen,acceleration,permamove)
                         runcommandat = -2
@@ -1613,7 +1614,7 @@ class GUI_ITEM:
         if x!='':
             self.x = x
             if startset: self.startx = (self.x*self.dirscale[0]+self.objanchor[0]*self.scale-self.anchor[0])/self.scale
-        if y!='':self.automenus = []
+        if y!='':
             self.y = y
             if startset: self.starty = (self.y*self.dirscale[1]+self.objanchor[1]*self.scale-self.anchor[1])/self.scale
     def binditem(self,item):
@@ -2571,7 +2572,6 @@ class MENU(GUI_ITEM):
         self.refreshscale(ui)
         self.refreshcords(ui)
     def child_refreshcords(self,ui):
-        return
         for a in self.bounditems:
             a.resetcords(ui)
     def child_render(self,screen,ui):
@@ -2677,7 +2677,7 @@ class ANIMATION:
         if self.wait<1:
             if self.progress<self.length:
                 ui.IDs[self.animateID].smartcords(self.cordlist[self.progress][0],self.cordlist[self.progress][1],self.permamove)
-                if type(ui.IDs[self.animateID]) in [TABLE,TEXTBOX,TEXT,SCROLLER,SLIDER,WINDOWEDMENU]:
+                if type(ui.IDs[self.animateID]) in [TABLE,TEXTBOX,TEXT,SCROLLER,SLIDER,WINDOWEDMENU,MENU]:
                     ui.IDs[self.animateID].refreshcords(ui)
                 if type(ui.IDs[self.animateID]) == WINDOWEDMENU:
                     ui.IDs[self.animateID].darken = ui.IDs[self.animateID].truedarken*(self.progress/self.length)
@@ -2699,7 +2699,7 @@ class ANIMATION:
                 self.startpos = (ui.IDs[self.animateID].x,ui.IDs[self.animateID].y)
             self.endpos = (self.startpos[0]+self.endpos[0],self.startpos[1]+self.endpos[1])
         ui.IDs[self.animateID].smartcords(self.trueendpos[0],self.trueendpos[1],self.permamove)
-        if (type(ui.IDs[self.animateID]) in [TABLE,TEXTBOX,TEXT,SCROLLER,SLIDER,WINDOWEDMENU]) and self.permamove:
+        if (type(ui.IDs[self.animateID]) in [TABLE,TEXTBOX,TEXT,SCROLLER,SLIDER,WINDOWEDMENU,MENU]) and self.permamove:
             ui.IDs[self.animateID].resetcords(ui)
         if type(ui.IDs[self.animateID]) == WINDOWEDMENU:
             ui.IDs[self.animateID].darken = ui.IDs[self.animateID].truedarken
