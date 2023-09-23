@@ -377,11 +377,12 @@ class UI:
         windowedmenubackings = [a.behindmenu for a in self.windowedmenus]
         self.breakrenderloop = False
         self.animate()
+        framemenu = self.activemenu
         for i,a in enumerate(self.automenus):
-            if a.menu == self.activemenu:
+            if a.menu == framemenu:
                 a.render(screen,self)
         for a in self.windowedmenus:
-            if a.menu == self.activemenu:
+            if a.menu == framemenu:
                 if pygame.Rect(a.x*a.dirscale[0],a.y*a.dirscale[1],a.width*a.scale,a.height*a.scale).collidepoint(self.mpos):
                     self.drawmenu(a.behindmenu,screen)
                 else:
@@ -393,7 +394,7 @@ class UI:
                         self.rendermenu(a.behindmenu,screen)
                 a.render(screen,self)
 
-    def rendermenu(self,a,screen):
+    def rendermenu(self,menu,screen):
         if f'auto_generate_menu:{menu}' in self.IDs:
             self.IDs[f'auto_generate_menu:{menu}'].render(screen,self)
     def drawmenu(self,menu,screen):
@@ -1126,7 +1127,7 @@ class UI:
         return obj
 
 ##    def makewindowedmenu(self,x,y,width,height,menu,behindmenu,edgebound=(1,0,0,1),col='default',isolated=True,roundedcorners=0,darken=60,colourkey=(243,244,242),ID='default'):
-    def makewindowedmenu(self,x,y,width,height,menu,behindmenu='main',col=-1,
+    def makewindowedmenu(self,x,y,width,height,menu,behindmenu='main',col=-1,bounditems=[],
                  dragable=False,colorkey=(255,255,255),isolated=True,darken=60,ID='windowedmenu',layer=1,roundedcorners=0,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,glow=0,glowcol=-1,
                  scalesize=True,scalex=True,scaley=True,command=emptyfunction,runcommandat=0):
@@ -1136,7 +1137,7 @@ class UI:
         self.windowedmenunames = [a.menu for a in self.windowedmenus]
         self.windowedmenunames.append(menu)
         
-        obj = WINDOWEDMENU(self,x,y,width,height,menu,ID,layer,roundedcorners,
+        obj = WINDOWEDMENU(self,x,y,width,height,menu,ID,layer,roundedcorners,bounditems,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,
                  scalesize=scalesize,scalex=scalex,scaley=scaley,
                  command=emptyfunction,runcommandat=runcommandat,col=col,
@@ -1305,10 +1306,8 @@ class UI:
                     self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].behindmenu,'current',[dirr[0]*-1,dirr[1]*-1],'linear',1,menu=True,relativemove=True)
         elif menuto in self.windowedmenunames:
             if menufrom == self.windowedmenus[self.windowedmenunames.index(menuto)].behindmenu:
-                length+=1
                 self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menuto)].ID,[dirr[0]*-1,dirr[1]*-1],'current','sinin',length,command=self.finishmenumove,runcommandat=length,queued=True,relativemove=True,skiptoscreen=True)
                 self.movemenu(menuto,backchainadd=False)
-                self.animate()
             else:
                 self.makeanimation(menufrom,'current',dirr,'sinout',length,command=lambda: self.slidemenuin(self.windowedmenus[self.windowedmenunames.index(menuto)].behindmenu,length,dirr,menuto),runcommandat=length,queued=False,menu=True,relativemove=True)
                 self.makeanimation(menufrom,'current',[dirr[0]*-1,dirr[1]*-1],'linear',1,menu=True,relativemove=True)   
@@ -1397,11 +1396,6 @@ class GUI_ITEM:
         self.lowerborder = lowerborder
         self.leftborder = leftborder
         self.rightborder = rightborder
-
-        self.onitem = False
-        self.bounditems = bounditems[:]
-        self.master = emptyobject(0,0,ui.screenw,ui.screenh)
-        self.empty = False
             
         self.menu = menu
         self.behindmenu = behindmenu
@@ -1410,6 +1404,13 @@ class GUI_ITEM:
         else: self.killtime = time.time()+killtime
         self.layer = layer
         if ID == '': ID = text
+
+        self.onitem = False
+        self.bounditems = bounditems[:]
+        for a in self.bounditems:
+            self.binditem(a)
+        self.master = emptyobject(0,0,ui.screenw,ui.screenh)
+        self.empty = False
         ui.addid(ID,self)
 
         self.text = text
@@ -1531,10 +1532,7 @@ class GUI_ITEM:
         self.refreshcords(ui)
         self.resetcords(ui)
         self.refresh(ui)
-        for a in self.bounditems:
-            a.onitem = True
-            a.master = self
-            a.resetcords(ui)
+
 
     def refresh(self,ui):
         tscale = self.scale
@@ -1621,9 +1619,8 @@ class GUI_ITEM:
             ui.delete(self.ID)
         elif self.enabled:
             self.child_render(screen,ui)
-            for a in self.bounditems:
-                if a.menu == ui.activemenu:
-                    a.render(screen,ui)
+            for a in [i.ID for i in self.bounditems][:]:
+                ui.IDs[a].render(screen,ui)
     def smartcords(self,x='',y='',startset=True):
         if x!='':
             self.x = x
@@ -1667,7 +1664,6 @@ class GUI_ITEM:
                             if self.toggle: self.toggle = False
                             else: self.toggle = True
                         self.command()
-##                        print(self.ID)
             else:
                 self.hovering = True
         if ui.mprs[self.clicktype] and self.holding:
