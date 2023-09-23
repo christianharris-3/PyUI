@@ -1266,8 +1266,11 @@ class UI:
             self.queuedmenumove[1] = ['move',moveto,slide,length]
     def menuback(self,slide='none',length='default'):
         if len(self.backchain)>0:
-            if slide=='none' and self.backchain[-1][1] != 'none':
-                slide = self.backchain[-1][1]+' flip'
+            if slide =='none' and self.backchain[-1][1] != 'none':
+                if not(self.activemenu in self.windowedmenunames and self.backchain[-1][0] in self.windowedmenunames):
+                    slide = self.backchain[-1][1]+' flip'
+                else:
+                    slide = self.backchain[-1][1]
             length = self.backchain[-1][2]
         if length == 'default':
             length = self.defaultanimationspeed
@@ -1299,7 +1302,7 @@ class UI:
                 self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].ID,'current',[dirr[0]*-1,dirr[1]*-1],'linear',1,command=self.finishmenumove,runcommandat=1,queued=True,relativemove=True)
             else:
                 if menuto in self.windowedmenunames:
-                    self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].ID,'current',dirr,'sinout',length,command=lambda: self.slidemenuin(self.windowedmenus[self.windowedmenunames.index(menuto)].ID,length,dirr,menuto,False),runcommandat=length,queued=False,relativemove=True)
+                    self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].ID,'current',dirr,'sinout',length,command=lambda: self.slidemenuin(self.windowedmenus[self.windowedmenunames.index(menuto)].ID,length,[dirr[0]*-1,dirr[1]*-1],menuto,False),runcommandat=length,queued=False,relativemove=True,skiptoscreen=True)
                     self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].ID,'current',[dirr[0]*-1,dirr[1]*-1],'linear',1,relativemove=True)
                 else:
                     self.makeanimation(self.windowedmenus[self.windowedmenunames.index(menufrom)].behindmenu,'current',dirr,'sinout',length,command=lambda: self.slidemenuin(menuto,length,dirr),runcommandat=length,queued=False,menu=True,relativemove=True)
@@ -2647,7 +2650,7 @@ class ANIMATION:
         self.cordlist = []
         for a in range(self.length):
             self.cordlist.append((self.startpos[0]+(self.endpos[0]-self.startpos[0])*(sum(self.speedlist[:a+1])),self.startpos[1]+(self.endpos[1]-self.startpos[1])*(sum(self.speedlist[:a+1]))))
-        if self.skip and not regenerating:
+        if (self.skip or type(ui.IDs[self.animateID]) == WINDOWEDMENU) and not regenerating:
             self.findonscreen(ui)
     def findonscreen(self,ui):
         scale = ui.IDs[self.animateID].scale
