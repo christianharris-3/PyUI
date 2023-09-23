@@ -1002,7 +1002,7 @@ class UI:
                 
                     
         
-    def makebutton(self,x,y,text,textsize=50,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,bounditems=[],menuexceptions=[],killtime=-1,width=-1,height=-1,
+    def makebutton(self,x: int,y: int,text: str,textsize=50,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,bounditems=[],menuexceptions=[],killtime=-1,width=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',font='default',bold=False,antialiasing=True,pregenerated=True,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=2,clicktype=0,textoffsetx=0,textoffsety=0,maxwidth=-1,
@@ -1096,7 +1096,7 @@ class UI:
     def makescroller(self,x,y,height,command=emptyfunction,width=15,minp=0,maxp=100,pageheight=15,menu='main',ID='scroller',layer=1,roundedcorners=0,bounditems=[],menuexceptions=[],killtime=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
-                 runcommandat=1,col=-1,backingcol=-1,clicktype=0,clickablerect=-1,
+                 runcommandat=1,col=-1,backingcol=-1,clicktype=0,clickablerect=-1,scrollbind=[],
                  dragable=True,backingdraw=True,borderdraw=True,scrollercol=-1,scrollerwidth=-1,increment=0,startp=0):
 
         if maxp == -1:
@@ -1105,7 +1105,7 @@ class UI:
                  anchor,objanchor,center,centery,enabled=enabled,
                  border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,glow=glow,glowcol=glowcol,
                  command=command,runcommandat=runcommandat,col=col,backingcol=backingcol,clicktype=clicktype,
-                 dragable=dragable,backingdraw=backingdraw,borderdraw=borderdraw,clickablerect=clickablerect,
+                 dragable=dragable,backingdraw=backingdraw,borderdraw=borderdraw,clickablerect=clickablerect,bindtoggle=scrollbind,
                  increment=increment,minp=minp,maxp=maxp,startp=startp,pageheight=pageheight)
         return obj
 
@@ -1361,7 +1361,7 @@ class GUI_ITEM:
                  dragable=False,colorkey=-1,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,clickableborder=0,
                  lines=1,linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=True,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,
                  data='empty',titles=[],boxwidth=-1,boxheight=-1,linesize=2,
-                 backingdraw=True,borderdraw=True,animationspeed=5,scrollercol=-1,scrollerwidth=-1,pageheight=15,
+                 backingdraw=True,borderdraw=True,animationspeed=5,scrollercol=-1,scrollerwidth=-1,pageheight=15,scrollcords=(0,0),
                  slidercol=-1,sliderbordercol=-1,slidersize=-1,increment=0,sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',containedslider=False,movetoclick=False,
                  behindmenu='main',isolated=True,darken=60):
         self.enabled = enabled
@@ -1376,6 +1376,7 @@ class GUI_ITEM:
         self.startobjanchor = list(objanchor)
         if self.center and self.startobjanchor[0] == 0: self.startobjanchor[0]='w/2'
         if self.centery and self.startobjanchor[1] == 0: self.startobjanchor[1]='h/2'
+        self.scrollcords = scrollcords
 
         self.width = width
         self.height = height
@@ -1519,6 +1520,7 @@ class GUI_ITEM:
         self.direction = direction
         self.containedslider = containedslider
         self.movetoclick = movetoclick
+        self.scrollbind = bindtoggle
 
         self.isolated = isolated
         self.darken = darken
@@ -1597,8 +1599,8 @@ class GUI_ITEM:
         if type(self.objanchor[1]) == str:
             exec('returnedexecvalue='+self.objanchor[1].replace('h',str(self.height)),globals())
             self.objanchor[1] = returnedexecvalue
-        self.x = int(self.master.x*self.master.dirscale[0]+self.anchor[0]+self.startx*self.scale-self.objanchor[0]*self.scale)/self.dirscale[0]
-        self.y = int(self.master.y*self.master.dirscale[1]+self.anchor[1]+self.starty*self.scale-self.objanchor[1]*self.scale)/self.dirscale[1]
+        self.x = int(self.master.x*self.master.dirscale[0]+self.anchor[0]+self.startx*self.scale-self.objanchor[0]*self.scale)/self.dirscale[0]-self.scrollcords[0]
+        self.y = int(self.master.y*self.master.dirscale[1]+self.anchor[1]+self.starty*self.scale-self.objanchor[1]*self.scale)/self.dirscale[1]-self.scrollcords[1]
         self.refreshcords(ui)
         for a in self.bounditems:
             a.resetcords(ui)
@@ -2429,9 +2431,9 @@ class SCROLLER(GUI_ITEM):
             self.getclickedon(ui,pygame.Rect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale),smartdrag=False)
             if self.holding:
                 self.scroll = (self.y-temp[1])/self.scale/(self.scheight/(self.maxp-self.minp))
-                
                 self.limitpos(ui)
             self.x,self.y = temp
+            self.scrollobjects(ui)
             self.draw(screen,ui)
             
     def limitpos(self,ui):
@@ -2443,6 +2445,11 @@ class SCROLLER(GUI_ITEM):
     def refresh(self,ui):
         self.scheight = self.height-self.border*2
         self.refreshcords(ui)
+    def scrollobjects(self,ui):
+        for a in self.scrollbind:
+            if ui.IDs[a].scrollcords != (0,self.scroll):
+                ui.IDs[a].scrollcords = (0,self.scroll)
+                ui.IDs[a].resetcords(ui)
     def child_refreshcords(self,ui):
         if self.maxp-self.minp == 0: self.maxp = self.minp+0.1
         self.scrollerheight = (self.pageheight/(self.maxp-self.minp))*self.scheight
