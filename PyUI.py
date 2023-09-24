@@ -544,8 +544,8 @@ class UI:
         self.blockf11 = 10
         
     def write(self,screen,x,y,text,size,col='default',center=True,font='default',bold=False,antialiasing=True,scale=False,centery=-1):
-        if font == 'default': font=self.defaultfont
-        if col == 'default': col = self.defaulttextcol
+        if font == 'default': font = Style.font
+        if col == 'default': col = Style.textcol
         if centery == -1: centery = center
         if scale:
             dirscale = self.dirscale
@@ -1135,7 +1135,7 @@ class UI:
                  dragable=False,colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,
                  boxwidth=-1,boxheight=-1,linesize=2,textcenter=True,guesswidth=100,guessheight=100,
                  backingdraw=True,borderdraw=True):
-        print(Style.backingcol,backingcol)
+
         if col == -1: col = Style.col
         if backingcol == -1: backingcol = autoshiftcol(Style.backingcol,col,-20)
         
