@@ -313,8 +313,8 @@ class Style:
     scaley=-1
     glow=0
     glowcol=-1
-    col=-1
-    textcol=-1
+    col=(150,150,150)
+    textcol=(255,255,255)
     backingcol=-1
     hovercol=-1
     clickdownsize=4
@@ -350,7 +350,7 @@ class Style:
     movetoclick=False
     isolated=True
     darken=60
-    universaldefaults = {'roundedcorners': 0, 'anchor': (0,0), 'objanchor': (0,0), 'center': False, 'centery': -1, 'textsize': 50, 'font': True, 'bold': True,
+    universaldefaults = {'roundedcorners': 0, 'anchor': (0,0), 'objanchor': (0,0), 'center': False, 'centery': -1, 'textsize': 50, 'font': 'calibre', 'bold': True,
                            'antialiasing': True, 'border': 3, 'upperborder': -1, 'lowerborder': -1, 'rightborder': -1, 'leftborder': -1, 'scalesize': True,
                            'scalex': -1, 'scaley': -1, 'glow': 0, 'glowcol': -1, 'col': -1, 'textcol': -1, 'backingcol': -1, 'hovercol': -1, 'clickdownsize': 4,
                            'clicktype': 0, 'textoffsetx': 0, 'textoffsety': 0, 'maxwidth': -1, 'colorkey': -1, 'togglecol': -1, 'togglehovercol': -1, 'spacing': -1,
@@ -358,6 +358,7 @@ class Style:
                            'selectshrinksize': 0, 'cursorsize': -1, 'textcenter': True, 'linesize': 2, 'backingdraw': True, 'borderdraw': True, 'animationspeed': 5,
                            'scrollercol': -1, 'scrollerwidth': -1, 'slidercol': -1, 'sliderbordercol': -1, 'slidersize': -1, 'increment': 0,
                            'sliderroundedcorners': -1, 'containedslider': True, 'movetoclick': True, 'isolated': True, 'darken': 60}
+    wallpapercol = (255,255,255)
 
 
     
@@ -400,11 +401,11 @@ class UI:
         self.clipboard = pygame.scrap.get('str')
 
         
-        self.defaultfont = 'calibre'
-        self.defaultcol = (150,150,150)
-        self.defaulttextcol = (0,0,0)
-        self.defaultbackingcol = (255,255,255)
-        self.defaultanimationspeed = 30
+##        self.defaultfont = 'calibre'
+##        self.defaultcol = (150,150,150)
+##        self.defaulttextcol = (0,0,0)
+##        self.defaultbackingcol = (255,255,255)
+##        self.defaultanimationspeed = 30
         self.scrolllimit = 100
         self.escapeback = True
         self.backquits = True
@@ -431,8 +432,10 @@ class UI:
     def setstyle(self,**args):
         for a in args:
             exec(f'Style.{a} = {args[a]}')
-    def loadstyle_cool(self):
-        self.setstyle(roundedcorners=3,col=(200,50,100))
+    def styleload_red(self):
+        self.setstyle(roundedcorners=5,col=(180,50,100),spacing=3,clickdownsize=2,textsize=40,horizontalspacing=8,wallpapercol=(100,44,80))
+    def styleload_soundium(self):
+        self.setstyle(roundedcorners=5,col=(180,50,100),spacing=3,clickdownsize=2,textsize=40,horizontalspacing=8,wallpapercol=(100,44,80))
         
     def scaleset(self,scale):
         self.scale = scale
@@ -544,7 +547,7 @@ class UI:
         self.blockf11 = 10
         
     def write(self,screen,x,y,text,size,col='default',center=True,font='default',bold=False,antialiasing=True,scale=False,centery=-1):
-        if font=='default': font=self.defaultfont
+        if font == 'default': font=self.defaultfont
         if col == 'default': col = self.defaulttextcol
         if centery == -1: centery = center
         if scale:
@@ -566,8 +569,8 @@ class UI:
         screen.blit(textsurf, textrect)
 
     def rendertext(self,text,size,col='default',font='default',bold=False,antialiasing=True,backingcol=(150,150,150),imgin=False,img=''):
-        if font=='default': font = self.defaultfont
-        if col == 'default': col = self.defaulttextcol
+        if font=='default': font = Style.font
+        if col == 'default': col = Style.textcol
         if imgin:
             if text == '' and img!='':
                 text = '{'+img+'}'
@@ -602,7 +605,7 @@ class UI:
         return textsurf
 
     def rendershape(self,name,size,col='default',failmessage=True,backcol=(255,255,255)):
-        if col == 'default': col = self.defaulttextcol
+        if col == 'default': col = Style.col
         if col == backcol: backcol = (0,0,0)
         name = name.replace("'",'"')
         if '(' in name and ')' in name:
@@ -797,7 +800,7 @@ class UI:
             x+=seperation
         return surf
     def rendershapetext(self,name,size,col,backcol):
-        vals = self.getshapedata(name,['font','bold','italic','strikethrough','underlined','antialias'],[self.defaultfont,False,False,False,False,True])
+        vals = self.getshapedata(name,['font','bold','italic','strikethrough','underlined','antialias'],[Style.font,False,False,False,False,True])
         font = vals[0]
         bold = vals[1]
         italic = vals[2]
@@ -898,8 +901,8 @@ class UI:
         return vals
         
     def rendertextlined(self,text,size,col='default',backingcol=(150,150,150),font='default',width=-1,bold=False,antialiasing=True,center=False,spacing=0,imgin=False,img='',scale='default',linelimit=10000,getcords=False,cutstartspaces=False):
-        if font=='default': font=self.defaultfont
-        if col == 'default': col = self.defaulttextcol
+        if font=='default': font = Style.font
+        if col == 'default': col = Style.textcol
         if width==-1 and center: center = False
         if scale == 'default': scale = self.scale
         size*=scale
@@ -1076,7 +1079,7 @@ class UI:
                         
         
     def makebutton(self,x,y,text,textsize=Style.textsize,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=Style.roundedcorners,bounditems=[],menuexceptions=[],killtime=-1,width=-1,height=-1,
-                 anchor=Style.anchor,objanchor=(0,0),center=False,centery=-1,img='none',font='default',bold=False,antialiasing=True,pregenerated=True,enabled=True,
+                 anchor=Style.anchor,objanchor=(0,0),center=False,centery=-1,img='none',font='calibre',bold=False,antialiasing=True,pregenerated=True,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=2,clicktype=0,textoffsetx=0,textoffsety=0,maxwidth=-1,
                  dragable=False,colorkey=-1,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,clickableborder=0,
@@ -1091,7 +1094,7 @@ class UI:
                      animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit)
         return obj
     def makecheckbox(self,x,y,textsize=80,command=emptyfunction,menu='main',ID='checkbox',text='',layer=1,roundedcorners=0,bounditems=[],menuexceptions=[],killtime=-1,width=-1,height=-1,
-                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='tick',font='default',bold=False,antialiasing=True,pregenerated=True,enabled=True,
+                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='tick',font='calibre',bold=False,antialiasing=True,pregenerated=True,enabled=True,
                  border=4,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,maxwidth=-1,
                  dragable=False,colorkey=-1,toggle=True,toggleable=True,toggletext='',toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-15,verticalspacing=-15,horizontalspacing=-15,clickablerect=-1,clickableborder=10,
@@ -1107,14 +1110,14 @@ class UI:
                  animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit)
         return obj
     def maketextbox(self,x,y,text='',width=200,lines=1,menu='main',command=emptyfunction,ID='textbox',layer=1,roundedcorners=0,bounditems=[],menuexceptions=[],killtime=-1,height=-1,
-                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',textsize=50,font='default',bold=False,antialiasing=True,pregenerated=True,enabled=True,
+                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',textsize=50,font='calibre',bold=False,antialiasing=True,pregenerated=True,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,
                  colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,
                  linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=False,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,
                  backingdraw=True,borderdraw=True):
         
-        if col == -1: col = self.defaultcol
+        if col == -1: col = Style.col
         if backingcol == -1: backingcol = shiftcolor(col,-20)   
         obj = TEXTBOX(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,menuexceptions=menuexceptions,killtime=killtime,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,text=text,textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
@@ -1129,14 +1132,14 @@ class UI:
 ##    def maketable(self,x,y,data='empty',titles=[],menu='main',menuexceptions=[],edgebound=(1,0,0,1),rows=5,colomns=3,boxwidth=-1,boxheight=-1,spacing=10,col='default',boxtextcol='default',boxtextsize=40,boxcenter=True,font='default',bold=False,titlefont=-1,titlebold=-1,titleboxcol=-1,titletextcol='default',titletextsize=-1,titlecenter=True,linesize=2,linecol=-1,roundedcorners=0,layer=1,ID='default',returnobj=False):
 
     def maketable(self,x,y,data='empty',titles=[],menu='main',ID='table',layer=1,roundedcorners=0,bounditems=[],menuexceptions=[],killtime=-1,width=-1,height=-1,
-                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,text='',textsize=50,img='none',font='default',bold=False,antialiasing=True,pregenerated=True,enabled=True,
+                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,text='',textsize=50,img='none',font='calibre',bold=False,antialiasing=True,pregenerated=True,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
                  command=emptyfunction,runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,
                  dragable=False,colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,
                  boxwidth=-1,boxheight=-1,linesize=2,textcenter=True,guesswidth=100,guessheight=100,
                  backingdraw=True,borderdraw=True):
 
-        if col == -1: col = self.defaultcol
+        if col == -1: col = Style.col
         if backingcol == -1: backingcol = shiftcolor(col,-20)
         
         #obj = TABLE(x,y,rows,colomns,data,titles,boxwidth,boxheight,spacing,menu,menuexceptions,boxcol,boxtextcol,boxtextsize,boxcenter,font,bold,titlefont,titlebold,titleboxcol,titletextcol,titletextsize,titlecenter,linesize,linecol,roundedcorners,layer,ID,self)
@@ -1151,7 +1154,7 @@ class UI:
             
 ##    def maketext(self,x,y,text,size,menu='main',menuexceptions=[],edgebound=(1,0,0,1),col='default',center=True,font='default',bold=False,maxwidth=-1,border=4,backingcol='default',backingdraw=0,backingwidth=-1,backingheight=-1,img='none',colorkey=(255,255,255),roundedcorners=0,layer=1,ID='default',antialiasing=True,pregenerated=True,returnobj=False):
     def maketext(self,x,y,text,textsize=50,menu='main',ID='text',layer=1,roundedcorners=0,bounditems=[],menuexceptions=[],killtime=-1,width=-1,height=-1,
-                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',font='default',bold=False,antialiasing=True,pregenerated=True,enabled=True,
+                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',font='calibre',bold=False,antialiasing=True,pregenerated=True,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
                  command=emptyfunction,runcommandat=0,col=-1,textcol=-1,clicktype=0,backingcol=-1,bordercol=-1,textoffsetx=0,textoffsety=0,
                  dragable=False,colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,maxwidth=-1,animationspeed=5,clickablerect=-1,
@@ -1207,7 +1210,7 @@ class UI:
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,glow=0,glowcol=-1,
                  scalesize=True,scalex=True,scaley=True,command=emptyfunction,runcommandat=0):
 
-        if col == -1: col = [max([0,a-35]) for a in self.defaultcol]
+        if col == -1: col = [max([0,a-35]) for a in Style.col]
 
         self.windowedmenunames = [a.menu for a in self.windowedmenus]
         self.windowedmenunames.append(menu)
@@ -1240,7 +1243,7 @@ class UI:
         return obj
         
     def makesearchbar(self,x,y,text='Search',width=400,lines=1,menu='main',command=emptyfunction,ID='textbox',layer=1,roundedcorners=0,bounditems=[],menuexceptions=[],killtime=-1,height=-1,
-                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',textsize=50,font='default',bold=False,antialiasing=True,pregenerated=True,enabled=True,
+                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',textsize=50,font='calibre',bold=False,antialiasing=True,pregenerated=True,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,
                  colorkey=-1,spacing=-1,verticalspacing=1,horizontalspacing=4,clickablerect=-1,
@@ -1252,7 +1255,7 @@ class UI:
         if height == -1:
             heightgetter = self.rendertext('Tg',textsize,(255,255,255),font,bold)
             height = upperborder+lowerborder+heightgetter.get_height()*lines
-        col = autoshiftcol(col,self.defaultcol)
+        col = autoshiftcol(col,Style.col)
 
         txt = self.maketext(int(border+horizontalspacing)/2,0,text,textsize,anchor=(0,'h/2'),objanchor=(0,'h/2'),img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,textcol=textcol,backingcol=autoshiftcol(backingcol,col,-20),animationspeed=5)
         
@@ -1294,7 +1297,7 @@ class UI:
             self.delete(a)
     def makeanimation(self,animateID,startpos,endpos,movetype='linear',length='default',command=emptyfunction,runcommandat=-1,queued=True,menu=False,relativemove=False,skiptoscreen=False,acceleration=1,permamove=False,ID='default'):
         if length == 'default':
-            length = self.defaultanimationspeed
+            length = Style.animationspeed
         if menu:
             for a in self.automenus:
                 if (a.menu == animateID):
@@ -1324,7 +1327,7 @@ class UI:
                 
     def movemenu(self,moveto,slide='none',length='default',backchainadd=True):
         if length == 'default':
-            length = self.defaultanimationspeed
+            length = Style.animationspeed
         if self.queuedmenumove[0]<0 or slide=='none':
             if (self.activemenu in self.windowedmenunames) and (moveto == self.activemenu) and (self.queuedmenumove[0]<0):
                 self.menuback(slide+' flip',length)
@@ -1348,7 +1351,7 @@ class UI:
                     slide = self.backchain[-1][1]
             length = self.backchain[-1][2]
         if length == 'default':
-            length = self.defaultanimationspeed
+            length = Style.animationspeed
         if self.queuedmenumove[0]<0 or slide=='none':
             if len(self.backchain)>0:
                 if slide=='none':
@@ -1534,8 +1537,8 @@ class GUI_ITEM:
         self.textcenter = args['textcenter']
         self.maxwidth = args['maxwidth']
 
-        self.col = autoshiftcol(args['col'],ui.defaultcol)
-        self.textcol = autoshiftcol(args['textcol'],ui.defaulttextcol)
+        self.col = autoshiftcol(args['col'],Style.col)
+        self.textcol = autoshiftcol(args['textcol'],Style.textcol)
         self.backingcol = autoshiftcol(args['backingcol'],self.col,20)
         self.bordercol = self.backingcol
         self.glowcol = autoshiftcol(args['glowcol'],self.col,-20)
