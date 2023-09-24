@@ -401,11 +401,6 @@ class UI:
         self.clipboard = pygame.scrap.get('str')
 
         
-##        self.defaultfont = 'calibre'
-##        self.defaultcol = (150,150,150)
-##        self.defaulttextcol = (0,0,0)
-##        self.defaultbackingcol = (255,255,255)
-##        self.defaultanimationspeed = 30
         self.scrolllimit = 100
         self.escapeback = True
         self.backquits = True
@@ -435,7 +430,9 @@ class UI:
     def styleload_red(self):
         self.setstyle(roundedcorners=5,col=(180,50,100),spacing=3,clickdownsize=2,textsize=40,horizontalspacing=8,wallpapercol=(100,44,80))
     def styleload_soundium(self):
-        self.setstyle(roundedcorners=5,col=(180,50,100),spacing=3,clickdownsize=2,textsize=40,horizontalspacing=8,wallpapercol=(100,44,80))
+        self.setstyle(col=(16,163,127),textcol=(255,255,255),wallpapercol=(62,63,75),textsize=24,roundedcorners=5,spacing=5,clickdownsize=2,scalesize=False)
+    def styleload_basic(self):
+        self.setstyle(textcol=(0,0,0),backingcol=(0,0,0),hovercol=(255,255,255),bordercol=(0,0,0),verticalspacing=3,textsize=30,col=(255,255,255),clickdownsize=1)
         
     def scaleset(self,scale):
         self.scale = scale
@@ -1140,7 +1137,7 @@ class UI:
                  backingdraw=True,borderdraw=True):
 
         if col == -1: col = Style.col
-        if backingcol == -1: backingcol = shiftcolor(col,-20)
+        if backingcol == -1: backingcol = autoshiftcol(Style.backingcol,col,20)
         
         #obj = TABLE(x,y,rows,colomns,data,titles,boxwidth,boxheight,spacing,menu,menuexceptions,boxcol,boxtextcol,boxtextsize,boxcenter,font,bold,titlefont,titlebold,titleboxcol,titletextcol,titletextsize,titlecenter,linesize,linecol,roundedcorners,layer,ID,self)
         obj = TABLE(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,menuexceptions=menuexceptions,killtime=killtime,
@@ -1463,6 +1460,8 @@ class GUI_ITEM:
         execs = []
         for property, value in vars(Style).items():
             if not ('__' in property or property in ['universaldefaults']):
+                if type(self) == TEXT and property == 'backingcol':
+                    value = Style.wallpapercol
                 if not (property in args):
                     args[property] = value
                 elif args[property] == Style.universaldefaults[property]:
