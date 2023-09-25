@@ -328,50 +328,50 @@ command=lambda: testfunction('function arguements')
 - **list[ID]: bindtoggle** = A list of object IDs that are toggled off when it is toggled on, the object can have its own ID in the list and be unaffected.
 
 ### Textbox specific
-- **lines** = 
-- **linelimit** = 
-- **selectcol** = 
-- **selectbordersize** = 
-- **selectshrinksize** = 
-- **cursorsize** = 
-- **textcenter** = 
-- **chrlimit** = 
-- **numsonly** = 
-- **enterreturns** = 
-- **commandifenter** = 
-- **commandifkey** = 
+- **int: lines** = The number of lines of text that can be stored in the textbox, it auto sets the height of the textbox based on textsize.
+- **int: linelimit** = The number of lines that can be used and scrolled to (doesnt work very well).
+- **rgb tuple: selectcol** = The colour of the border that appears when a textbox is selected.
+- **int: selectbordersize** = The size of the border in pixels, set to 0 to remove border.
+- **int: selectshrinksize** = The amount the border moves in by when clicking, (inner image is blitted after so recomended this isnt used)
+- **int: cursorsize** = Size in pixels of the cursor, defaults to textsize.
+- **bool: textcenter** = Dictates if the text is centered on each line.
+- **int: chrlimit** = The charcter limit in the text.
+- **bool: numsonly** = Blocks all characters except numbers.
+- **bool: enterreturns** = Controls if enter starts a new line (quite broken dont use).
+- **bool: commandifenter** = Controls if the enter key runs the command.
+- **bool: commandifkey** = Controls if any key input runs the command.
 
 ### Table specific
-- **data** = 
-- **titles** = 
-- **boxwidth** = 
-- **boxheight** = 
-- **linesize** = 
+- **list: data** = A 2D list containing all of the info the body of the table, each item can be: str, int, Button, textbox, text and Pygame.surface. The format is each inner list is a row in the table.
+- **list: titles** = A 1D list that can be left empty for no titles, works the exact same as a single row in data
+- **int,list: boxwidth** = Sets the widths of each column in pixels, a value of -1 will auto fit to the width of the items i that column. Giving an int will use that int value for every column of the table, default is -1 meaning every column is auto fitted. 
+- **int,list: boxheight** = Exact same function and use as boxwidth however for rows not columns.
+- **int: linesize** = The pixel size of the width of each line seperating objects in the table.
+- **int: guesswidth** = When using threading to refresh a table the table, there is no value for boxwidth/height if it is -1, so it assumes this value to be the width of the table before resetting back to proper values when the refresh is finished.
+- **int: guessheight** = Same as guesswidth but for height of boxes.
 
 ### Scroller/Slider specific
-- **minp** = 
-- **maxp** = 
-- **startp** = 
+- **int: minp** = The lower bound for the objects scroll/slider value
+- **int: maxp** = The lower upper for the objects scroll/slider value
+- **int: startp** = The point inbetween minp and maxp that the object starts its value at.
 #### Scroller
-- **scrollercol** = 
-- **scrollerwidth** = 
-- **pageheight** =
-- **scrollbind** = a list of object IDs that are scrolled when the scroller is moved
+- **scrollercol** = Remove this it does nothing
+- **scrollerwidth** = Remove this it does nothing
+- **int: pageheight** = The height of the page that can be seen, dictates the height of the clickable part of the scroller. if the page height it larger than maxp-minp the scroller will not display.
+- **list[str]: scrollbind** = A list of object IDs that are scrolled when the scroller is moved
 #### Slider
-- **slidercol** = 
-- **sliderbordercol** = 
-- **slidersize** = 
-- **increment** = 
-- **sliderroundedcorners** = 
-- **button** = 
-- **direction** = 
-- **containedslider** = 
-- **movetoclick** = 
+- **int: slidersize** = The width and height of the button on the slider.
+- **int,float: increment** = The value by which the the sliders value locks to multiples of, ie setting it to 1 will mean the .slider value will only be integer values.
+- **sliderroundedcorners** = Remove this it does nothing
+- **BUTTON: button** = The button object that is then locked onto the slider, allows for the same customizability a button has but on a slider.
+- **str: direction** = either 'vertical' or 'horizontal', setting if the button moves up and down or left and right.
+- **bool: containedslider** = Will auto set the button to be contained inside the slider.
+- **bool: movetoclick** = Sets if clicking anywhere in the slider moves the slider to that point on it.
 
 ### Windowed menu specific
-- **behindmenu** = 
-- **isolated** = 
-- **darken** = 
+- **str: behindmenu** = The name of the menu that the windowedmenu appears on top of.
+- **bool: isolated** = controls if objects on the behindmenu can be used while the menu is active. if True clicking anywhere other than the windowed menu will shut it, if False clicking on only the button that brought up the menu will shut it.
+- **int: darken** = The alpha value from 0 to 255 that darkens the behind menu when the windowedmenu is open.
 
 
 
