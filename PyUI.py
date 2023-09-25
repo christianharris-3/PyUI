@@ -443,6 +443,16 @@ class UI:
         for a in self.automenus+self.windowedmenus:
             a.refresh(self)
             a.resetcords(self)
+    def refreshall(self):
+        for a in self.automenus+self.windowedmenus:
+            a.enabled = False
+            self.refreshbound(a)
+    def refreshbound(self,obj):
+        obj.refresh(self)
+        obj.enabled = True
+        for b in obj.bounditems:
+            b.enabled = False
+            self.refreshbound(b)
         
     def getscreen(self):
         sc = pygame.display.get_surface()
@@ -498,7 +508,8 @@ class UI:
                     if event.key == pygame.K_ESCAPE and self.escapeback:
                         self.menuback()
                     if event.key == pygame.K_F5:
-                        self.scaleset(self.scale)
+                        thread = threading.Thread(target=self.refreshall)
+                        thread.start()
                     if event.key == pygame.K_F11 and self.fullscreenable and self.blockf11<0:
                         self.togglefullscreen(pygame.display.get_surface())
                     if self.selectedtextbox!=-1:
