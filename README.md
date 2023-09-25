@@ -32,8 +32,8 @@ import pygame
 pygame.init()
 
 #use depending on installed through github or pip
-import PyUI
-from UIpygame import PyUI
+import PyUI as pyui
+from UIpygame import PyUI as pyui
 
 ## setting up pygame and PyUI
 screenw = 1200
@@ -43,7 +43,7 @@ screenh = 900
 screen = pygame.display.set_mode((screenw, screenh),pygame.RESIZABLE)
 pygame.scrap.init()
 # ui object is how most of the PyUI module is operated through
-ui = PyUI.UI()
+ui = pyui.UI()
 # when done is set to True the gameloop ends
 done = False
 # clock keeps fps consistant at 60
@@ -57,8 +57,8 @@ while not done:
     for event in pygameeventget:
         if event.type == pygame.QUIT:
             done = True
-    # fills screen with white
-    screen.fill((255,255,255))
+    # fills screen with the wallpaper col, defaults to white
+    screen.fill(pyui.Style.wallpapercol)
 
     # draws and processes all gui objects
     ui.rendergui(screen)
@@ -80,9 +80,9 @@ Example code:
 ui = PyUI.UI()
 # load a default style
 # the default style is a simple black and white style
-ui.styleload_default()
+ui.styleload_lightblue()
 # sets some specific values
-ui.setstyle(col=(255,0,0),roundedcorners=4)
+ui.setstyle(col=(255,0,0),roundedcorners=4,wallpapercol=(255,0,0))
 ```
 
 ## Menu System
