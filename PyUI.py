@@ -314,7 +314,7 @@ class Style:
     glow=0
     glowcol=-1
     col=(150,150,150)
-    textcol=(255,255,255)
+    textcol=(0,0,0)
     backingcol=-1
     hovercol=-1
     clickdownsize=4
@@ -1917,7 +1917,7 @@ class TEXTBOX(GUI_ITEM):
     def autoscale(self,ui):
         heightgetter = ui.rendertext('Tg',self.textsize,self.textcol,self.font,self.bold)
         if self.height == -1:
-            self.height = self.upperborder+self.lowerborder+heightgetter.get_height()*self.lines
+            self.height = self.upperborder+self.lowerborder+heightgetter.get_height()*self.lines+self.verticalspacing*2
         if self.cursorsize == -1:
             self.cursorsize = ui.gettextsize('Tg',self.font,self.textsize,self.bold)[1]-2
     def select(self,ui):
@@ -2029,7 +2029,7 @@ class TEXTBOX(GUI_ITEM):
         self.refreshcursor()
         self.refreshscroller(ui)
         
-        self.scroller.maxp = self.textimage.get_height()/self.scale
+        self.scroller.maxp = (self.textimage.get_height())/self.scale+self.verticalspacing*2
         self.scroller.menu = self.menu
         self.scroller.scalesize = self.scalesize
         self.scroller.scalex = self.scalesize
@@ -2173,7 +2173,7 @@ class TEXTBOX(GUI_ITEM):
             if self.borderdraw:
                 draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
             if self.selected:
-                draw.rect(screen,self.selectcol,self.selectrect,int(self.selectbordersize*self.scale),border_radius=int((self.roundedcorners+self.selectbordersize)*self.scale))
+                draw.rect(screen,self.selectcol,pygame.Rect(self.selectrect.x+self.holding*self.selectshrinksize*self.scale,self.selectrect.y+self.holding*self.selectshrinksize*self.scale,self.selectrect.width-self.holding*self.selectshrinksize*self.scale*2,self.selectrect.height-self.holding*self.selectshrinksize*self.scale*2),int(self.selectbordersize*self.scale),border_radius=int((self.roundedcorners+self.selectbordersize)*self.scale))
             surf = pygame.Surface(((self.width-self.leftborder-self.rightborder-self.scrolleron*self.scroller.width)*self.scale,(self.height-self.upperborder-self.lowerborder)*self.scale))
             surf.fill(self.backingcol)
             draw.rect(surf,self.col,(0,0,surf.get_width(),surf.get_height()),border_radius=int(self.roundedcorners*self.scale))
