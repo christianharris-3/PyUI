@@ -56,9 +56,74 @@ def genfade(colourlist,sizeperfade):
         for b in range(sizeperfade):
             cols.append(colav(colourlist[a],colourlist[a+1],b/sizeperfade))
     return cols
-            
-def shiftcolor(col,shift):
+
+def RGBtoHSV(rgb):
+    rp = rgb[0]/255
+    gp = rgb[1]/255
+    bp = rgb[2]/255
+    cmax = max(rp,gp,bp)
+    cmin = min(rp,gp,bp)
+    delta = cmax-cmin
+    if cmax-cmin == 0:
+        H = 0
+    else:
+        if cmax == rp: H = (60*(0+(gp-bp)/(cmax-cmin)))%360
+        elif cmax == gp: H = (60*(2+(bp-rp)/(cmax-cmin)))%360
+        elif cmax == bp: H = (60*(4+(rp-gp)/(cmax-cmin)))%360
+    
+    if cmax == 0: S = 0
+    else: S = delta/cmax
+    V = cmax    
+    return (H,S,V)
+
+##def HSVtoRGB(hsv):
+##    H,S,V = hsv[0],hsv[1],hsv[2]
+##
+##    cmax = V
+##    cmin = cmax-S*cmax
+##    delta = cmax-cmin
+##    
+##    if H<120:
+##        r = V
+##        b = cmin
+##        g = delta*H/60+b
+##        if H>60:
+##            t = b
+##            b = g
+##            g = t
+##    elif H<240:
+##        g = V
+##        r = cmin
+##        b = delta*(H/60-2)+r
+##        if H>180:
+##            t = r
+##            r = b
+##            b = t
+##    else:
+##        b = V
+##        g = cmin
+##        r = delta*(H/60-4)+g
+##        if H>300:
+##            t = g
+##            g = r
+##            r = t
+##        
+##    return (round(r*255),round(g*255),round(b*255))
+    
+def shiftcolor_hsva(col,shift):
+    col = pygame.color.Color(col)
+    col.hsva = (col.hsva[0],col.hsva[1],max([min([100,col.hsva[2]+shift/2.55]),0]),col.hsva[3])
+    return col
+
+def shiftcolor_rgb(col,shift):
     return [max([min([255,a+shift]),0]) for a in col]
+
+def shiftcolor(col,shift):
+    if Style.hsvashift:
+        return shiftcolor_hsva(col,shift)
+    else:
+        return shiftcolor_rgb(col,shift)
+
 def autoshiftcol(col,default=(150,150,150),editamount=0):
     if type(col) == int:
         if col != -1:
@@ -338,7 +403,7 @@ class Style:
     linesize=2
     backingdraw=True
     borderdraw=True
-    animationspeed=5
+    animationspeed=30
     scrollercol=-1
     scrollerwidth=-1
     slidercol=-1
@@ -359,6 +424,7 @@ class Style:
                            'scrollercol': -1, 'scrollerwidth': -1, 'slidercol': -1, 'sliderbordercol': -1, 'slidersize': -1, 'increment': 0,
                            'sliderroundedcorners': -1, 'containedslider': True, 'movetoclick': True, 'isolated': True, 'darken': 60}
     wallpapercol = (255,255,255)
+    hsvashift = False
 
 
     
@@ -424,15 +490,21 @@ class UI:
         hllDll = ctypes.WinDLL("User32.dll")
         self.capslock = bool(hllDll.GetKeyState(0x14))
 
-    def setstyle(self,**args):
+    def styleset(self,**args):
         for a in args:
-            exec(f'Style.{a} = {args[a]}')
-    def styleload_red(self):
-        self.setstyle(roundedcorners=5,col=(180,50,100),spacing=3,clickdownsize=2,textsize=40,horizontalspacing=8,wallpapercol=(100,44,80))
-    def styleload_soundium(self):
-        self.setstyle(col=(16,163,127),textcol=(255,255,255),wallpapercol=(62,63,75),textsize=24,roundedcorners=5,spacing=5,clickdownsize=2,scalesize=False)
-    def styleload_default(self):
-        self.setstyle(textcol=(0,0,0),backingcol=(0,0,0),hovercol=(255,255,255),bordercol=(0,0,0),verticalspacing=3,textsize=30,col=(255,255,255),clickdownsize=1)
+            try:
+                exec(f'Style.{a} = {args[a]}')
+            except:
+                exec(f'Style.{a} = "{args[a]}"')
+    def styleload_soundium(self): self.styleset(col=(16,163,127),textcol=(255,255,255),wallpapercol=(62,63,75),textsize=24,roundedcorners=5,spacing=5,clickdownsize=2,scalesize=False)
+    def styleload_default(self): self.styleset(textsize=40,verticalspacing=1,clickdownsize=2,roundedcorners=6)
+    def styleload_black(self): self.styleset(textcol=(0,0,0),backingcol=(0,0,0),hovercol=(255,255,255),bordercol=(0,0,0),verticalspacing=3,textsize=30,col=(255,255,255),clickdownsize=1)
+    def styleload_blue(self): self.styleset(col=(35,0,156),textcol=(230,246,219),wallpapercol=(0,39,254),textsize=30,verticalspacing=2,horizontalspacing=5,clickdownsize=2,roundedcorners=4)
+    def styleload_green(self): self.styleset(col=(87,112,86),textcol=(240,239,174),wallpapercol=(59,80,61),textsize=30,verticalspacing=2,horizontalspacing=5,clickdownsize=2,roundedcorners=4)
+    def styleload_lightblue(self): self.styleset(col=(82,121,214),textcol=(56,1,103),wallpapercol=(228,242,253),textsize=30,verticalspacing=2,horizontalspacing=5,clickdownsize=2,roundedcorners=4)
+    def styleload_teal(self): self.styleset(col=(109,123,152),textcol=(176,243,174),wallpapercol=(69,65,88),textsize=30,verticalspacing=2,horizontalspacing=5,clickdownsize=2,roundedcorners=4)
+    def styleload_brown(self): self.styleset(col=(39,75,91),textcol=(235,217,115),wallpapercol=(40,41,35),textsize=30,verticalspacing=2,horizontalspacing=5,clickdownsize=2,roundedcorners=4)
+    def styleload_red(self): self.styleset(col=(152,18,20),textcol=(234,230,133),wallpapercol=(171,19,18),spacing=3,clickdownsize=2,textsize=40,horizontalspacing=8,roundedcorners=5)
         
     def scaleset(self,scale):
         self.scale = scale
@@ -1126,7 +1198,7 @@ class UI:
                  backingdraw=True,borderdraw=True):
         
         if col == -1: col = Style.col
-        if backingcol == -1: backingcol = shiftcolor(col,-20)   
+        if backingcol == -1: backingcol = autoshiftcol(Style.backingcol,col,-20)
         obj = TEXTBOX(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,text=text,textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
                  border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,glow=glow,glowcol=glowcol,
@@ -1253,19 +1325,21 @@ class UI:
     def makesearchbar(self,x,y,text='Search',width=400,lines=1,menu='main',command=emptyfunction,ID='textbox',layer=1,roundedcorners=0,bounditems=[],killtime=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',textsize=50,font='calibre',bold=False,antialiasing=True,pregenerated=True,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,scalesize=True,scalex=-1,scaley=-1,glow=0,glowcol=-1,
-                 runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,
+                 runcommandat=0,col=-1,textcol=-1,titletextcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,
                  colorkey=-1,spacing=-1,verticalspacing=1,horizontalspacing=4,clickablerect=-1,
                  linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=False,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,
                  backingdraw=True,borderdraw=True):
-        
+
+        if titletextcol == -1: titletextcol = textcol
         if upperborder == -1: upperborder = border
         if lowerborder == -1: lowerborder = border
         if height == -1:
             heightgetter = self.rendertext('Tg',textsize,(255,255,255),font,bold)
             height = upperborder+lowerborder+heightgetter.get_height()*lines
         col = autoshiftcol(col,Style.col)
+        if backingcol == -1: backingcol = autoshiftcol(Style.backingcol,col,20)
 
-        txt = self.maketext(int(border+horizontalspacing)/2,0,text,textsize,anchor=(0,'h/2'),objanchor=(0,'h/2'),img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,textcol=textcol,backingcol=autoshiftcol(backingcol,col,-20),animationspeed=5)
+        txt = self.maketext(int(border+horizontalspacing)/2,0,text,textsize,anchor=(0,'h/2'),objanchor=(0,'h/2'),img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,textcol=titletextcol,col=autoshiftcol(backingcol,col,-20),animationspeed=5)
         
         bsize = height-upperborder-lowerborder
         search = self.makebutton(0,0,'{search}',textsize*0.55,command=command,roundedcorners=roundedcorners,width=bsize,height=bsize,
@@ -1471,19 +1545,17 @@ class GUI_ITEM:
         execs = []
         for property, value in vars(Style).items():
             if not ('__' in property or property in ['universaldefaults']):
-                if type(self) == TEXT and property == 'backingcol':
+                if type(self) == TEXT and property == 'col':
                     value = Style.wallpapercol
                 if not (property in args):
                     args[property] = value
                 elif args[property] == Style.universaldefaults[property]:
                     args[property] = value
-
+                
         args = filloutargs(args)
         ui = args.pop('ui')
             
-
-
-        
+  
         self.enabled = args['enabled']
         self.center = args['center']
         if args['centery'] == -1: self.centery = self.center
@@ -1743,7 +1815,10 @@ class GUI_ITEM:
         elif self.enabled:
             self.child_render(screen,ui)
             for a in [i.ID for i in self.bounditems][:]:
-                ui.IDs[a].render(screen,ui)
+                try:
+                    ui.IDs[a].render(screen,ui)
+                except:
+                    print('failed to render:',a)
     def smartcords(self,x='',y='',startset=True):
         if x!='':
             self.x = x
@@ -2029,7 +2104,7 @@ class TEXTBOX(GUI_ITEM):
         self.refreshcursor()
         self.refreshscroller(ui)
         
-        self.scroller.maxp = (self.textimage.get_height())/self.scale+self.verticalspacing*2
+        self.scroller.maxp = (self.textimage.get_height())/self.scale+self.verticalspacing*2-1
         self.scroller.menu = self.menu
         self.scroller.scalesize = self.scalesize
         self.scroller.scalex = self.scalesize
@@ -2422,6 +2497,9 @@ class TABLE(GUI_ITEM):
             if titles or i>0:
                 for b in a:
                     ui.delete(b[1].ID,False)
+        self.data = []
+        if titles:
+            self.titles = []
                     
     def child_render(self,screen,ui):
         self.draw(screen,ui)
