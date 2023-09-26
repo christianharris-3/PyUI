@@ -540,8 +540,8 @@ class UI:
         self.blockf11 = 10
         
     def write(self,screen,x,y,text,size,col='default',center=True,font='default',bold=False,antialiasing=True,scale=False,centery=-1):
-        if font == 'default': font = Style.font
-        if col == 'default': col = Style.textcol
+        if font == 'default': font = Style.defaults['font']
+        if col == 'default': col = Style.defaults['textcol']
         if centery == -1: centery = center
         if scale:
             dirscale = self.dirscale
@@ -1348,7 +1348,7 @@ class UI:
                     slide = self.backchain[-1][1]
             length = self.backchain[-1][2]
         if length == 'default':
-            length = Style.animationspeed
+            length = Style.defaults['animationspeed']
         if self.queuedmenumove[0]<0 or slide=='none':
             if len(self.backchain)>0:
                 if slide=='none':
@@ -1729,8 +1729,8 @@ class GUI_ITEM:
             for a in [i.ID for i in self.bounditems][:]:
 ##                try:
                 ui.IDs[a].render(screen,ui)
-##                except:
-##                    print('failed to render:',a)
+##                except Exception as e:
+##                    print('failed to render:',a,self.ID,'reason:',e )
     def smartcords(self,x='',y='',startset=True):
         if x!='':
             self.x = x
@@ -2417,7 +2417,6 @@ class TABLE(GUI_ITEM):
         self.draw(screen,ui)
         
     def draw(self,screen,ui):
-##        print(self.width,self.height,self.scale)
         if self.enabled:
             if self.glow!=0:
                 screen.blit(self.glowimage,(self.x*self.dirscale[0]-self.glow*self.scale,self.y*self.dirscale[1]-self.glow*self.scale))
