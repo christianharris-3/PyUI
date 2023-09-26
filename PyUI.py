@@ -513,7 +513,7 @@ class UI:
                             if a.pageheight<(a.maxp-a.minp):
                                 a.scroller.scroll-=(event.y*min((a.scroller.maxp-a.scroller.minp)/20,self.scrolllimit))
                                 a.scroller.limitpos(self)
-                                a.command()
+                                a.scroller.command()
                                 moved = True
                     if not moved:
                         for a in self.scrollers:
@@ -1251,17 +1251,17 @@ class UI:
         if height == -1:
             heightgetter = self.rendertext('Tg',textsize,(255,255,255),font,bold)
             height = upperborder+lowerborder+heightgetter.get_height()*lines
-        col = autoshiftcol(col,Style.col)
-        if backingcol == -1: backingcol = autoshiftcol(Style.backingcol,col,20)
+        col = autoshiftcol(col,Style.defaults['col'])
+        if backingcol == -1: backingcol = autoshiftcol(Style.defaults['backingcol'],col,20)
 
         txt = self.maketext(int(border+horizontalspacing)/2,0,text,textsize,anchor=(0,'h/2'),objanchor=(0,'h/2'),img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,textcol=titletextcol,col=autoshiftcol(backingcol,col,-20),animationspeed=5)
         
         bsize = height-upperborder-lowerborder
-        search = self.makebutton(0,0,'{search}',textsize*0.55,command=command,roundedcorners=roundedcorners,width=bsize,height=bsize,
-                 anchor=(f'w-{border*2+bsize}','h/2'),objanchor=('w','h/2'),border=0,col=col,textcol=textcol,backingcol=backingcol,bordercol=col,
+        search = self.makebutton(-border*2-bsize,0,'{search}',textsize*0.55,command=command,roundedcorners=roundedcorners,width=bsize,height=bsize,
+                 anchor=('w','h/2'),objanchor=('w','h/2'),border=0,col=col,textcol=textcol,backingcol=backingcol,bordercol=col,
                  clickdownsize=1,textoffsetx=0,textoffsety=0,spacing=2,clickablerect=clickablerect,hovercol=autoshiftcol(hovercol,col,-6),borderdraw=False)
-        cross = self.makebutton(0,0,'{cross}',textsize*0.5,command=emptyfunction,roundedcorners=roundedcorners,width=bsize,height=bsize,
-                 anchor=(f'w-{border}','h/2'),objanchor=('w','h/2'),border=0,col=col,textcol=textcol,backingcol=backingcol,bordercol=col,
+        cross = self.makebutton(-border,0,'{cross}',textsize*0.5,command=emptyfunction,roundedcorners=roundedcorners,width=bsize,height=bsize,
+                 anchor=('w','h/2'),objanchor=('w','h/2'),border=0,col=col,textcol=textcol,backingcol=backingcol,bordercol=col,
                  clickdownsize=1,textoffsetx=1,textoffsety=1,spacing=2,clickablerect=clickablerect,hovercol=autoshiftcol(hovercol,col,-6),borderdraw=False)
         
         obj = self.maketextbox(x,y,'',width,lines,menu,command,ID,layer,roundedcorners,bounditems+[txt,search,cross],killtime,height,
@@ -1294,7 +1294,7 @@ class UI:
             self.delete(a)
     def makeanimation(self,animateID,startpos,endpos,movetype='linear',length='default',command=emptyfunction,runcommandat=-1,queued=True,menu=False,relativemove=False,skiptoscreen=False,acceleration=1,permamove=False,ID='default'):
         if length == 'default':
-            length = Style.animationspeed
+            length = Style.defaults['animationspeed']
         if menu:
             for a in self.automenus:
                 if (a.menu == animateID):
@@ -1464,15 +1464,6 @@ class GUI_ITEM:
             elif args[var] == Style.universaldefaults[var]:
                 args[var] = Style.objectdefaults[type(self)][var]
             
-        
-##        for property, value in vars(Style).items():
-##            if not ('__' in property or property in ['universaldefaults']):
-##                if type(self) == TEXT and property == 'col':
-##                    value = Style.wallpapercol
-##                if not (property in args):
-##                    args[property] = value
-##                elif args[property] == Style.universaldefaults[property]:
-##                    args[property] = value
                 
         args = filloutargs(args)
         ui = args.pop('ui')
@@ -2865,65 +2856,7 @@ class RECT(GUI_ITEM):
             if self.backingdraw:
                 draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.border,border_radius=int(self.roundedcorners*self.scale))
             
-class Style:
-##    roundedcorners=0
-##    anchor=(0,0)
-##    objanchor=(0,0)
-##    center=False
-##    centery=-1
-##    textsize=50
-##    font='calibre'
-##    bold=False
-##    antialiasing=True
-##    border=3
-##    upperborder=-1
-##    lowerborder=-1
-##    rightborder=-1
-##    leftborder=-1
-##    scalesize=True
-##    scalex=-1
-##    scaley=-1
-##    glow=0
-##    glowcol=-1
-##    col=(150,150,150)
-##    textcol=(0,0,0)
-##    backingcol=-1
-##    hovercol=-1
-##    clickdownsize=4
-##    clicktype=0
-##    textoffsetx=0
-##    textoffsety=0
-##    maxwidth=-1
-##    colorkey=-1
-##    togglecol=-1
-##    togglehovercol=-1
-##    spacing=-1
-##    verticalspacing=-1
-##    horizontalspacing=-1
-##    clickableborder=0
-##    lines=1
-##    selectcol=-1
-##    selectbordersize=2
-##    selectshrinksize=0
-##    cursorsize=-1
-##    textcenter=True
-##    linesize=2
-##    backingdraw=True
-##    borderdraw=True
-##    animationspeed=30
-##    scrollercol=-1
-##    scrollerwidth=-1
-##    slidercol=-1
-##    sliderbordercol=-1
-##    slidersize=-1
-##    increment=0
-##    sliderroundedcorners=-1
-##    containedslider=False
-##    movetoclick=False
-##    isolated=True
-##    darken=60
-
-    
+class Style:   
     universaldefaults = {'roundedcorners': 0, 'anchor': (0,0), 'objanchor': (0,0), 'center': False, 'centery': -1, 'textsize': 50, 'font': 'calibre', 'bold': True,
                            'antialiasing': True, 'border': 3, 'upperborder': -1, 'lowerborder': -1, 'rightborder': -1, 'leftborder': -1, 'scalesize': True,
                            'scalex': -1, 'scaley': -1, 'glow': 0, 'glowcol': -1, 'col': -1, 'textcol': -1, 'backingcol': -1, 'hovercol': -1, 'clickdownsize': 4,
