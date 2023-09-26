@@ -127,19 +127,24 @@ ui.makecheckbox(90,110,60,ID='checkbox 2',bindtoggle=['checkbox 1','checkbox 3']
 ui.makecheckbox(150,110,60,ID='checkbox 3',bindtoggle=['checkbox 1','checkbox 2'],toggle=False)
 ```
 ### Text
-Text is an object that displays text, it can be given a command.
+Text is an object that displays text, it can be given a command. Text can have trouble with antialiasing, as the antialiasing can only be done onto a set surface, so pregenerating the text and reblitting the same image every frame may look bad on a changing background. The background colour may need to be given to give the text something to antialias onto, however if that fails to look good set pregenerated to False, meaning new text is blitted every frame, giving perfect antialiasing but very bad performance.
 ```py
 # makes a text object bound to the bottom right of the screen
 ui.maketext(0,0,'Bottom Right',60,anchor=('w-10','h-10'),objanchor=('w','h'),backingcol=(255,255,255))
 ```
 ### Textbox
-Textboxes can be typed in, a command can be attached for when keys are pressed, or when enter is pressed. If the end of the textbox is reached a scroller is added to the side. The text in the textbox can be accessed by the varible "text".
+Textboxes can be typed in, a command can be attached for when keys are pressed, or when enter is pressed. If the end of the textbox is reached a scroller is added to the side. The text in the textbox can be accessed by the variable "text". Textboxes can be given functions to run when either enter is pressed or a key is pressed depending on what is set.
 ```py
 # A simple textbox with 2 lines for text
 ui.maketextbox(20,170,'',200,2)
 ```
-### Table
-Tables are grids of objects, they can contain text objects, buttons or textboxes. If strings are entered it auto generates a text objected to fill the space.
+### Table 
+Tables are grids of objects, they can contain text objects, buttons or textboxes. Tables have a set of row editing functions for efficiency, including: 
+- table.row_append(ui,row) adds a row of data to then end of the table
+- table.row_insert(ui,row,index) inserts a row into a specific index in the data list
+- table.row_remove(ui,index) deletes a row of a set index from data, giving an index of -1 will delete the title
+- table.row_replace(ui,row,index) deletes the row at the given index, and replaces it with the new row
+Tables can be refreshed through threading, working the same as the refresh function but in a thread: table.threadrefresh()
 ```py
 # Makes a table with a variety of different features
 data = [['Test',ui.maketext(0,0,'Colour',textcol=(255,100,0),backingcol=(50,0,255),spacing=5,textcenter=True,roundedcorners=4)],
@@ -149,7 +154,7 @@ data = [['Test',ui.maketext(0,0,'Colour',textcol=(255,100,0),backingcol=(50,0,25
 ui.maketable(240,20,data,spacing=10,roundedcorners=4)
 ```
 ### Slider
-Sliders contain a bar that a button is moved back and forth on when clicked and dragged. The amount the slider is slid can be accessed by the "slider"
+Sliders contain a bar that a button is moved back and forth on when clicked and dragged. The amount the slider is slid can be accessed by the "slider" variable.
 ### Scroller
 Scrollers are similar to sliders, however have a set height of the bar being moved. The bar is not a button object, it is in built into the scroller and therefore is more limiting in terms of design.
 ### Windowed Menu
