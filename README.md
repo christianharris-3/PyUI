@@ -86,6 +86,7 @@ ui.setstyle(col=(255,0,0),roundedcorners=4,wallpapercol=(255,0,0))
 # set values specifically for buttons
 ui.setstyle(button_font='impact',button_textsize='40')
 ```
+
 ```py
 #The set of values that can be edited through style system
 col, textsize, textcol, roundedcorners, font, bold, wallpapercol
