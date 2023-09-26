@@ -76,39 +76,6 @@ def RGBtoHSV(rgb):
     V = cmax    
     return (H,S,V)
 
-##def HSVtoRGB(hsv):
-##    H,S,V = hsv[0],hsv[1],hsv[2]
-##
-##    cmax = V
-##    cmin = cmax-S*cmax
-##    delta = cmax-cmin
-##    
-##    if H<120:
-##        r = V
-##        b = cmin
-##        g = delta*H/60+b
-##        if H>60:
-##            t = b
-##            b = g
-##            g = t
-##    elif H<240:
-##        g = V
-##        r = cmin
-##        b = delta*(H/60-2)+r
-##        if H>180:
-##            t = r
-##            r = b
-##            b = t
-##    else:
-##        b = V
-##        g = cmin
-##        r = delta*(H/60-4)+g
-##        if H>300:
-##            t = g
-##            g = r
-##            r = t
-##        
-##    return (round(r*255),round(g*255),round(b*255))
     
 def shiftcolor_hsva(col,shift):
     col = pygame.color.Color(col)
@@ -119,7 +86,7 @@ def shiftcolor_rgb(col,shift):
     return [max([min([255,a+shift]),0]) for a in col]
 
 def shiftcolor(col,shift):
-    if Style.hsvashift:
+    if Style.defaults['hsvashift']:
         return shiftcolor_hsva(col,shift)
     else:
         return shiftcolor_rgb(col,shift)
@@ -358,73 +325,7 @@ class draw:
                 poly.append([center[0]-rad*math.sin(ang2+diff*a/segments),center[1]-rad*math.cos(ang2+diff*a/segments)])
             draw.polygon(surf,col,poly)
 
-class Style:
-    roundedcorners=0
-    anchor=(0,0)
-    objanchor=(0,0)
-    center=False
-    centery=-1
-    textsize=50
-    font='calibre'
-    bold=False
-    antialiasing=True
-    border=3
-    upperborder=-1
-    lowerborder=-1
-    rightborder=-1
-    leftborder=-1
-    scalesize=True
-    scalex=-1
-    scaley=-1
-    glow=0
-    glowcol=-1
-    col=(150,150,150)
-    textcol=(0,0,0)
-    backingcol=-1
-    hovercol=-1
-    clickdownsize=4
-    clicktype=0
-    textoffsetx=0
-    textoffsety=0
-    maxwidth=-1
-    colorkey=-1
-    togglecol=-1
-    togglehovercol=-1
-    spacing=-1
-    verticalspacing=-1
-    horizontalspacing=-1
-    clickableborder=0
-    lines=1
-    selectcol=-1
-    selectbordersize=2
-    selectshrinksize=0
-    cursorsize=-1
-    textcenter=True
-    linesize=2
-    backingdraw=True
-    borderdraw=True
-    animationspeed=30
-    scrollercol=-1
-    scrollerwidth=-1
-    slidercol=-1
-    sliderbordercol=-1
-    slidersize=-1
-    increment=0
-    sliderroundedcorners=-1
-    containedslider=False
-    movetoclick=False
-    isolated=True
-    darken=60
-    universaldefaults = {'roundedcorners': 0, 'anchor': (0,0), 'objanchor': (0,0), 'center': False, 'centery': -1, 'textsize': 50, 'font': 'calibre', 'bold': True,
-                           'antialiasing': True, 'border': 3, 'upperborder': -1, 'lowerborder': -1, 'rightborder': -1, 'leftborder': -1, 'scalesize': True,
-                           'scalex': -1, 'scaley': -1, 'glow': 0, 'glowcol': -1, 'col': -1, 'textcol': -1, 'backingcol': -1, 'hovercol': -1, 'clickdownsize': 4,
-                           'clicktype': 0, 'textoffsetx': 0, 'textoffsety': 0, 'maxwidth': -1, 'colorkey': -1, 'togglecol': -1, 'togglehovercol': -1, 'spacing': -1,
-                           'verticalspacing': -1, 'horizontalspacing': -1, 'clickableborder': 0, 'lines': 1, 'selectcol': -1, 'selectbordersize': 2,
-                           'selectshrinksize': 0, 'cursorsize': -1, 'textcenter': True, 'linesize': 2, 'backingdraw': True, 'borderdraw': True, 'animationspeed': 5,
-                           'scrollercol': -1, 'scrollerwidth': -1, 'slidercol': -1, 'sliderbordercol': -1, 'slidersize': -1, 'increment': 0,
-                           'sliderroundedcorners': -1, 'containedslider': True, 'movetoclick': True, 'isolated': True, 'darken': 60}
-    wallpapercol = (255,255,255)
-    hsvashift = False
+        
 
 
     
@@ -491,11 +392,23 @@ class UI:
         self.capslock = bool(hllDll.GetKeyState(0x14))
 
     def styleset(self,**args):
+        marked = {}
         for a in args:
-            try:
+            if (a in Style.defaults):
+                Style.defaults[a] = args[a]
+                for b in Style.objectdefaults:
+                    Style.objectdefaults[b][a] = args[a]
+            elif a == 'wallpapercol':
                 exec(f'Style.{a} = {args[a]}')
-            except:
-                exec(f'Style.{a} = "{args[a]}"')
+            else:
+                marked[a] = args[a]
+            
+        
+        for a in marked:
+            if a.split('_')[0] in UI.objectkey:
+                Style.objectdefaults[UI.objectkey[a.split('_')[0]]][a.split('_',1)[1]] = args[a]
+        
+                    
     def styleload_soundium(self): self.styleset(col=(16,163,127),textcol=(255,255,255),wallpapercol=(62,63,75),textsize=24,roundedcorners=5,spacing=5,clickdownsize=2,scalesize=False)
     def styleload_default(self): self.styleset(textsize=40,verticalspacing=1,clickdownsize=2,roundedcorners=6)
     def styleload_black(self): self.styleset(textcol=(0,0,0),backingcol=(0,0,0),hovercol=(255,255,255),bordercol=(0,0,0),verticalspacing=3,textsize=30,col=(255,255,255),clickdownsize=1)
@@ -880,7 +793,7 @@ class UI:
             x+=seperation
         return surf
     def rendershapetext(self,name,size,col,backcol):
-        vals = self.getshapedata(name,['font','bold','italic','strikethrough','underlined','antialias'],[Style.font,False,False,False,False,True])
+        vals = self.getshapedata(name,['font','bold','italic','strikethrough','underlined','antialias'],[Style.defaults['font'],False,False,False,False,True])
         font = vals[0]
         bold = vals[1]
         italic = vals[2]
@@ -1197,8 +1110,9 @@ class UI:
                  linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=False,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,
                  backingdraw=True,borderdraw=True):
         
-        if col == -1: col = Style.col
-        if backingcol == -1: backingcol = autoshiftcol(Style.backingcol,col,-20)
+        if col == -1: col = Style.objectdefaults[TEXTBOX]['col']
+        if backingcol == -1: backingcol = autoshiftcol(Style.objectdefaults[TEXTBOX]['backingcol'],col,-20)
+        
         obj = TEXTBOX(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,text=text,textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
                  border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,glow=glow,glowcol=glowcol,
@@ -1219,8 +1133,8 @@ class UI:
                  boxwidth=-1,boxheight=-1,linesize=2,textcenter=True,guesswidth=100,guessheight=100,
                  backingdraw=True,borderdraw=True):
 
-        if col == -1: col = Style.col
-        if backingcol == -1: backingcol = autoshiftcol(Style.backingcol,col,-20)
+        if col == -1: col = Style.objectdefaults[TABLE]['col']
+        if backingcol == -1: backingcol = autoshiftcol(Style.objectdefaults[TABLE]['backingcol'],col,-20)
         
         #obj = TABLE(x,y,rows,colomns,data,titles,boxwidth,boxheight,spacing,menu,menuexceptions,boxcol,boxtextcol,boxtextsize,boxcenter,font,bold,titlefont,titlebold,titleboxcol,titletextcol,titletextsize,titlecenter,linesize,linecol,roundedcorners,layer,ID,self)
         obj = TABLE(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
@@ -1240,6 +1154,7 @@ class UI:
                  dragable=False,colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,maxwidth=-1,animationspeed=5,clickablerect=-1,
                  textcenter=False,backingdraw=False,borderdraw=False):
         if col == -1: col = backingcol
+        if col == -1: col = Style.wallpapercol
         backingcol = bordercol
         
         obj = TEXT(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
@@ -1257,8 +1172,8 @@ class UI:
                  runcommandat=1,col=-1,backingcol=-1,clicktype=0,clickablerect=-1,scrollbind=[],
                  dragable=True,backingdraw=True,borderdraw=True,scrollercol=-1,scrollerwidth=-1,increment=0,startp=0):
 
-        if maxp == -1:
-            maxp = height
+        if maxp == -1: maxp = height
+        
         obj = SCROLLER(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,enabled=enabled,
                  border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,glow=glow,glowcol=glowcol,
@@ -1290,7 +1205,7 @@ class UI:
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,glow=0,glowcol=-1,
                  scalesize=True,scalex=True,scaley=True,command=emptyfunction,runcommandat=0):
 
-        if col == -1: col = [max([0,a-35]) for a in Style.col]
+        if col == -1: col = shiftcolor(Style.objectdefaults[WINDOWEDMENU]['col'],-35)
 
         self.windowedmenunames = [a.menu for a in self.windowedmenus]
         self.windowedmenunames.append(menu)
@@ -1409,7 +1324,7 @@ class UI:
                 
     def movemenu(self,moveto,slide='none',length='default',backchainadd=True):
         if length == 'default':
-            length = Style.animationspeed
+            length = Style.defaults['animationspeed']
         if self.queuedmenumove[0]<0 or slide=='none':
             if (self.activemenu in self.windowedmenunames) and (moveto == self.activemenu) and (self.queuedmenumove[0]<0):
                 self.menuback(slide+' flip',length)
@@ -1543,18 +1458,24 @@ class GUI_ITEM:
 ##                 behindmenu='main',isolated=True,darken=60):
     def __init__(self,**args):
         execs = []
-        for property, value in vars(Style).items():
-            if not ('__' in property or property in ['universaldefaults']):
-                if type(self) == TEXT and property == 'col':
-                    value = Style.wallpapercol
-                if not (property in args):
-                    args[property] = value
-                elif args[property] == Style.universaldefaults[property]:
-                    args[property] = value
+        for var in Style.objectdefaults[type(self)]:
+            if not (var in args):
+                args[var] = Style.objectdefaults[type(self)][var]
+            elif args[var] == Style.universaldefaults[var]:
+                args[var] = Style.objectdefaults[type(self)][var]
+            
+        
+##        for property, value in vars(Style).items():
+##            if not ('__' in property or property in ['universaldefaults']):
+##                if type(self) == TEXT and property == 'col':
+##                    value = Style.wallpapercol
+##                if not (property in args):
+##                    args[property] = value
+##                elif args[property] == Style.universaldefaults[property]:
+##                    args[property] = value
                 
         args = filloutargs(args)
         ui = args.pop('ui')
-            
   
         self.enabled = args['enabled']
         self.center = args['center']
@@ -1618,8 +1539,8 @@ class GUI_ITEM:
         self.textcenter = args['textcenter']
         self.maxwidth = args['maxwidth']
 
-        self.col = autoshiftcol(args['col'],Style.col)
-        self.textcol = autoshiftcol(args['textcol'],Style.textcol)
+        self.col = args['col']
+        self.textcol = args['textcol']
         self.backingcol = autoshiftcol(args['backingcol'],self.col,20)
         self.bordercol = self.backingcol
         self.glowcol = autoshiftcol(args['glowcol'],self.col,-20)
@@ -1815,10 +1736,10 @@ class GUI_ITEM:
         elif self.enabled:
             self.child_render(screen,ui)
             for a in [i.ID for i in self.bounditems][:]:
-                try:
-                    ui.IDs[a].render(screen,ui)
-                except:
-                    print('failed to render:',a)
+##                try:
+                ui.IDs[a].render(screen,ui)
+##                except:
+##                    print('failed to render:',a)
     def smartcords(self,x='',y='',startset=True):
         if x!='':
             self.x = x
@@ -2944,5 +2865,91 @@ class RECT(GUI_ITEM):
             if self.backingdraw:
                 draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.border,border_radius=int(self.roundedcorners*self.scale))
             
+class Style:
+##    roundedcorners=0
+##    anchor=(0,0)
+##    objanchor=(0,0)
+##    center=False
+##    centery=-1
+##    textsize=50
+##    font='calibre'
+##    bold=False
+##    antialiasing=True
+##    border=3
+##    upperborder=-1
+##    lowerborder=-1
+##    rightborder=-1
+##    leftborder=-1
+##    scalesize=True
+##    scalex=-1
+##    scaley=-1
+##    glow=0
+##    glowcol=-1
+##    col=(150,150,150)
+##    textcol=(0,0,0)
+##    backingcol=-1
+##    hovercol=-1
+##    clickdownsize=4
+##    clicktype=0
+##    textoffsetx=0
+##    textoffsety=0
+##    maxwidth=-1
+##    colorkey=-1
+##    togglecol=-1
+##    togglehovercol=-1
+##    spacing=-1
+##    verticalspacing=-1
+##    horizontalspacing=-1
+##    clickableborder=0
+##    lines=1
+##    selectcol=-1
+##    selectbordersize=2
+##    selectshrinksize=0
+##    cursorsize=-1
+##    textcenter=True
+##    linesize=2
+##    backingdraw=True
+##    borderdraw=True
+##    animationspeed=30
+##    scrollercol=-1
+##    scrollerwidth=-1
+##    slidercol=-1
+##    sliderbordercol=-1
+##    slidersize=-1
+##    increment=0
+##    sliderroundedcorners=-1
+##    containedslider=False
+##    movetoclick=False
+##    isolated=True
+##    darken=60
+
+    
+    universaldefaults = {'roundedcorners': 0, 'anchor': (0,0), 'objanchor': (0,0), 'center': False, 'centery': -1, 'textsize': 50, 'font': 'calibre', 'bold': True,
+                           'antialiasing': True, 'border': 3, 'upperborder': -1, 'lowerborder': -1, 'rightborder': -1, 'leftborder': -1, 'scalesize': True,
+                           'scalex': -1, 'scaley': -1, 'glow': 0, 'glowcol': -1, 'col': -1, 'textcol': -1, 'backingcol': -1, 'hovercol': -1, 'clickdownsize': 4,
+                           'clicktype': 0, 'textoffsetx': 0, 'textoffsety': 0, 'maxwidth': -1, 'colorkey': -1, 'togglecol': -1, 'togglehovercol': -1, 'spacing': -1,
+                           'verticalspacing': -1, 'horizontalspacing': -1, 'clickableborder': 0, 'lines': 1, 'selectcol': -1, 'selectbordersize': 2,
+                           'selectshrinksize': 0, 'cursorsize': -1, 'textcenter': True, 'linesize': 2, 'backingdraw': True, 'borderdraw': True, 'animationspeed': 5,
+                           'scrollercol': -1, 'scrollerwidth': -1, 'slidercol': -1, 'sliderbordercol': -1, 'slidersize': -1, 'increment': 0,
+                           'sliderroundedcorners': -1, 'containedslider': True, 'movetoclick': True, 'isolated': True, 'darken': 60, 'hsvashift': False}
+    defaults = copy.deepcopy(universaldefaults)
+    defaults['col'] = (150,150,150)
+    defaults['textcol'] = (0,0,0)
+    defaults['animationspeed'] = 30
+    
+    wallpapercol = (255,255,255)
+
+    UI.objectkey = {'button':BUTTON,'text':TEXT,'textbox':TEXTBOX,'table':TABLE,'slider':SLIDER,'scroller':SCROLLER,'menu':MENU,'windowedmenu':WINDOWEDMENU,'rect':RECT}
+    
+    objectdefaults = {}
+    for a in [UI.objectkey[o] for o in UI.objectkey]:
+        objectdefaults[a] = copy.deepcopy(defaults)
+
+
+
+
+
+
+
         
     
