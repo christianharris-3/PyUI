@@ -73,7 +73,7 @@ pygame.quit()
 ## Initialiazation
 The ui object is how the user accesses all of PyUIs features, it contains all of the necessary functions and variables for using and manipulating the gui. It must be initially created at the start of any program using PyUI with.
 ### Style System
-A style is a set of default varibles, stored inside the Style class. The style class stores the defaults for a large set of variables, and it will act as the default value for all new objects unless that value is specified when creating the obejct. Styles can be set through the function ui.setstyle(), or via using one of the in built default styles.
+A style is a set of default varibles, stored inside the Style class. The style class stores the defaults for a large set of variables, and it will act as the default value for all new objects unless that value is specified when creating the obejct. Styles can be set through the function ui.setstyle(), or via using one of the in built default styles. A default value can be set specifically for each unique object, which is done by adding the objectname and underscore before the variable name.
 
 Example code:
 ```py
@@ -83,6 +83,21 @@ ui = PyUI.UI()
 ui.styleload_lightblue()
 # sets some specific values
 ui.setstyle(col=(255,0,0),roundedcorners=4,wallpapercol=(255,0,0))
+# set values specifically for buttons
+ui.setstyle(button_font='impact',button_textsize='40')
+```
+```py
+#The set of values that can be edited through style system
+col, textsize, textcol, roundedcorners, font, bold, wallpapercol
+backingcol, hovercol, togglecol, togglehovercol, animationspeed
+spacing, verticalspacing, horizontalspacing, backingdraw, borderdraw
+border, upperborder, lowerborder, rightborder, leftborder
+scalesize, scalex, scaley, antialiasing, colorkey, maxwidth
+anchor, objanchor, center, centery, glow, glowcol
+clickdownsize, clicktype, clickableborder, textoffsetx, textoffsety
+lines, selectcol, selectbordersize, selectshrinksize, cursorsize, textcenter
+slidersize, increment, containedslider, movetoclick
+isolated, darken, hsvashift
 ```
 
 ## Menu System
