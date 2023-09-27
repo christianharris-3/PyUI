@@ -1047,10 +1047,15 @@ class UI:
             elif type(obj) == ANIMATION: self.animations.append(obj)
             elif type(obj) == RECT: self.rects.append(obj)
             self.refreshitems()
-        if not type(obj) in [ANIMATION,MENU] and menuin(obj.truemenu,self.windowedmenunames) and not obj.onitem:
+        if not type(obj) in [ANIMATION,MENU] and menuin(obj.truemenu,self.windowedmenunames):
             for b in obj.truemenu:
                 if b in self.windowedmenunames:
-                    self.windowedmenus[self.windowedmenunames.index(b)].binditem(obj,False)
+                    valid = True
+                    for a in obj.master:
+                        if type(a) in [BUTTON,TEXTBOX,TEXT,TABLE,SCROLLER,SLIDER,RECT]:
+                            valid = False
+                    if valid:
+                        self.windowedmenus[self.windowedmenunames.index(b)].binditem(obj,False)
     def reID(self,ID,obj):
         newid = ID
         if ID in self.IDs:
@@ -1698,11 +1703,25 @@ class GUI_ITEM:
     def resetcords(self,ui,scalereset=True):
         if scalereset: self.refreshscale(ui)
         self.anchor = self.startanchor[:]
+
+        master = self.master[0]
+        if len(self.master)>1:
+            if 'animate' in self.truemenu:
+                for a in self.master:
+                    if ui.activemenu in a.truemenu:
+                        master = a
+            else:
+                for a in self.master:
+                    if not(ui.activemenu in a.truemenu):
+                        master = a
+                        break
+                        
+        
         w = ui.screenw
         h = ui.screenh
         if self.onitem:
-            w = self.master[0].width*self.master[0].scale
-            h = self.master[0].height*self.master[0].scale
+            w = master.width*self.master[0].scale
+            h = master.height*self.master[0].scale
         global returnedexecvalue
         if type(self.anchor[0]) == str:
             exec('returnedexecvalue='+self.anchor[0].replace('w',str(w)),globals())
@@ -1718,8 +1737,8 @@ class GUI_ITEM:
         if type(self.objanchor[1]) == str:
             exec('returnedexecvalue='+self.objanchor[1].replace('h',str(self.height)),globals())
             self.objanchor[1] = returnedexecvalue
-        self.x = int(self.master[0].x*self.master[0].dirscale[0]+self.anchor[0]+self.startx*self.scale-self.objanchor[0]*self.scale)/self.dirscale[0]-self.scrollcords[0]
-        self.y = int(self.master[0].y*self.master[0].dirscale[1]+self.anchor[1]+self.starty*self.scale-self.objanchor[1]*self.scale)/self.dirscale[1]-self.scrollcords[1]
+        self.x = int(master.x*master.dirscale[0]+self.anchor[0]+self.startx*self.scale-self.objanchor[0]*self.scale)/self.dirscale[0]-self.scrollcords[0]
+        self.y = int(master.y*master.dirscale[1]+self.anchor[1]+self.starty*self.scale-self.objanchor[1]*self.scale)/self.dirscale[1]-self.scrollcords[1]
         self.refreshcords(ui)
         for a in self.bounditems:
             a.resetcords(ui)
