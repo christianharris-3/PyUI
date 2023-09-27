@@ -1048,7 +1048,9 @@ class UI:
             elif type(obj) == RECT: self.rects.append(obj)
             self.refreshitems()
         if not type(obj) in [ANIMATION,MENU] and menuin(obj.truemenu,self.windowedmenunames) and not obj.onitem:
-            self.windowedmenus[self.windowedmenunames.index(obj.menu)].binditem(obj)
+            for b in obj.truemenu:
+                if b in self.windowedmenunames:
+                    self.windowedmenus[self.windowedmenunames.index(b)].binditem(obj,False)
     def reID(self,ID,obj):
         newid = ID
         if ID in self.IDs:
@@ -1063,10 +1065,10 @@ class UI:
     def refreshitems(self):
         self.items = self.buttons+self.textboxes+self.tables+self.texts+self.scrollers+self.sliders+self.windowedmenus+self.rects
         for a in self.items:
-            if not a.onitem:
+            if len(a.master)<len(a.truemenu) or not a.onitem:
                 menu = a.truemenu
-                if not(menuin(menu,self.windowedmenunames)):
-                    for m in menu:
+                for m in menu:
+                    if not(m in self.windowedmenunames):
                         if not('auto_generate_menu:'+m in self.IDs):
                             obj = self.automakemenu(m)
                         else:
@@ -1074,6 +1076,13 @@ class UI:
                         obj.binditem(a,False)
         self.items+=self.automenus
         self.items.sort(key=lambda x: x.layer,reverse=False)
+    def printtree(self):
+        for a in self.automenus+self.windowedmenus:
+            print('+='*3,a.ID)
+            for b in a.bounditems:
+                print('--',b.ID)
+                for c in b.bounditems:
+                    print(c.ID)
         
                         
         
