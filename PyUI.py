@@ -99,6 +99,12 @@ def autoshiftcol(col,default=(150,150,150),editamount=0):
         return shiftcolor(col,editamount)
     return col
 
+def menuin(objmenu,menulist):
+    for a in objmenu:
+        if a in menulist:
+            return True
+    return False
+
 ##def stress(num=10000):
 ####    items = [[[(random.gauss(0,1000),random.gauss(0,1000)),(random.gauss(0,1000),random.gauss(0,1000))],[(random.gauss(0,1000),random.gauss(0,1000)),(random.gauss(0,1000),random.gauss(0,1000))]] for a in range(num)]
 ##    items = [(random.gauss(0,1000),random.gauss(0,1000)) for a in range(num)]
@@ -449,10 +455,10 @@ class UI:
         self.animate()
         framemenu = self.activemenu
         for i,a in enumerate(self.automenus):
-            if a.menu == framemenu:
+            if framemenu in a.truemenu:
                 a.render(screen,self)
         for a in self.windowedmenus:
-            if a.menu == framemenu:
+            if framemenu in a.truemenu:
                 if pygame.Rect(a.x*a.dirscale[0],a.y*a.dirscale[1],a.width*a.scale,a.height*a.scale).collidepoint(self.mpos):
                     self.drawmenu(a.behindmenu,screen)
                 else:
@@ -509,7 +515,7 @@ class UI:
                 elif event.type == pygame.MOUSEWHEEL:
                     moved = False
                     for a in self.textboxes:
-                        if a.scrolleron and a.selected and a.menu == self.activemenu:
+                        if a.scrolleron and a.selected and self.activemenu in a.truemenu:
                             if a.pageheight<(a.maxp-a.minp):
                                 a.scroller.scroll-=(event.y*min((a.scroller.maxp-a.scroller.minp)/20,self.scrolllimit))
                                 a.scroller.limitpos(self)
@@ -517,7 +523,7 @@ class UI:
                                 moved = True
                     if not moved:
                         for a in self.scrollers:
-                            if a.menu == self.activemenu and type(a.master) != TEXTBOX:
+                            if self.activemenu in a.truemenu and type(a.master[0]) != TEXTBOX:
                                 if a.pageheight<(a.maxp-a.minp):
                                     a.scroll-=(event.y*min((a.maxp-a.minp)/20,self.scrolllimit))
                                     a.limitpos(self)
@@ -683,7 +689,6 @@ class UI:
         prongwidth = vals[3]
         prongsteepness = vals[4]
         draw.circle(surf,col,(size*0.5,size*0.5),size*outercircle)
-##        print(surf)
         width=prongwidth
         innerwidth=width+math.sin(width)*prongsteepness
         points = []
@@ -1042,7 +1047,7 @@ class UI:
             elif type(obj) == ANIMATION: self.animations.append(obj)
             elif type(obj) == RECT: self.rects.append(obj)
             self.refreshitems()
-        if not type(obj) in [ANIMATION,MENU] and obj.menu in self.windowedmenunames and not obj.onitem:
+        if not type(obj) in [ANIMATION,MENU] and menuin(obj.truemenu,self.windowedmenunames) and not obj.onitem:
             self.windowedmenus[self.windowedmenunames.index(obj.menu)].binditem(obj)
     def reID(self,ID,obj):
         newid = ID
@@ -1059,13 +1064,14 @@ class UI:
         self.items = self.buttons+self.textboxes+self.tables+self.texts+self.scrollers+self.sliders+self.windowedmenus+self.rects
         for a in self.items:
             if not a.onitem:
-                menu = a.menu
-                if not(menu in self.windowedmenunames):
-                    if not('auto_generate_menu:'+menu in self.IDs):
-                        obj = self.automakemenu(menu)
-                    else:
-                        obj = self.IDs['auto_generate_menu:'+menu]
-                    obj.binditem(a)
+                menu = a.truemenu
+                if not(menuin(menu,self.windowedmenunames)):
+                    for m in menu:
+                        if not('auto_generate_menu:'+m in self.IDs):
+                            obj = self.automakemenu(m)
+                        else:
+                            obj = self.IDs['auto_generate_menu:'+m]
+                        obj.binditem(a,False)
         self.items+=self.automenus
         self.items.sort(key=lambda x: x.layer,reverse=False)
         
@@ -1297,7 +1303,7 @@ class UI:
             length = Style.defaults['animationspeed']
         if menu:
             for a in self.automenus:
-                if (a.menu == animateID):
+                if (animateID in a.truemenu):
                     if not a.onitem:
                         self.makeanimation(a.ID,startpos,endpos,movetype,length,command,runcommandat,queued,False,relativemove,skiptoscreen,acceleration,permamove)
                         runcommandat = -2
@@ -1402,7 +1408,7 @@ class UI:
     def delete(self,ID,failmessage=True):
         try:
             if self.IDs[ID].onitem:
-                self.IDs[ID].master.bounditems.remove(self.IDs[ID])
+                self.IDs[ID].master[0].bounditems.remove(self.IDs[ID])
             for a in self.IDs[ID].bounditems:
                 self.delete(ID,failmessage)
             if type(self.IDs[ID]) == BUTTON: self.buttons.remove(self.IDs[ID])
@@ -1506,6 +1512,8 @@ class GUI_ITEM:
         else: self.rightborder = args['rightborder']
             
         self.menu = args['menu']
+        self.truemenu = self.menu
+        if type(self.truemenu) == str: self.truemenu = [self.truemenu]
         self.behindmenu = args['behindmenu']
         if args['killtime'] == -1: self.killtime = -1
         else: self.killtime = time.time()+args['killtime']
@@ -1516,7 +1524,7 @@ class GUI_ITEM:
         self.bounditems = args['bounditems'][:]
         for a in self.bounditems:
             self.binditem(a)
-        self.master = emptyobject(0,0,ui.screenw,ui.screenh)
+        self.master = [emptyobject(0,0,ui.screenw,ui.screenh)]
         self.empty = False
         ui.addid(args['ID'],self)
 
@@ -1684,8 +1692,8 @@ class GUI_ITEM:
         w = ui.screenw
         h = ui.screenh
         if self.onitem:
-            w = self.master.width*self.master.scale
-            h = self.master.height*self.master.scale
+            w = self.master[0].width*self.master[0].scale
+            h = self.master[0].height*self.master[0].scale
         global returnedexecvalue
         if type(self.anchor[0]) == str:
             exec('returnedexecvalue='+self.anchor[0].replace('w',str(w)),globals())
@@ -1701,8 +1709,8 @@ class GUI_ITEM:
         if type(self.objanchor[1]) == str:
             exec('returnedexecvalue='+self.objanchor[1].replace('h',str(self.height)),globals())
             self.objanchor[1] = returnedexecvalue
-        self.x = int(self.master.x*self.master.dirscale[0]+self.anchor[0]+self.startx*self.scale-self.objanchor[0]*self.scale)/self.dirscale[0]-self.scrollcords[0]
-        self.y = int(self.master.y*self.master.dirscale[1]+self.anchor[1]+self.starty*self.scale-self.objanchor[1]*self.scale)/self.dirscale[1]-self.scrollcords[1]
+        self.x = int(self.master[0].x*self.master[0].dirscale[0]+self.anchor[0]+self.startx*self.scale-self.objanchor[0]*self.scale)/self.dirscale[0]-self.scrollcords[0]
+        self.y = int(self.master[0].y*self.master[0].dirscale[1]+self.anchor[1]+self.starty*self.scale-self.objanchor[1]*self.scale)/self.dirscale[1]-self.scrollcords[1]
         self.refreshcords(ui)
         for a in self.bounditems:
             a.resetcords(ui)
@@ -1712,8 +1720,6 @@ class GUI_ITEM:
         self.child_refreshcords(ui)
         self.centerx = self.x+self.width/2
         self.centery = self.y+self.height/2
-        for a in self.bounditems:
-            a.refreshcords(ui)
         
     def refreshscale(self,ui):
         self.scale = ui.scale
@@ -1738,15 +1744,22 @@ class GUI_ITEM:
         if y!='':
             self.y = y
             if startset: self.starty = (self.y*self.dirscale[1]+self.objanchor[1]*self.scale-self.anchor[1])/self.scale
-    def binditem(self,item):
+    def binditem(self,item,replace=True):
         if item!=self:
-            if item.onitem:
-                item.master.bounditems.remove(item)
+            for a in item.master:
+                if type(a) == emptyobject:
+                    item.master.remove(a)
+            if item.onitem and replace:
+                for a in item.master:
+                    if type(a) != emptyobject:
+                        a.bounditems.remove(item)
             if not(item in self.bounditems):
                 self.bounditems.append(item)
             item.onitem = True
-            item.master = self
-            item.menu = self.menu
+            if replace:
+                item.master = [self]
+            else:
+                item.master.append(self)
             self.bounditems.sort(key=lambda x: x.layer,reverse=False)
     def autoscale(self,_):
         pass
