@@ -360,6 +360,7 @@ class UI:
         self.getscreen()
 
         self.activemenu = 'main'
+        self.framemenu = 'main'
         self.windowedmenus = []
         self.automenus = []
         self.windowedmenunames = []
@@ -453,12 +454,12 @@ class UI:
         windowedmenubackings = [a.behindmenu for a in self.windowedmenus]
         self.breakrenderloop = False
         self.animate()
-        framemenu = self.activemenu
+        self.framemenu = self.activemenu
         for i,a in enumerate(self.automenus):
-            if framemenu in a.truemenu:
+            if self.framemenu in a.truemenu:
                 a.render(screen,self)
         for a in self.windowedmenus:
-            if framemenu in a.truemenu:
+            if self.framemenu in a.truemenu:
                 if pygame.Rect(a.x*a.dirscale[0],a.y*a.dirscale[1],a.width*a.scale,a.height*a.scale).collidepoint(self.mpos):
                     self.drawmenu(a.behindmenu,screen)
                 else:
@@ -2312,7 +2313,10 @@ class TABLE(GUI_ITEM):
             elif type(b) == TEXT: labeled.append(['textobj',b])
             elif type(b) == TABLE: labeled.append(['table',b])
             elif type(b) == pygame.Surface: labeled.append(['image',b])
-            else: print('unrecognised data type in table:',b)
+            elif type(b) == SLIDER: labeled.append(['slider',b])
+            else:
+                labeled.append(['text','-'])
+                print('unrecognised data type in table:',b)
         return labeled
                 
     def gentext(self,ui):
@@ -2331,7 +2335,7 @@ class TABLE(GUI_ITEM):
                                   scalesize=self.scalesize,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,backingcol=self.col,enabled=False)
                 lis.append(['textobj',obj])
                 self.itemintotable(ui,obj,i,a)
-            elif b[0] in ['button','textbox','textobj','table']:
+            elif b[0] in ['button','textbox','textobj','table','slider']:
                 b[1].enabled = self.enabled
                 lis.append([b[0],b[1]])
                 self.itemintotable(ui,b[1],i,a)
@@ -2358,10 +2362,11 @@ class TABLE(GUI_ITEM):
     def itemrefreshcords(self,ui,obj,x,y):
         obj.startx = (self.linesize*(x+1)+self.boxwidthsinc[x])
         obj.starty = (self.linesize*(y+1)+self.boxheightsinc[y])
-        obj.width = self.boxwidths[x]
-        obj.height = self.boxheights[y]
-        obj.startwidth = self.boxwidths[x]
-        obj.startheight = self.boxheights[y]
+        if type(obj) != SLIDER:
+            obj.width = self.boxwidths[x]
+            obj.height = self.boxheights[y]
+            obj.startwidth = self.boxwidths[x]
+            obj.startheight = self.boxheights[y]
         obj.backingdraw = self.backingdraw
         obj.scalex = self.scalesize
         obj.scaley = self.scalesize
@@ -2396,7 +2401,7 @@ class TABLE(GUI_ITEM):
                     if b[0] == 'button' or b[0] == 'textobj':
                         if minn<b[1].textimage.get_width()+b[1].horizontalspacing*2*self.scale:
                             minn = b[1].textimage.get_width()+b[1].horizontalspacing*2*self.scale
-                    elif b[0] == 'table':
+                    elif b[0] in ['table','slider']:
                         if minn<b[1].width:
                             minn = b[1].width
                 self.boxwidthsinc.append(sum(self.boxwidths))
@@ -2416,7 +2421,7 @@ class TABLE(GUI_ITEM):
                     if b[0] == 'button' or b[0] == 'textobj':
                         if minn<b[1].textimage.get_height()+b[1].verticalspacing*2*self.scale:
                             minn = b[1].textimage.get_height()+b[1].verticalspacing*2*self.scale
-                    elif b[0] == 'table':
+                    elif b[0] in ['table','slider']:
                         if minn<b[1].height:
                             minn = b[1].height
                 self.boxheightsinc.append(sum(self.boxheights))
