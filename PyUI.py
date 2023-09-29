@@ -2310,6 +2310,7 @@ class TABLE(GUI_ITEM):
             elif type(b) == BUTTON: labeled.append(['button',b])
             elif type(b) == TEXTBOX: labeled.append(['textbox',b])
             elif type(b) == TEXT: labeled.append(['textobj',b])
+            elif type(b) == TABLE: labeled.append(['table',b])
             elif type(b) == pygame.Surface: labeled.append(['image',b])
             else: print('unrecognised data type in table:',b)
         return labeled
@@ -2330,19 +2331,9 @@ class TABLE(GUI_ITEM):
                                   scalesize=self.scalesize,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,backingcol=self.col,enabled=False)
                 lis.append(['textobj',obj])
                 self.itemintotable(ui,obj,i,a)
-            elif b[0] == 'button':
+            elif b[0] in ['button','textbox','textobj','table']:
                 b[1].enabled = self.enabled
-                lis.append(['button',b[1]])
-                self.itemintotable(ui,b[1],i,a)
-                b[1].refresh(ui)
-            elif b[0] == 'textbox':
-                b[1].enabled = self.enabled
-                lis.append(['textbox',b[1]])
-                self.itemintotable(ui,b[1],i,a)
-                b[1].refresh(ui)
-            elif b[0] == 'textobj':
-                b[1].enabled = self.enabled
-                lis.append(['textobj',b[1]])
+                lis.append([b[0],b[1]])
                 self.itemintotable(ui,b[1],i,a)
                 b[1].refresh(ui)
             elif b[0] == 'image':
@@ -2405,6 +2396,9 @@ class TABLE(GUI_ITEM):
                     if b[0] == 'button' or b[0] == 'textobj':
                         if minn<b[1].textimage.get_width()+b[1].horizontalspacing*2*self.scale:
                             minn = b[1].textimage.get_width()+b[1].horizontalspacing*2*self.scale
+                    elif b[0] == 'table':
+                        if minn<b[1].width:
+                            minn = b[1].width
                 self.boxwidthsinc.append(sum(self.boxwidths))
                 self.boxwidths.append(minn/self.scale)
             else:
@@ -2422,6 +2416,9 @@ class TABLE(GUI_ITEM):
                     if b[0] == 'button' or b[0] == 'textobj':
                         if minn<b[1].textimage.get_height()+b[1].verticalspacing*2*self.scale:
                             minn = b[1].textimage.get_height()+b[1].verticalspacing*2*self.scale
+                    elif b[0] == 'table':
+                        if minn<b[1].height:
+                            minn = b[1].height
                 self.boxheightsinc.append(sum(self.boxheights))
                 self.boxheights.append(minn/self.scale)
             else:
