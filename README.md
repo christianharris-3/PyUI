@@ -295,6 +295,7 @@ All objects have a range of variables that can be changed to edit the object bei
 - **bool: scalesize** = Boolean that allows/doesnt allow the object to scale in size when the screen is resized.
 - **bool: scalex** = Boolean that allows/doesnt allow the object to scale closer to its origin in the x direction when the screen is resized.
 - **bool: scaley** = Boolean that allows/doesnt allow the object to scale closer to its origin in the y direction when the screen is resized.
+- **str: scaleby** = Defaults to the global variable "autoscale" in the UI object, setting scaleby to "vertical" will make the object scalesize based on the changing height of the screen, while setting it to "horizontal" will do the same but for screen width.
 - **int: border** = Sets the pixel size of the border of the object.
 - **int: upperborder** = Sets pixel size of only the upper border.
 - **int: lowerborder** = Sets pixel size of only the lower border
