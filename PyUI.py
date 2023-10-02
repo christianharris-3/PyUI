@@ -358,6 +358,7 @@ class UI:
 
         self.images = []
         self.getscreen()
+        self.inbuiltimages = {}
 
         self.activemenu = 'main'
         self.framemenu = 'main'
@@ -864,6 +865,11 @@ class UI:
             if name[:len(a)] == a:
                 splines = data[names.index(a)][1]
         if splines == []:
+            for a in list(self.inbuiltimages):
+                if name[:len(a)] == a:
+                    img = self.inbuiltimages[a]
+                    sc = size/img.get_height()
+                    return pygame.transform.scale(img,(img.get_width()*sc,size)),True
             return 0,False
         boundingbox = [1000,1000,0,0]
         for a in splines:
@@ -901,6 +907,8 @@ class UI:
             pygame.draw.polygon(surf,col,points)
 
         return surf,True
+    def addinbuiltimage(self,name,surface):
+        self.inbuiltimages[name] = surface
                         
     def getshapedata(self,name,var,defaults):
         vals = defaults
@@ -2286,16 +2294,20 @@ class TEXTBOX(GUI_ITEM):
                 pygame.draw.line(surf,self.textcol,((self.linecenter[0])*self.scale,(self.linecenter[1]-self.cursorsize/2+self.verticalspacing-self.scroller.scroll)*self.scale),((self.linecenter[0])*self.scale,(self.linecenter[1]+self.cursorsize/2+self.verticalspacing-self.scroller.scroll)*self.scale),2)
             if self.textselected[0] and self.textselected[1]!=self.textselected[2]:
                 trect = [1000000,0,0,0]
+                prev = [0,0]
                 for a in range(min([self.textselected[1],self.textselected[2]]),max([self.textselected[1],self.textselected[2]])):
-                    if self.chrcorddata[a][0] != '\n':
-                        trect[0] = (self.horizontalspacing+self.chrcorddata[a][1][0]-self.chrcorddata[a][2][0]/2)*self.scale
-                        trect[1] = (self.verticalspacing+self.chrcorddata[a][1][1]-self.chrcorddata[a][2][1]/2-self.scroller.scroll)*self.scale
-                        trect[2] = self.chrcorddata[a][2][0]*self.scale
-                        trect[3] = self.chrcorddata[a][2][1]*self.scale
-                    highlight = pygame.Surface((trect[2],trect[3]))
-                    highlight.set_alpha(180)
-                    highlight.fill((51,144,255))
-                    surf.blit(highlight,(trect[0],trect[1]))
+                    if prev != self.chrcorddata[a][1]:
+                        if self.chrcorddata[a][0] != '\n':
+                            trect[0] = (self.horizontalspacing+self.chrcorddata[a][1][0]-self.chrcorddata[a][2][0]/2)*self.scale
+                            trect[1] = (self.verticalspacing+self.chrcorddata[a][1][1]-self.chrcorddata[a][2][1]/2-self.scroller.scroll)*self.scale
+                            trect[2] = self.chrcorddata[a][2][0]*self.scale
+                            trect[3] = self.chrcorddata[a][2][1]*self.scale
+                        highlight = pygame.Surface((trect[2],trect[3]))
+                        highlight.set_alpha(180)
+                        highlight.fill((51,144,255))
+                        surf.blit(highlight,(trect[0],trect[1]))
+
+                    prev = self.chrcorddata[a][1]
                 
             screen.blit(surf,(self.x*self.dirscale[0]+(self.leftborder)*self.scale,self.y*self.dirscale[1]+(self.upperborder)*self.scale))
                 
