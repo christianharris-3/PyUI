@@ -567,34 +567,25 @@ class UI:
             if centery: textrect.center = (int(x)*dirscale[0],int(y)*dirscale[1])
             textrect.x = int(x)*dirscale[0]
         screen.blit(textsurf, textrect)
-
+    
     def rendertext(self,text,size,col='default',font='default',bold=False,antialiasing=True,backingcol=(150,150,150),imgin=False,img=''):
-        if font=='default': font = Style.font
-        if col == 'default': col = Style.textcol
+        if font=='default': font = Style.defaults['font']
+        if col == 'default': col = Style.defaults['textcol']
         if imgin:
-            if text == '' and img!='':
-                text = '{'+img+'}'
-            stext = text.split('{')
-            texts = []
-            imagenames = []
-            texts.append(stext[0])
-            del stext[0]
-            for a in stext:
-                split = a.split('}')
-                texts.append(split[1])
-                if split[0] == '':
-                    imagenames.append(img)
-                else:
-                    imagenames.append(split[0])
+            texts,imagenames = self.seperatestring(text) 
         else:
             texts = [text]
+            imagenames = ['']
         images = []
         largetext = pygame.font.SysFont(font,int(size),bold)
-        images.append(largetext.render(texts[0], antialiasing, col))
-        for a in range(len(texts)-1):
-            images.append(self.rendershape(imagenames[a],size,col,False,backcol=backingcol))
-            images.append(largetext.render(texts[a+1], antialiasing, col))
-        textsurf = pygame.Surface((sum([a.get_width() for a in images]),max([a.get_height() for a in images])))
+        for a in range(len(texts)):
+            if texts[a] != '': images.append(largetext.render(texts[a], antialiasing, col))
+            if imagenames[a] != '': images.append(self.rendershape(imagenames[a],size,col,False,backcol=backingcol))
+        if len(images) == 0:
+            return pygame.Surface((0,0))
+        else:
+            textsurf = pygame.Surface((sum([a.get_width() for a in images]),max([a.get_height() for a in images])))
+            
         textsurf.fill(backingcol)
         xpos = 0
         h = textsurf.get_height()
@@ -603,22 +594,53 @@ class UI:
             xpos+=a.get_width()
         textsurf.set_colorkey(backingcol)
         return textsurf
+    def seperatestring(self,text):
+        texts = ['']
+        imagenames = ['']
+        openn = 0
+        for a in text:
+            if a == '{':
+                if openn == 0:
+                    texts.append('')
+                openn+=1
+            if openn>0:
+                imagenames[-1]+=a
+            else:
+                texts[-1]+=a
 
+            if a == '}':
+                if openn == 1:
+                    imagenames.append('')
+                openn-=1
+                if openn<0: openn = 0
+        if len([i for i in imagenames[-1] if i == '{']) != len([i for i in imagenames[-1] if i == '}']):
+            texts[-2]+=imagenames.pop(-1)
+            imagenames.append('')
+            del texts[-1]
+        for i,a in enumerate(imagenames):
+            imagenames[i] = a.removeprefix('{').removesuffix('}')
+        return texts,imagenames
+    
     def rendershape(self,name,size,col='default',failmessage=True,backcol=(255,255,255)):
         if col == 'default': col = Style.col
         if col == backcol: backcol = (0,0,0)
         name = name.replace("'",'"')
         if '(' in name and ')' in name:
-            col = name.split('(')[1].split(')')[0].split(',')
-            col = (int(col[0]),int(col[1]),int(col[2]))
+            try:
+                c = name.split('(')[1].split(')')[0].split(',')
+                col = (int(c[0]),int(c[1]),int(c[2]))
+            except:
+                pass
         if 'scale=' in name:
             size*=float(name.split('scale=')[1].split(' ')[0])
-        if name[0] == '"':
+        if len(name)>0 and name[0] == '"':
             surf = self.rendershapetext(name,size,col,backcol)
         elif name.split(' ')[0] in self.rendershapefunctions:
             surf = self.rendershapefunctions[name.split(' ')[0]](name,size,col,backcol)
         else:
-            surf = self.rendershapebezier(name,size,col,backcol,failmessage)
+            surf,worked = self.rendershapebezier(name,size,col,backcol,failmessage)
+            if not worked:
+                surf = self.rendershapetext(name,size,col,backcol)
         if 'left' in name:
             surf = pygame.transform.flip(surf,True,False)
         elif 'up' in name:
@@ -681,7 +703,7 @@ class UI:
         draw.roundedline(surf,col,(size*(1-width),size*width),(size*width,size*(1-width)),size*width)
         return surf
     def rendershapesettings(self,name,size,col,backcol):
-        surf = pygame.Surface((size,size))
+        surf = pygame.Surface((size,size)) 
         surf.fill(backcol)
         vals = self.getshapedata(name,['innercircle','outercircle','prongs','prongwidth','prongsteepness'],[0.15,0.35,6,0.2,1.1])
         innercircle = vals[0]
@@ -812,7 +834,7 @@ class UI:
             textgen.set_underline(underlined)
         except:
             pass
-        text = name.split('"')[1]
+        text = name.split(' ')[0].removesuffix('"').removeprefix('"')
         return textgen.render(text,antialias,col,backcol)
         
         
@@ -841,8 +863,8 @@ class UI:
         for a in names:
             if name[:len(a)] == a:
                 splines = data[names.index(a)][1]
-        if splines == [] and failmessage:
-            print('incorrect image name "'+name+'"')
+        if splines == []:
+            return 0,False
         boundingbox = [1000,1000,0,0]
         for a in splines:
             for b in a:
@@ -878,7 +900,7 @@ class UI:
                 points+=draw.bezierdrawer([(((a[c][0]-minus1[0])*mul1-minus[0])*mul+1,((a[c][1]-minus1[1])*mul1-minus[1])*mul+1) for c in range(len(a))],0,False,detail=detail)
             pygame.draw.polygon(surf,col,points)
 
-        return surf
+        return surf,True
                         
     def getshapedata(self,name,var,defaults):
         vals = defaults
@@ -899,8 +921,8 @@ class UI:
         return vals
         
     def rendertextlined(self,text,size,col='default',backingcol=(150,150,150),font='default',width=-1,bold=False,antialiasing=True,center=False,spacing=0,imgin=False,img='',scale='default',linelimit=10000,getcords=False,cutstartspaces=False):
-        if font=='default': font = Style.font
-        if col == 'default': col = Style.textcol
+        if font=='default': font = Style.defaults['font']
+        if col == 'default': col = Style.defaults['textcol']
         if width==-1 and center: center = False
         if scale == 'default': scale = self.scale
         size*=scale
@@ -909,24 +931,24 @@ class UI:
             if getcords:
                 return pygame.Surface((0,0)),[]
             return pygame.Surface((0,0))
-        imgchr = '@'
-        imgnames = []
+        imgchr = 'ξ'
         imgwidthid = 0
-        if imgin:
-            ntext = ''
-            stext = text.split('{')
-            ntext+=stext[0]
-            del stext[0]
-            if len(stext) == 0:
-                imgnames = ['']
-            for a in stext:
-                split = a.split('}')
-                ntext+=imgchr
-                ntext+=split[1]
-                imgnames.append(split[0])
+        if imgin: texts,imgnames = self.seperatestring(text)
         else:
-            ntext = text
+            texts = [text]
+            imgnames = ['']
+        ntext = ''
+        for i,a in enumerate(texts):
+            ntext+=a
+            if imgnames[i] != '':
+                ntext+=imgchr
+                
+
+        imgsurfs = [self.rendershape(imgnames[i],size,col,backcol=backingcol) for i in range(len(imgnames))]
+        
         lines = ntext.split('\n')
+        lines2 = copy.deepcopy(lines)
+        lines2stored = []
         textgen = pygame.font.SysFont(font,int(size),bold)
         
         textimages = []
@@ -939,7 +961,7 @@ class UI:
                 if textgen.size(lines[0])[0] != imgchr :
                     chrwidth = textgen.size(lines[0])[0]
                 else:
-                    chrwidth = self.rendershape(imgnames[imgwidthid],size,col,backcol=self.col).get_width()
+                    chrwidth = imgsurfs[imgwidthid].get_width()
                 while chrwidth>width:
                     split = lines[0].rsplit(' ',1)
                     if len(split)>1:
@@ -955,11 +977,12 @@ class UI:
                         else:
                             slide = ''
                     lines[0] = replace
+                    lines2[0] = replace
                     newline = slide+newline
                     if textgen.size(lines[0])[0] != imgchr :
                         chrwidth = textgen.size(lines[0])[0]
                     else:
-                        chrwidth = self.rendershape(imgnames[imgwidthid],size,col,backcol=self.col).get_width()
+                        chrwidth = imgsurfs[imgwidthid].get_width()
             if imgin:
                 while lines[0].count(imgchr) != 0:
                     lines[0] = lines[0].replace(imgchr,'{'+imgnames[imgwidthid]+'}',1)
@@ -967,17 +990,22 @@ class UI:
                         imgwidthid+=1
             if lines[0] == '':
                 lines[0] = newline
+                lines2[0] = newline
                 newline = ''
             if cutstartspaces and len(lines[0])>0 and lines[0][0] == ' ':
                 lines[0] = lines[0].removeprefix(' ')
+                lines2[0] = lines2[0].removeprefix(' ')
             textimages.append(self.rendertext(lines[0],int(size),col,font,bold,antialiasing,backingcol,imgin,img))
             tempsize = (textimages[-1].get_width(),textimages[-1].get_height())
             if tempsize[0]>imagesize[0]: imagesize[0] = tempsize[0]
             imagesize[1]+=tempsize[1]+spacing
             processedlines.append(lines[0])
             del lines[0]
+            lines2stored.append(lines2[0][:])
+            del lines2[0]
             if newline!='':
                 lines.insert(0,newline)
+                lines2.insert(0,newline)
             elif not ('\n' in text):
                 break
             addedlines+=1
@@ -994,11 +1022,11 @@ class UI:
                 yinc+=a.get_height()+spacing
         surf.set_colorkey(backingcol)
         if getcords:
-            cords = self.textlinedcordgetter(center,imagesize,textimages,processedlines,textgen,spacing,width)
+            cords = self.textlinedcordgetter(center,imagesize,textimages,processedlines,textgen,spacing,width,imgsurfs,lines2stored,imgchr,imgnames,size,font,bold)
             return surf,cords
         return surf
     
-    def textlinedcordgetter(self,center,imagesize,textimages,processedlines,textgen,spacing,width):#text,size,font='default',width=-1,bold=False,center=False,spacing=0):
+    def textlinedcordgetter(self,center,imagesize,textimages,processedlines,textgen,spacing,width,imgsurfs,lines2stored,imgchr,imgnames,size,font,bold):
         rowstart = []
         if center:
             for a in processedlines:
@@ -1008,15 +1036,41 @@ class UI:
         corddata = []
         noffset = 0
         nsize = textgen.size('\n')[0]
-        for i,a in enumerate(processedlines):
+        imgtracker = 0
+        for i,a in enumerate(lines2stored):
             if a[:1] == '\n': noffset = nsize
             else: noffset = 0
             corddata.append([])
+            inc = 0
             for b in range(len(a)):
-                lettersize = textgen.size(a[b])
-                linesize = textgen.size(a[:b+1])
-                corddata[-1].append([a[b],(rowstart[i]+linesize[0]-lettersize[0]/2-noffset,yinc+lettersize[1]/2),lettersize])
-            yinc+=textgen.size(a)[1]+spacing
+                b+=inc
+                extend = False
+                if a[b] == imgchr:
+                    a = a.replace(imgchr,'{'+imgnames[imgtracker]+'}')
+                    inc+=len(imgnames[imgtracker])+1
+                    b+=len(imgnames[imgtracker])+1
+                    lettersize = imgsurfs[imgtracker].get_size()
+                    imgtracker+=1
+                    extend = True
+                else:
+                    lettersize = textgen.size(a[b])
+                if inc == 0:
+                    linesize = textgen.size(a[:b+1])
+                else:
+                    swapped = a[:b+1]
+                    linesize = self.rendertextlined(swapped,size,(255,255,255),font=font,bold=bold,imgin=True)
+                    linesize = linesize.get_size()
+                corddata[-1].append([a[b],[rowstart[i]+linesize[0]-lettersize[0]/2-noffset,yinc+lettersize[1]/2],lettersize])
+                if extend:
+                    del corddata[-1][-1]
+                    for c in range(len(imgnames[imgtracker-1])+1,-1,-1):
+                        corddata[-1].append([a[b-c],[rowstart[i]+linesize[0]-lettersize[0]/2-noffset,yinc+lettersize[1]/2],lettersize])
+            if len(corddata[-1]) != 0:
+                ypoint = max([c[1][1] for c in corddata[-1]])
+                for c in corddata[-1]:
+                    c[1][1] = ypoint
+                    
+                yinc+=linesize[1]+spacing
         return corddata
     def gettextsize(self,text,font,size,bold=False):
         largetext = pygame.font.SysFont(font,int(size),bold)
@@ -1127,7 +1181,7 @@ class UI:
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,scaleby=-1,glow=0,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,
                  colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,
-                 linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=False,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,
+                 linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=False,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,
                  backingdraw=True,borderdraw=True):
         
         if col == -1: col = Style.objectdefaults[TEXTBOX]['col']
@@ -1138,7 +1192,7 @@ class UI:
                  border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                  command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,
                  colorkey=colorkey,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,
-                 lines=lines,linelimit=linelimit,selectcol=selectcol,selectbordersize=selectbordersize,selectshrinksize=selectshrinksize,cursorsize=cursorsize,textcenter=textcenter,chrlimit=chrlimit,numsonly=numsonly,enterreturns=enterreturns,commandifenter=commandifenter,commandifkey=commandifkey,
+                 lines=lines,linelimit=linelimit,selectcol=selectcol,selectbordersize=selectbordersize,selectshrinksize=selectshrinksize,cursorsize=cursorsize,textcenter=textcenter,chrlimit=chrlimit,numsonly=numsonly,enterreturns=enterreturns,commandifenter=commandifenter,commandifkey=commandifkey,imgdisplay=imgdisplay,
                  backingdraw=backingdraw,borderdraw=borderdraw)
         return obj
             
@@ -1453,7 +1507,7 @@ def filloutargs(args):
     newargs = todict(menu='main',ID='',layer=1,bounditems=[],killtime=-1,scaleby=-1,
                 text='',img='none',pregenerated=True,enabled=True,command=emptyfunction,runcommandat=0,
                 dragable=False,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',bindtoggle=[],clickablerect=-1,
-                linelimit=100,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,
+                linelimit=100,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,
                 data='empty',titles=[],boxwidth=-1,boxheight=-1,pageheight=15,scrollcords=(0,0),
                 sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',behindmenu='main')
     for a in newargs:
@@ -1613,6 +1667,7 @@ class GUI_ITEM:
         self.enterreturns = args['enterreturns']
         self.commandifenter = args['commandifenter']
         self.commandifkey = args['commandifkey']
+        self.imgdisplay = args['imgdisplay']
 
         self.data = args['data']
         self.titles = args['titles']
@@ -1964,6 +2019,7 @@ class TEXTBOX(GUI_ITEM):
         self.text = text
         self.refresh(ui)
     def inputkey(self,caps,event,kprs,ui):
+        starttext = self.text
         if kprs[pygame.K_LSHIFT] or kprs[pygame.K_RSHIFT]:
             if caps: caps = False
             else: caps = True
@@ -2007,9 +2063,17 @@ class TEXTBOX(GUI_ITEM):
             if self.commandifenter: self.command()
         elif event.key == pygame.K_SPACE: item = ' '
         elif event.key == pygame.K_LEFT:
-            if self.typingcursor>-1: self.typingcursor-=1
+            if self.typingcursor>-1:
+                prev = self.chrcorddata[self.typingcursor][1]
+                while self.chrcorddata[self.typingcursor][1]==prev:
+                    if self.typingcursor>-1: self.typingcursor-=1
+                    else: break
         elif event.key == pygame.K_RIGHT:
-            if self.typingcursor<len(self.chrcorddata)-1: self.typingcursor+=1
+            if len(self.chrcorddata)>0:
+                prev = self.chrcorddata[self.typingcursor][1]
+                while self.chrcorddata[self.typingcursor][1]==prev:
+                    if self.typingcursor<len(self.chrcorddata)-1: self.typingcursor+=1
+                    else: break
         elif event.key == pygame.K_UP:
             self.typingcursor = self.findclickloc(relativempos=[self.linecenter[0],self.linecenter[1]-self.cursorsize])
         elif event.key == pygame.K_DOWN:
@@ -2047,7 +2111,10 @@ class TEXTBOX(GUI_ITEM):
             self.text = self.text[:self.chrlimit-1]
         else:
             self.text = self.text[:self.chrlimit]
-        self.refresh(ui)
+        if self.text!=starttext:
+            self.refresh(ui)
+        else:
+            self.refreshcursor()
     def resetscroller(self,ui):
         self.scroll = 0
         if self.scroller != 0:
@@ -2081,7 +2148,7 @@ class TEXTBOX(GUI_ITEM):
         self.refreshglow(ui)
            
     def gentext(self,ui,refcurse=True):
-        self.textimage,self.chrcorddatalined = ui.rendertextlined(self.text,self.textsize,self.textcol,self.col,self.font,self.width-self.horizontalspacing*2-self.leftborder-self.rightborder-self.scrolleron*self.scroller.width,self.bold,center=self.textcenter,scale=self.scale,linelimit=self.linelimit,getcords=True)
+        self.textimage,self.chrcorddatalined = ui.rendertextlined(self.text,self.textsize,self.textcol,self.col,self.font,self.width-self.horizontalspacing*2-self.leftborder-self.rightborder-self.scrolleron*self.scroller.width,self.bold,center=self.textcenter,scale=self.scale,linelimit=self.linelimit,getcords=True,imgin=self.imgdisplay)
         for l in self.chrcorddatalined:
             for a in l:
                 a[1] = (a[1][0]/self.scale,a[1][1]/self.scale)
@@ -2154,9 +2221,8 @@ class TEXTBOX(GUI_ITEM):
             if len(self.chrcorddata)!=0: self.textselected[0] = True
             self.textselected[1] = self.typingcursor+1
             self.refreshcursor()
-            self.selected = True
+            self.select(ui)
             self.clickstartedinbound = True
-            ui.selectedtextbox = ui.textboxes.index(self)
         elif self.selected:
             if ui.mprs[self.clicktype] and ui.mouseheld[self.clicktype][1] == ui.buttondowntimer:
                 self.clickstartedinbound = False
@@ -2207,11 +2273,11 @@ class TEXTBOX(GUI_ITEM):
                 screen.blit(self.glowimage,(self.x*self.dirscale[0]-self.glow*self.scale,self.y*self.dirscale[1]-self.glow*self.scale))
             if self.borderdraw:
                 draw.rect(screen,self.backingcol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-            if self.selected:
+            if self.selected and self.selectbordersize!=0:
                 draw.rect(screen,self.selectcol,pygame.Rect(self.selectrect.x+self.holding*self.selectshrinksize*self.scale,self.selectrect.y+self.holding*self.selectshrinksize*self.scale,self.selectrect.width-self.holding*self.selectshrinksize*self.scale*2,self.selectrect.height-self.holding*self.selectshrinksize*self.scale*2),int(self.selectbordersize*self.scale),border_radius=int((self.roundedcorners+self.selectbordersize)*self.scale))
             surf = pygame.Surface(((self.width-self.leftborder-self.rightborder-self.scrolleron*self.scroller.width)*self.scale,(self.height-self.upperborder-self.lowerborder)*self.scale))
             surf.fill(self.backingcol)
-            draw.rect(surf,self.col,(0,0,surf.get_width(),surf.get_height()),border_radius=int(self.roundedcorners*self.scale))
+            if self.backingdraw: draw.rect(surf,self.col,(0,0,surf.get_width(),surf.get_height()),border_radius=int(self.roundedcorners*self.scale))
             surf.set_colorkey(self.backingcol)
 
             offset = (0,self.scroller.scroll)
@@ -2232,7 +2298,7 @@ class TEXTBOX(GUI_ITEM):
                     surf.blit(highlight,(trect[0],trect[1]))
                 
             screen.blit(surf,(self.x*self.dirscale[0]+(self.leftborder)*self.scale,self.y*self.dirscale[1]+(self.upperborder)*self.scale))
-            
+                
             
                 
 
