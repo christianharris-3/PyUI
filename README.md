@@ -210,6 +210,11 @@ ui.maketext(100,100,'This is a cross {cross}')
 ui.makebutton(100,200,'This is lots of crosses {}{}{}{}{}',img='cross')
 ui.makebutton(100,300,'This is an small arrow pointing up {arrow stick=0.3 up}')
 ```
+In built images can also be added by the user in code, you can add a pygame.Surface object with a corrisponding name to access it by, allowing with the same syntax that image to be accessed. 
+```py
+ui.addinbuiltimage('tree',pygame.image.load('example.png'))
+ui.maketext(100,100,{tree})
+```
 
 ### Manual in built images
 most variables that edit the image shape are a value between 0 and 1 representing a percentage of the full size of the image.
@@ -362,6 +367,7 @@ command=lambda: testfunction('function arguements')
 - **bool: enterreturns** = Controls if enter starts a new line (quite broken dont use).
 - **bool: commandifenter** = Controls if the enter key runs the command.
 - **bool: commandifkey** = Controls if any key input runs the command.
+- **bool: imgdisplay** = Controls if the in built image system runs inside of the textbox(can be quite laggy if too much text+in built images when editing text). 
 
 ### Table specific
 - **list: data** = A 2D list containing all of the info the body of the table, each item can be: str, int, Button, textbox, text and Pygame.surface. The format is each inner list is a row in the table.
