@@ -625,7 +625,6 @@ class UI:
     def rendershape(self,name,size,col='default',failmessage=True,backcol=(255,255,255)):
         if col == 'default': col = Style.col
         if col == backcol: backcol = (0,0,0)
-        name = name.replace("'",'"')
         if '(' in name and ')' in name:
             try:
                 c = name.split('(')[1].split(')')[0].split(',')
@@ -835,7 +834,11 @@ class UI:
             textgen.set_underline(underlined)
         except:
             pass
-        text = name.split(' ')[0].removesuffix('"').removeprefix('"')
+        text = name
+        if len([i for i in text if i=='"']) == 2:
+            text = name.split('"')[1]
+        else:
+            text = name.split(' ')[0]
         return textgen.render(text,antialias,col,backcol)
         
         
@@ -1054,7 +1057,7 @@ class UI:
                 b+=inc
                 extend = False
                 if a[b] == imgchr:
-                    a = a.replace(imgchr,'{'+imgnames[imgtracker]+'}')
+                    a = a.replace(imgchr,'{'+imgnames[imgtracker]+'}',1)
                     inc+=len(imgnames[imgtracker])+1
                     b+=len(imgnames[imgtracker])+1
                     lettersize = imgsurfs[imgtracker].get_size()
@@ -2078,10 +2081,15 @@ class TEXTBOX(GUI_ITEM):
                     else: break
         elif event.key == pygame.K_RIGHT:
             if len(self.chrcorddata)>0:
-                prev = self.chrcorddata[self.typingcursor][1]
-                while self.chrcorddata[self.typingcursor][1]==prev:
-                    if self.typingcursor<len(self.chrcorddata)-1: self.typingcursor+=1
-                    else: break
+                if self.typingcursor < len(self.chrcorddata)-1:
+                    prev = self.chrcorddata[self.typingcursor+1][1]
+                    start = self.typingcursor
+                    while self.chrcorddata[self.typingcursor+1][1]==prev:
+                        if self.typingcursor<len(self.chrcorddata)-1: self.typingcursor+=1
+                        else: break
+                        if self.typingcursor > len(self.chrcorddata)-3:
+                            break
+                    if self.typingcursor-start>1: self.typingcursor+=1
         elif event.key == pygame.K_UP:
             self.typingcursor = self.findclickloc(relativempos=[self.linecenter[0],self.linecenter[1]-self.cursorsize])
         elif event.key == pygame.K_DOWN:
