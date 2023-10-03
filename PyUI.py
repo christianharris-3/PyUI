@@ -2659,6 +2659,7 @@ class TEXT(GUI_ITEM):
         self.autoscale(ui)
         self.refreshcords(ui)
         self.refreshglow(ui)
+        self.resetcords(ui)
 
 class SCROLLER(GUI_ITEM):
     def reset(self,ui):
