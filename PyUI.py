@@ -367,6 +367,7 @@ class UI:
         self.windowedmenunames = []
         self.backchain = []
         self.queuedmenumove = [0,[]]
+        self.prevmenumove = []
         self.buttondowntimer = 9
 
         self.fullscreen = False
@@ -1305,21 +1306,21 @@ class UI:
     def makerect(self,x,y,width,height,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=0,bounditems=[],killtime=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,enabled=True,
                  border=0,scalesize=True,scalex=-1,scaley=-1,scaleby=-1,glow=0,glowcol=-1,
-                 runcommandat=0,col=-1,dragable=False):
+                 runcommandat=0,col=-1,dragable=False,backingdraw=False):
         obj = RECT(ui=self,x=x,y=y,command=emptyfunction,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,width=width,height=height,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,enabled=enabled,
                  border=border,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
-                 runcommandat=runcommandat,col=col,dragable=dragable)
+                 runcommandat=runcommandat,col=col,dragable=dragable,backingdraw=backingdraw)
         return obj
     def makecircle(self,x,y,radius,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,
                  anchor=(0,0),objanchor=(0,0),center=True,centery=-1,enabled=True,
                  border=-1,scalesize=True,scalex=-1,scaley=-1,scaleby=-1,glow=0,glowcol=-1,
-                 runcommandat=0,col=-1,dragable=False):
+                 runcommandat=0,col=-1,dragable=False,backingdraw=False):
         if roundedcorners==-1: roundedcorners=radius
         obj = self.makerect(x=x,y=y,width=radius*2,height=radius*2,command=command,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,enabled=enabled,
                  border=border,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
-                 runcommandat=runcommandat,col=col,dragable=dragable)
+                 runcommandat=runcommandat,col=col,dragable=dragable,backingdraw=backingdraw)
         return obj
         
     def makesearchbar(self,x,y,text='Search',width=400,lines=1,menu='main',command=emptyfunction,ID='textbox',layer=1,roundedcorners=0,bounditems=[],killtime=-1,height=-1,
@@ -1423,7 +1424,9 @@ class UI:
             for a in self.mouseheld:
                 a[1]-=1
         elif self.queuemenumove:
-            self.queuedmenumove[1] = ['move',moveto,slide,length]
+            if ['move',moveto,slide,length]!=self.prevmenumove:
+                self.queuedmenumove[1] = ['move',moveto,slide,length]
+            self.prevmenumove = self.queuedmenumove[1]
     def menuback(self,slide='none',length='default'):
         if len(self.backchain)>0:
             if slide =='none' and self.backchain[-1][1] != 'none':
@@ -1446,7 +1449,9 @@ class UI:
             for a in self.mouseheld:
                 a[1]-=1
         elif self.queuemenumove:
-            self.queuedmenumove[1] = ['back',slide,length]
+            if ['back',slide,length]!=self.prevmenumove:
+                self.queuedmenumove[1] = ['back',slide,length]
+            self.prevmenumove = self.queuedmenumove[1]
     def slidemenu(self,menufrom,menuto,slide,length):
         self.queuedmenumove[0] = length*30
         dirr = [0,0]
