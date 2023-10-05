@@ -2331,6 +2331,8 @@ class TEXTBOX(GUI_ITEM):
 
 class TABLE(GUI_ITEM):
     def reset(self,ui):
+        self.startboxwidth = self.boxwidth
+        self.startboxheight = self.boxheight
         self.tableitemID = str(random.randint(1000000,10000000))
         self.threadactive = False
         self.tableimages=0
@@ -2474,6 +2476,8 @@ class TABLE(GUI_ITEM):
         obj.resetcords(ui,False)
 
     def initheightwidth(self):
+        self.boxwidth = self.startboxwidth
+        self.boxheight = self.startboxheight
         if type(self.boxwidth) == int:
             if self.columns == 0: self.boxwidth = [self.boxwidth]
             else: self.boxwidth = [self.boxwidth for a in range(self.columns)]
