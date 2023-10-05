@@ -2394,8 +2394,8 @@ class TABLE(GUI_ITEM):
         if self.rows == 0: self.columns = 0
         else:
             self.columns = max([len(a) for a in temp])
-            if type(self.boxwidth) == list:
-                self.columns = max(self.columns,len(self.boxwidth))
+            if type(self.startboxwidth) == list:
+                self.columns = max(self.columns,len(self.startboxwidth))
         for a in temp:
             self.labeleddata.append(self.labellist(a))
     def labellist(self,lis):
