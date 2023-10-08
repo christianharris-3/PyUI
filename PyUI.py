@@ -428,7 +428,7 @@ class UI:
     def styleload_brown(self): self.styleset(col=(39,75,91),textcol=(235,217,115),wallpapercol=(40,41,35),textsize=30,verticalspacing=2,horizontalspacing=5,clickdownsize=2,roundedcorners=4)
     def styleload_red(self): self.styleset(col=(152,18,20),textcol=(234,230,133),wallpapercol=(171,19,18),spacing=3,clickdownsize=2,textsize=40,horizontalspacing=8,roundedcorners=5)
         
-    def scaleset(self,scale):
+    def __scaleset__(self,scale):
         self.scale = scale
         self.dirscale = [self.screenw/self.basescreensize[0],self.screenh/self.basescreensize[1]]
         for a in self.items:
@@ -437,6 +437,8 @@ class UI:
         for a in self.automenus+self.windowedmenus:
             a.refresh(self)
             a.resetcords(self)
+    def setscale(self,scale):
+        pygame.event.post(pygame.event.Event(pygame.VIDEORESIZE,w=self.basescreensize[0]*scale,h=self.basescreensize[1]*scale))
     def refreshall(self):
         for a in self.automenus+self.windowedmenus:
             a.enabled = False
@@ -532,8 +534,6 @@ class UI:
                                     a.limitpos(self)
                                     a.command()
                                     break
-        if self.exit:
-            pygame.event.post(pygame.event.Event(pygame.QUIT))
         return repeatchecker
     def togglefullscreen(self,screen):
         if self.fullscreen: self.fullscreen = False
@@ -541,9 +541,9 @@ class UI:
         self.resetscreen(screen)
     def resetscreen(self,screen):
         if self.autoscale == 'width':
-            self.scaleset(self.screenw/self.basescreensize[0])
+            self.__scaleset__(self.screenw/self.basescreensize[0])
         else:
-            self.scaleset(self.screenh/self.basescreensize[1])
+            self.__scaleset__(self.screenh/self.basescreensize[1])
         if self.fullscreen: screen = pygame.display.set_mode((self.screenw,self.screenh),pygame.FULLSCREEN)
         else: screen = pygame.display.set_mode((self.screenw,self.screenh),pygame.RESIZABLE)       
         self.blockf11 = 10
@@ -1445,7 +1445,7 @@ class UI:
                     self.slidemenu(self.activemenu,self.backchain[-1][0],slide,length) 
                 del self.backchain[-1]
             elif self.backquits and self.queuedmenumove[0]<0:
-                self.exit = True
+                pygame.event.post(pygame.event.Event(pygame.QUIT))
             for a in self.mouseheld:
                 a[1]-=1
         elif self.queuemenumove:
