@@ -12,8 +12,7 @@ clock = pygame.time.Clock()
 
 
 while not done:
-    pygameeventget = ui.loadtickdata()
-    for event in pygameeventget:
+    for event in ui.loadtickdata():
         if event.type == pygame.QUIT:
             done = True
     screen.fill(pyui.Style.wallpapercol)
