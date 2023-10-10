@@ -52,9 +52,9 @@ clock = pygame.time.Clock()
 
 # main game loop
 while not done:
-    # grabs event data like button inputs and mouse position
-    pygameeventget = ui.loadtickdata()
-    for event in pygameeventget:
+    # grabs event data like button inputs and mouse position and ruturns pygame event data
+    # can be treated the same as pygame.event.get() function
+    for event in ui.loadtickdata():
         if event.type == pygame.QUIT:
             done = True
     # fills screen with the wallpaper col, defaults to white
