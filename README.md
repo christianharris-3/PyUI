@@ -281,125 +281,127 @@ most variables that edit the image shape are a value between 0 and 1 representin
 
 ## Object variables
 All objects have a range of variables that can be changed to edit the object being made, most objects share similar variables and do the same job for each object so can be described in one, rather than a different set for each object.
+Colours are given in the form (r,g,b) where r, g and b are integers >= 0 and <= 255.
+When looking at a function in code the most common value is -1, this means it is being later set to some form of default. For most of these variables the default can be set using the [style system](./READ.md#Style-System).
 ### General variables
-- **int: x** = The x position of the top left corner of the object relative to the anchor(default is 0,0).
-- **int: y** = The y position of the top leftcorner of the object relative to the anchor(default is 0,0).
-- **int: width** = The full width of the object.
-- **int: height** = The full height of the object.
-- **str: menu** = The menu the object is on, if set to 'universal' it will be displayed on all menus.
-- **str: ID** = The ID of the object, if one of the same name already exists a 1/2/3 etc is added to the end of the ID.
-- **int: layer** = The display order of the object, lower number means drawn underneath and default is 1.
-- **int: roundedcorners** = Rounds the corners of the object by, the value given is the radius of the quarter circle in each corner of the rect
-- **list[objects]: bounditems** = A list of objects bound to the object being made.
-- **int: killtime** = A time in seconds between the creation of the object and the object being automatically deleted.
-- **tuple: anchor** = The point treated as the origin by the object, refer to Object Positioning for more info.
-- **tuple: objanchor** = The point on the object its x and y act on, refer to Object Positioning for more info.
-- **bool: enabled** = stops the object from being rendered if False.
-- **bool: center** = Auto sets objanchor to the center of the object.
-- **bool: centery** = Auto sets specifically the vertical center of the object.
-- **bool: scalesize** = Boolean that allows/doesnt allow the object to scale in size when the screen is resized.
-- **bool: scalex** = Boolean that allows/doesnt allow the object to scale closer to its origin in the x direction when the screen is resized.
-- **bool: scaley** = Boolean that allows/doesnt allow the object to scale closer to its origin in the y direction when the screen is resized.
-- **str: scaleby** = Defaults to the global variable "autoscale" in the UI object, setting scaleby to "vertical" will make the object scalesize based on the changing height of the screen, while setting it to "horizontal" will do the same but for screen width.
-- **int: border** = Sets the pixel size of the border of the object.
-- **int: upperborder** = Sets pixel size of only the upper border.
-- **int: lowerborder** = Sets pixel size of only the lower border
-- **int: rightborder** = Sets pixel size of only the right border.
-- **int: leftborder** = Sets pixel size of only the left border.
-- **int: spacing** = Sets the pixel distance between the text and the border inside an object.
-- **int: verticalspacing** = Sets the vertical pixel distance between the text and the border inside an object.
-- **int: horizontalspacing** = Sets the horizontal pixel distance between the text and the border inside an object.
-- **function: command** = Any function that is than run by the object, this can be a PyUI function like menumove or delete, or any user created function. To give the function inputs use the syntax
+- **x**-***int/float*** = The x position of the top left corner of the object relative to the anchor(default is 0,0).
+- **y**-***int/float*** = The y position of the top leftcorner of the object relative to the anchor(default is 0,0).
+- **width**-***int/float*** = The full width of the object.
+- **height**-***int/float*** = The full height of the object.
+- **menu**-***str/list[str]*** = The menu the object is on, can be given a list of menus that it will appear on. if the string "animate" is the list the object will animate with the rest of the menu when moving menus.
+- **ID**-***str*** = The ID of the object, if one of the same name already exists a 1/2/3 etc is added to the end of the ID.
+- **layer**-***int/float*** = The display order of the object, lower number means drawn underneath and default is 1.
+- **roundedcorners**-***int/float*** = Rounds the corners of the object by, the value given is the radius of the quarter circle in each corner of the rect
+- **bounditems**-***list[any PyUI GUI object]***  = A list of objects bound to the object being made.
+- **killtime**-***int/float*** = A time in seconds between the creation of the object and the object being automatically deleted.
+- **anchor**-***(str/int/float,str/int/float)*** = The point treated as the origin by the object, refer to Object Positioning for more info.
+- **objanchor**-***(str/int/float,str/int/float)*** = The point on the object its x and y act on, refer to Object Positioning for more info.
+- **enabled**-***bool*** = stops the object from being rendered if False.
+- **center**-***bool*** = Auto sets objanchor to the center of the object.
+- **centery**-***bool*** = Auto sets specifically the vertical center of the object.
+- **scalesize**-***bool*** = Boolean that allows/doesnt allow the object to scale in size when the screen is resized.
+- **scalex**-***bool*** = Boolean that allows/doesnt allow the object to scale closer to its origin in the x direction when the screen is resized.
+- **scaley**-***bool*** = Boolean that allows/doesnt allow the object to scale closer to its origin in the y direction when the screen is resized.
+- **scaleby**-***bool*** = Defaults to the global variable "autoscale" in the UI object, setting scaleby to "vertical" will make the object scalesize based on the changing height of the screen, while setting it to "horizontal" will do the same but for screen width.
+- **border**-***int/float*** = Sets the pixel size of the border of the object.
+- **upperborder**-***int/float*** = Sets pixel size of only the upper border.
+- **lowerborder**-***int/float*** = Sets pixel size of only the lower border
+- **rightborder**-***int/float*** = Sets pixel size of only the right border.
+- **leftborder**-***int/float*** = Sets pixel size of only the left border.
+- **spacing**-***int/float*** = Sets the pixel distance between the text and the border inside an object.
+- **verticalspacing**-***int/float*** = Sets the vertical pixel distance between the text and the border inside an object.
+- **horizontalspacing**-***int/float*** = Sets the horizontal pixel distance between the text and the border inside an object.
+- **command**-***function*** = Any function that is then run by the object, this can be a PyUI function like menumove or delete, or any user created function. To give the function inputs use the syntax
 
 ```py
 command=lambda: testfunction('function arguements')
 ```
 
-- **int: runcommandat** = Used to control when a command is ran when clicking a button, 0=when first clicked, 1=every tick the button is held, 2=when the button is released.
-- **Pygame.Rect: clickablerect** = The actual on screen rect (must be Pygame.Rect) that the object can be clicked on in, this is unaffected by any scale variables.
-- **rgb tuple: col** = The overall colour of the object, other colours used if not set by the user will be based off this colour. If not set col defaults to the ui.default col variable.
-- **rgb tuple,int: backingcol** = The colour of the backing,mostly interchangeable with bordercol, if unset it will default to adding 20 to the the r,g and b number of col. Setting it to an Int will add that int to col instead of 20.
-- **rgb tuple: bordercol** = Interchangable with backingcol, just used as it is more intuative for some objects.
-- **bool: backingdraw** = Boolean that toggles if the backing is drawn.
-- **bool: borderdraw** = Boolean that toggles if the border is drawn.
-- **int: glow** = An value that changes the size of the glow effect around an object, defaults to no glow.
-- **rgba tuple: glowcol** = Edits the colour of the glow specifically.
+- **runcommandat**-***int:0,1,2*** = Used to control when a command is ran when clicking a button, 0=when first clicked, 1=every tick the button is held, 2=when the button is released.
+- **clickablerect**-***Pygame.Rect*** = The actual on screen rect (must be Pygame.Rect) that the object can be clicked on in, this is unaffected by any scale variables.
+- **col**-***(r,g,b)*** = The overall colour of the object, other colours used if not set by the user will be based off this colour. If not set col defaults to the ui.default col variable.
+- **backingcol**-***(r,g,b)/int*** = The colour of the backing,mostly interchangeable with bordercol, if unset it will default to adding 20 to the the r, g and b number of col. Setting it to an Int will add that int value to col instead of 20.
+- **bordercol**-***(r,g,b)*** = Interchangable with backingcol, just used as it is more intuative for some objects.
+- **backingdraw**-***bool*** = Boolean that toggles if the backing is drawn.
+- **borderdraw**-***bool*** = Boolean that toggles if the border is drawn.
+- **glow**-***int*** = An value that changes the size of the glow effect around an object, defaults to no glow.
+- **glowcol**-***(r,g,b,a)*** = Edits the colour of the glow specifically.
 
 ### Text variables
-- **str: text** = The text that is displayed, can be used with in built images with all objects except textboxes.
-- **int: textsize** = The size of the text.
-- **Pygame.Surface,str: img** = Used inside the in build image system, can also be used to input an image through pygame with img=pygame.image.load('image.png'), if a list of items are inputed it will animate through each item.
-- **rgb tuple: colorkey** = The rgb colorkey used for the text image. [more info](https://www.pygame.org/docs/ref/surface.html)
-- **str: font** = The name of the font of the text.
-- **bool: bold** = Boolean to control if text is in bold.
-- **bool: antialiasing** = Boolean to control if text is antialiased.
-- **bool: pregenerated** = Default is False, if True it regenerates the text image every frame resulting in no antialiasing problems, may result in large drop in fps is used too much.
-- **rgb tuple: textcol** = The colour of the text displayed.
-- **int: textoffsetx** = Used to configure the x position of where the text is placed on the object, postive most right and negative moves left.
-- **int: textoffsety** = Same as textoffsetx but for y position, up is negative down is positive.
-- **int: animationspeed** = The number of frames of each animation frame.
+- **text**-***str*** = The text that is displayed, can be used with in built images with all objects. Textboxes require imgdisplay to be true for this to take effect.
+- **textsize**-***int/float*** = The size of the text.
+- **img**-***pygame.Surface/str*** = Used inside the in build image system, can also be used to input an image through pygame with img=pygame.image.load('image.png'), if a list of items are inputed it will animate through each item.
+- **colorkey**-***(r,g,b)*** = The rgb colorkey used for the text image. [more info](https://www.pygame.org/docs/ref/surface.html)
+- **font**-***str*** = The name of the font of the text, to see all valid fonts use pygame.font.get_fonts()
+- **bold**-***bool*** = Boolean to control if text is in bold.
+- **antialiasing**-***bool*** = Boolean to control if text is antialiased.
+- **pregenerated**-***bool*** = Default is False, if True it regenerates the text image every frame resulting in no antialiasing problems, may result in large drop in fps is used too much.
+- **textcol**-***(r,g,b)*** = The colour of the text displayed.
+- **textoffsetx**-***int/float*** = Used to configure the x position of where the text is placed on the object, postive most right and negative moves left.
+- **textoffsety**-***int/float*** = Same as textoffsetx but for y position, up is negative down is positive.
+- **animationspeed**-***int: >0*** = The number of frames of each animation frame.
 
 ### Button specific
-- **rgb tuple: hovercol** = The colour the backing goes when the mouse hovers over it.
-- **int: clickdownsize** = The number of pixels the moved in by when the button is clicked down.
-- **int: clicktype** = The mousebutton used to click the button, default = 0 (left click), 1 is middle click, 2 is right click.
-- **int: clickableborder** = A number in pixels that increases hitbox of a button
-- **int: maxwidth** = The max width of the text, the text will move onto a new line to keep within this limit.
-- **bool: dragable** = Boolean that controls if the button can be dragged
-- **bool: toggle** = Sets the starting toggle varible of the obect, this variable is toggled by a toggleable button and is used to access if it is toggled or not.
-- **bool: toggleable** = Sets if the button can be toggled.
-- **str: toggletext** = The display text when the button is toggled, all same functions as normal text and defaults to normal text if empty.
-- **Pygame.Surface,str: toggleimg** = Same as toggletext except for img variable.
-- **rgb tuple: togglecol** = The backingcol for the text for when it is toggled
-- **rgb tuple: togglehovercol** = The colour when hovering and toggled.
-- **list[ID]: bindtoggle** = A list of object IDs that are toggled off when it is toggled on, the object can have its own ID in the list and be unaffected.
+- **hovercol**-***(r,g,b)*** = The colour the backing goes when the mouse hovers over it.
+- **clickdownsize**-***int/float*** = The number of pixels the moved in by when the button is clicked down.
+- **clicktype**-***int:0,1,2*** = The mousebutton used to click the button, default = 0 (left click), 1 is middle click, 2 is right click.
+- **clickableborder**-***int*** = A number in pixels that increases hitbox of a button
+- **maxwidth**-***int/float*** = The max width of the text, the text will move onto a new line to keep within this limit.
+- **dragable**-***bool*** = Boolean that controls if the button can be dragged
+- **toggle**-***bool*** = Sets the starting toggle varible of the obect, this variable is toggled by a toggleable button and is used to access if it is toggled or not.
+- **toggleable**-***bool*** = Sets if the button can be toggled.
+- **toggletext**-***str*** = The display text when the button is toggled, all same functions as normal text and defaults to normal text if empty.
+- **toggleimg**-***str/*** = Same as toggletext except for img variable.
+- **togglecol**-***(r,g,b)*** = The backingcol for the text for when it is toggled
+- **togglehovercol**-***(r,g,b)*** = The colour when hovering and toggled.
+- **bindtoggle**-***list[str]*** = A list of object IDs that are toggled off when it is toggled on, the object can have its own ID in the list and be unaffected.
 
 ### Textbox specific
-- **int: lines** = The number of lines of text that can be stored in the textbox, it auto sets the height of the textbox based on textsize.
-- **int: linelimit** = The number of lines that can be used and scrolled to (doesnt work very well).
-- **rgb tuple: selectcol** = The colour of the border that appears when a textbox is selected.
-- **int: selectbordersize** = The size of the border in pixels, set to 0 to remove border.
-- **int: selectshrinksize** = The amount the border moves in by when clicking, (inner image is blitted after so recomended this isnt used)
-- **int: cursorsize** = Size in pixels of the cursor, defaults to textsize.
-- **bool: textcenter** = Dictates if the text is centered on each line.
-- **int: chrlimit** = The charcter limit in the text.
-- **bool: numsonly** = Blocks all characters except numbers.
-- **bool: enterreturns** = Controls if enter starts a new line (quite broken dont use).
-- **bool: commandifenter** = Controls if the enter key runs the command.
-- **bool: commandifkey** = Controls if any key input runs the command.
-- **bool: imgdisplay** = Controls if the in built image system runs inside of the textbox(can be quite laggy if too much text+in built images when editing text). 
+- **lines**-***int*** = The number of lines of text that can be stored in the textbox, it auto sets the height of the textbox based on textsize.
+- **linelimit**-***int*** = The number of lines that can be used and scrolled to (doesnt work very well).
+- **selectcol**-***(r,g,b)*** = The colour of the border that appears when a textbox is selected.
+- **selectbordersize**-***int*** = The size of the border in pixels, set to 0 to remove border.
+- **selectshrinksize**-***int*** = The amount the border moves in by when clicking, (inner image is blitted after so recomended this isnt used)
+- **cursorsize**-***int*** = Size in pixels of the cursor, defaults to textsize.
+- **textcenter**-***bool*** = Dictates if the text is centered on each line.
+- **chrlimit**-***int*** = The charcter limit in the text.
+- **numsonly**-***bool*** = Blocks all characters except numbers.
+- **enterreturns**-***bool*** = Controls if enter starts a new line (quite broken dont use).
+- **commandifenter**-***bool*** = Controls if the enter key runs the command.
+- **commandifkey**-***bool*** = Controls if any key input runs the command.
+- **imgdisplay**-***bool*** = Controls if the in built image system runs inside of the textbox(can be quite laggy if too much text+in built images when editing text). 
 
 ### Table specific
-- **list: data** = A 2D list containing all of the info the body of the table, each item can be: str, int, Button, textbox, text and Pygame.surface. The format is each inner list is a row in the table.
-- **list: titles** = A 1D list that can be left empty for no titles, works the exact same as a single row in data
-- **int,list: boxwidth** = Sets the widths of each column in pixels, a value of -1 will auto fit to the width of the items i that column. Giving an int will use that int value for every column of the table, default is -1 meaning every column is auto fitted. 
-- **int,list: boxheight** = Exact same function and use as boxwidth however for rows not columns.
-- **int: linesize** = The pixel size of the width of each line seperating objects in the table.
-- **int: guesswidth** = When using threading to refresh a table the table, there is no value for boxwidth/height if it is -1, so it assumes this value to be the width of the table before resetting back to proper values when the refresh is finished.
-- **int: guessheight** = Same as guesswidth but for height of boxes.
+- **data**-***list[list[int/str/button/textbox/text/table/slider/pygame.Surface]]*** = A 2D list containing all of the info the body of the table, each item can be a variety of data types. The format is each inner list is a row in the table.
+- **titles**-***list[int/str/button/textbox/text/table/slider/pygame.Surface]*** = A 1D list that can be left empty for no titles, works the exact same as a single row in data
+- **boxwidth**-***int/list[int]*** = Sets the widths of each column in pixels, a value of -1 will auto fit to the width of the items i that column. Giving an int will use that int value for every column of the table, default is -1 meaning every column is auto fitted. 
+- **boxheight**-***int/list[int]*** = Exact same function and use as boxwidth however for rows not columns.
+- **linesize**-***int/float*** = The pixel size of the width of each line seperating objects in the table.
+- **guesswidth**-***int/float*** = When using threading to refresh a table the table, there is no value for boxwidth/height if it is -1, so it assumes this value to be the width of the table before resetting back to proper values when the refresh is finished.
+- **guessheight**-***int/float*** = Same as guesswidth but for height of boxes.
 
 ### Scroller/Slider specific
-- **int: minp** = The lower bound for the objects scroll/slider value
-- **int: maxp** = The lower upper for the objects scroll/slider value
-- **int: startp** = The point inbetween minp and maxp that the object starts its value at.
+- **minp**-***int*** = The lower bound for the objects scroll/slider value
+- **maxp**-***int: >minp*** = The lower upper for the objects scroll/slider value
+- **startp**-***int: >minp,<maxp*** = The point inbetween minp and maxp that the object starts its value at.
 #### Scroller
 - **scrollercol** = Remove this it does nothing
 - **scrollerwidth** = Remove this it does nothing
-- **int: pageheight** = The height of the page that can be seen, dictates the height of the clickable part of the scroller. if the page height it larger than maxp-minp the scroller will not display.
-- **list[str]: scrollbind** = A list of object IDs that are scrolled when the scroller is moved
+- **pageheight**-***int/float*** = The height of the page that can be seen, dictates the height of the clickable part of the scroller. if the page height it larger than maxp-minp the scroller will not display.
+- **scrollbind**-***list[str]*** = A list of object IDs that are scrolled when the scroller is moved
 #### Slider
-- **int: slidersize** = The width and height of the button on the slider.
-- **int,float: increment** = The value by which the the sliders value locks to multiples of, ie setting it to 1 will mean the .slider value will only be integer values.
+- **slidersize**-***int/float*** = The width and height of the button on the slider.
+- **increment**-***int/float*** = The value by which the the sliders value locks to multiples of, ie setting it to 1 will mean the .slider value will only be integer values.
 - **sliderroundedcorners** = Remove this it does nothing
-- **BUTTON: button** = The button object that is then locked onto the slider, allows for the same customizability a button has but on a slider.
-- **str: direction** = either 'vertical' or 'horizontal', setting if the button moves up and down or left and right.
-- **bool: containedslider** = Will auto set the button to be contained inside the slider.
-- **bool: movetoclick** = Sets if clicking anywhere in the slider moves the slider to that point on it.
+- **button**-***button object*** = The button object that is then locked onto the slider, allows for the same customizability a button has but on a slider.
+- **direction**-***str*** = either 'vertical' or 'horizontal', setting if the button moves up and down or left and right.
+- **containedslider**-***bool*** = Will auto set the button to be contained inside the slider.
+- **movetoclick**-***bool*** = Sets if clicking anywhere in the slider moves the slider to that point on it.
 
 ### Windowed menu specific
-- **str: behindmenu** = The name of the menu that the windowedmenu appears on top of.
-- **bool: isolated** = controls if objects on the behindmenu can be used while the menu is active. if True clicking anywhere other than the windowed menu will shut it, if False clicking on only the button that brought up the menu will shut it.
-- **int: darken** = The alpha value from 0 to 255 that darkens the behind menu when the windowedmenu is open.
+- **behindmenu**-***str*** = The name of the menu that the windowedmenu appears on top of.
+- **isolated**-***bool*** = controls if objects on the behindmenu can be used while the menu is active. if True clicking anywhere other than the windowed menu will shut it, if False clicking on only the button that brought up the menu will shut it.
+- **darken**-***int: >=0,<=255*** = The alpha value from 0 to 255 that darkens the behind menu when the windowedmenu is open.
 
 
 
