@@ -328,9 +328,9 @@ command=lambda: testfunction('function arguements')
 - **glowcol**-***(r,g,b,a)*** = Edits the colour of the glow specifically.
 
 ### Text variables
-- **text**-***str*** = The text that is displayed, can be used with [in build images](./READ.md#In-built-images) with all objects. Textboxes require imgdisplay to be true for this to take effect.
+- **text**-***str*** = The text that is displayed, can be used with [in build images]([./](https://github.com/LazerWolfeGod/PyUI/blob/master/)READ.md#In-built-images) with all objects. Textboxes require imgdisplay to be true for this to take effect.
 - **textsize**-***int/float*** = The size of the text.
-- **img**-***pygame.Surface/str*** = Used inside the [in build image system](./READ.md#In-built-images), can also be used to input an image through pygame with img=pygame.image.load('image.png'), if a list of items are inputed it will animate through each item.
+- **img**-***pygame.Surface/str*** = Used inside the [in build image system](https://github.com/LazerWolfeGod/PyUI/blob/master/READ.md#In-built-images), can also be used to input an image through pygame with img=pygame.image.load('image.png'), if a list of items are inputed it will animate through each item.
 - **colorkey**-***(r,g,b)*** = The rgb colorkey used for the text image. [more info](https://www.pygame.org/docs/ref/surface.html)
 - **font**-***str*** = The name of the font of the text, to see all valid fonts use pygame.font.get_fonts()
 - **bold**-***bool*** = Boolean to control if text is in bold.
