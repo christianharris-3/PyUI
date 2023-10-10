@@ -79,7 +79,6 @@ Example code:
 ```py
 ui = PyUI.UI()
 # load a default style
-# the default style is a simple black and white style
 ui.styleload_lightblue()
 # sets some specific values
 ui.setstyle(col=(255,0,0),roundedcorners=4,wallpapercol=(255,0,0))
@@ -282,7 +281,7 @@ most variables that edit the image shape are a value between 0 and 1 representin
 ## Object variables
 All objects have a range of variables that can be changed to edit the object being made, most objects share similar variables and do the same job for each object so can be described in one, rather than a different set for each object.
 Colours are given in the form (r,g,b) where r, g and b are integers >= 0 and <= 255.
-When looking at a function in code the most common value is -1, this means it is being later set to some form of default. For most of these variables the default can be set using the [style system](./READ.md#Style-System).
+When looking at a function in code the most common value is -1, this means it is being later set to some form of default. For most of these variables the default can be set using the [style system](#Style-System).
 ### General variables
 - **x**-***int/float*** = The x position of the top left corner of the object relative to the anchor(default is 0,0).
 - **y**-***int/float*** = The y position of the top leftcorner of the object relative to the anchor(default is 0,0).
