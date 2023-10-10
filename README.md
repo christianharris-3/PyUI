@@ -317,7 +317,7 @@ When looking at a function in code the most common value is -1, this means it is
 command=lambda: testfunction('function arguements')
 ```
 
-- **runcommandat**-***int:0,1,2*** = Used to control when a command is ran when clicking a button, 0=when first clicked, 1=every tick the button is held, 2=when the button is released.
+- **runcommandat**-***int:0/1/2*** = Used to control when a command is ran when clicking a button, 0=when first clicked, 1=every tick the button is held, 2=when the button is released.
 - **clickablerect**-***Pygame.Rect*** = The actual on screen rect (must be Pygame.Rect) that the object can be clicked on in, this is unaffected by any scale variables.
 - **col**-***(r,g,b)*** = The overall colour of the object, other colours used if not set by the user will be based off this colour. If not set col defaults to the ui.default col variable.
 - **backingcol**-***(r,g,b)/int*** = The colour of the backing,mostly interchangeable with bordercol, if unset it will default to adding 20 to the the r, g and b number of col. Setting it to an Int will add that int value to col instead of 20.
@@ -328,9 +328,9 @@ command=lambda: testfunction('function arguements')
 - **glowcol**-***(r,g,b,a)*** = Edits the colour of the glow specifically.
 
 ### Text variables
-- **text**-***str*** = The text that is displayed, can be used with in built images with all objects. Textboxes require imgdisplay to be true for this to take effect.
+- **text**-***str*** = The text that is displayed, can be used with [in build images](./READ.md#In-built-images) with all objects. Textboxes require imgdisplay to be true for this to take effect.
 - **textsize**-***int/float*** = The size of the text.
-- **img**-***pygame.Surface/str*** = Used inside the in build image system, can also be used to input an image through pygame with img=pygame.image.load('image.png'), if a list of items are inputed it will animate through each item.
+- **img**-***pygame.Surface/str*** = Used inside the [in build image system](./READ.md#In-built-images), can also be used to input an image through pygame with img=pygame.image.load('image.png'), if a list of items are inputed it will animate through each item.
 - **colorkey**-***(r,g,b)*** = The rgb colorkey used for the text image. [more info](https://www.pygame.org/docs/ref/surface.html)
 - **font**-***str*** = The name of the font of the text, to see all valid fonts use pygame.font.get_fonts()
 - **bold**-***bool*** = Boolean to control if text is in bold.
@@ -344,7 +344,7 @@ command=lambda: testfunction('function arguements')
 ### Button specific
 - **hovercol**-***(r,g,b)*** = The colour the backing goes when the mouse hovers over it.
 - **clickdownsize**-***int/float*** = The number of pixels the moved in by when the button is clicked down.
-- **clicktype**-***int:0,1,2*** = The mousebutton used to click the button, default = 0 (left click), 1 is middle click, 2 is right click.
+- **clicktype**-***int:0/1/2*** = The mousebutton used to click the button, default = 0 (left click), 1 is middle click, 2 is right click.
 - **clickableborder**-***int*** = A number in pixels that increases hitbox of a button
 - **maxwidth**-***int/float*** = The max width of the text, the text will move onto a new line to keep within this limit.
 - **dragable**-***bool*** = Boolean that controls if the button can be dragged
@@ -369,7 +369,7 @@ command=lambda: testfunction('function arguements')
 - **enterreturns**-***bool*** = Controls if enter starts a new line (quite broken dont use).
 - **commandifenter**-***bool*** = Controls if the enter key runs the command.
 - **commandifkey**-***bool*** = Controls if any key input runs the command.
-- **imgdisplay**-***bool*** = Controls if the in built image system runs inside of the textbox(can be quite laggy if too much text+in built images when editing text). 
+- **imgdisplay**-***bool*** = Controls if the [in build image system](./READ.md#In-built-images) runs inside of the textbox(can be quite laggy if too much text+in built images when editing text). 
 
 ### Table specific
 - **data**-***list[list[int/str/button/textbox/text/table/slider/pygame.Surface]]*** = A 2D list containing all of the info the body of the table, each item can be a variety of data types. The format is each inner list is a row in the table.
