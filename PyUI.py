@@ -2386,68 +2386,67 @@ class TABLE(GUI_ITEM):
                 for b in a:
                     b[1].enabled = True
     def labeldata(self,ui):
-        self.labeleddata = []
-        temp = copy.copy(self.data)
+##        self.labeleddata = []
+        self.preprocessed = copy.copy(self.data)
         if len(self.titles)!=0:
-            temp.insert(0,copy.copy(self.titles))
-        self.rows = len(temp)
+            self.preprocessed.insert(0,copy.copy(self.titles))
+        self.rows = len(self.preprocessed)
         if self.rows == 0: self.columns = 0
         else:
-            self.columns = max([len(a) for a in temp])
+            self.columns = max([len(a) for a in self.preprocessed])
             if type(self.startboxwidth) == list:
                 self.columns = max(self.columns,len(self.startboxwidth))
-        for a in temp:
-            self.labeleddata.append(self.labellist(a))
-    def labellist(self,lis):
-        labeled = []
-        while len(lis)<self.columns:
-            lis.append('')
-        for b in lis:
-            if type(b) in [BUTTON,TEXT,TEXTBOX]: b.enabled = False
-            if type(b) == str: labeled.append(['text',b])
-            elif type(b) == int: labeled.append(['text',str(b)])
-            elif type(b) == list: labeled.append(['text',str(b)])
-            elif type(b) == BUTTON: labeled.append(['button',b])
-            elif type(b) == TEXTBOX: labeled.append(['textbox',b])
-            elif type(b) == TEXT: labeled.append(['textobj',b])
-            elif type(b) == TABLE: labeled.append(['table',b])
-            elif type(b) == pygame.Surface: labeled.append(['image',b])
-            elif type(b) == SLIDER: labeled.append(['slider',b])
-            else:
-                labeled.append(['text','-'])
-                print('unrecognised data type in table:',b)
-        return labeled
+##        for a in self.preprocessed:
+##            self.labeleddata.append(self.labellist(a))
+##    def labellist(self,lis):
+##        labeled = []
+##        while len(lis)<self.columns:
+##            lis.append('')
+##        for b in lis:
+##            if type(b) in [BUTTON,TEXT,TEXTBOX]: b.enabled = False
+##            if type(b) == str: labeled.append(['text',b])
+##            elif type(b) == int: labeled.append(['text',str(b)])
+##            elif type(b) == list: labeled.append(['text',str(b)])
+##            elif type(b) == BUTTON: labeled.append(['button',b])
+##            elif type(b) == TEXTBOX: labeled.append(['textbox',b])
+##            elif type(b) == TEXT: labeled.append(['textobj',b])
+##            elif type(b) == TABLE: labeled.append(['table',b])
+##            elif type(b) == pygame.Surface: labeled.append(['image',b])
+##            elif type(b) == SLIDER: labeled.append(['slider',b])
+##            else:
+##                labeled.append(['text','-'])
+##                print('unrecognised data type in table:',b)
+##        return labeled
                 
     def gentext(self,ui):
         self.enabled = True
-        self.tableimages = []
-        for a in range(len(self.labeleddata)):
-            self.tableimages.append(self.row_gentext(ui,a))
+        self.table = []
+        for a in range(len(self.preprocessed)):
+            self.table.append(self.row_gentext(ui,a))
     def row_gentext(self,ui,index):
-        lis = []
+        row = []
         a = index
-        for i,b in enumerate(self.labeleddata[a]):
-            if b[0] == 'text':
+        for i,b in enumerate(self.preprocessed[a]):
+            ref = False
+            if type(b) in [BUTTON,TEXTBOX,TEXT,TABLE,SLIDER]:
+                b.enabled = self.enabled
+                ref = True
+                obj = b
+            elif type(b) == pygame.Surface:
+                ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+str(i),False)
+                obj = ui.maketext(0,0,'',self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,textcenter=self.textcenter,img=b[1],maxwidth=self.boxwidth[i],
+                                  scalesize=self.scalesize,scaleby=self.scaleby,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,enabled=False)
+            else:
+                b = str(b)
                 ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+str(i),False)
                 obj = ui.maketext(0,0,b[1],self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+str(i),self.layer,self.roundedcorners,textcenter=self.textcenter,textcol=self.textcol,
                                   font=self.font,bold=self.bold,antialiasing=self.antialiasing,pregenerated=self.pregenerated,maxwidth=max([self.boxwidth[i]-self.horizontalspacing*2,-1]),
                                   scalesize=self.scalesize,scaleby=self.scaleby,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,backingcol=self.col,enabled=False)
-                lis.append(['textobj',obj])
-                self.itemintotable(ui,obj,i,a)
-            elif b[0] in ['button','textbox','textobj','table','slider']:
-                b[1].enabled = self.enabled
-                lis.append([b[0],b[1]])
-                self.itemintotable(ui,b[1],i,a)
-                b[1].refresh(ui)
-            elif b[0] == 'image':
-                ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+str(i),False)
-                obj = ui.maketext(0,0,'',self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,textcenter=self.textcenter,img=b[1],maxwidth=self.boxwidth[i],
-                                  scalesize=self.scalesize,scaleby=self.scaleby,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,enabled=False)
-                lis.append(['textobj',obj])
-                self.itemintotable(ui,obj,i,a)
-            else:
-                print(b[0])
-        return lis
+            row.append(obj)
+            self.itemintotable(ui,obj,i,a)
+            if ref:
+                obj.refresh(ui)
+        return row
     def child_refreshcords(self,ui):
         if self.tableimages!=0:
             for a in range(len(self.tableimages)):
@@ -2571,15 +2570,14 @@ class TABLE(GUI_ITEM):
     def row_append(self,ui,row):
         self.rows+=1
         self.data.append(row)
-        self.labeleddata.append(self.labellist(row))
         self.boxheight.append(-1)
-        self.__row_init__(ui,len(self.labeleddata)-1)
+        self.__row_init__(ui,len(self.preprocessed)-1)
     def row_insert(self,ui,row,index):
         if index<len(self.tableimages):
             self.rows+=1
             self.data.insert(index,row)
             if len(self.titles)!=0: index+=1
-            self.labeleddata.insert(index,self.labellist(row))
+            self.preprocessed.insert(index,row)
             self.boxheight.insert(index,-1)
             self.__row_init__(ui,index)
             return True
