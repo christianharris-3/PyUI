@@ -413,8 +413,7 @@ class UI:
                 exec(f'Style.{a} = {args[a]}')
             else:
                 marked[a] = args[a]
-            
-        
+           
         for a in marked:
             if a.split('_')[0] in UI.objectkey:
                 Style.objectdefaults[UI.objectkey[a.split('_')[0]]][a.split('_',1)[1]] = args[a]
@@ -422,11 +421,10 @@ class UI:
                     
     def styleload_soundium(self): self.styleset(col=(16,163,127),textcol=(255,255,255),wallpapercol=(62,63,75),textsize=24,roundedcorners=5,spacing=5,clickdownsize=2,scalesize=False)
     def styleload_default(self): self.styleset(roundedcorners=0,center=False,textsize=50,font='calibre',bold=False,antialiasing=True,border=3,scalesize=True,glow=0,col=(150,150,150),
-                                               clickdownsize=4,clicktype=0,textoffsetx=0,texoffsety=0,clickableborder=0,lines=1,textcenter=False,linesize=2,backingdraw=True,borderdraw=True,
+                                               clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,clickableborder=0,lines=1,textcenter=False,linesize=2,backingdraw=True,borderdraw=True,
                                                animationspeed=30,containedslider=False,movetoclick=True,isolated=True,darken=60,textcol=(0,0,0),verticalspacing=2,horizontalspacing=8,
                                                text_animationspeed=5,text_backingdraw=False,text_borderdraw=False,text_verticalspacing=3,text_horizontalspacing=3,
-                                               textbox_verticalspacing=-1,textbox_horizontalspacing=-1,table_textcenter=True,button_textcenter=True)
-    
+                                               textbox_verticalspacing=2,textbox_horizontalspacing=6,table_textcenter=True,button_textcenter=True)
     def styleload_black(self): self.styleset(textcol=(0,0,0),backingcol=(0,0,0),hovercol=(255,255,255),bordercol=(0,0,0),verticalspacing=3,textsize=30,col=(255,255,255),clickdownsize=1)
     def styleload_blue(self): self.styleset(col=(35,0,156),textcol=(230,246,219),wallpapercol=(0,39,254),textsize=30,verticalspacing=2,horizontalspacing=5,clickdownsize=2,roundedcorners=4)
     def styleload_green(self): self.styleset(col=(87,112,86),textcol=(240,239,174),wallpapercol=(59,80,61),textsize=30,verticalspacing=2,horizontalspacing=5,clickdownsize=2,roundedcorners=4)
@@ -527,7 +525,7 @@ class UI:
                 elif event.type == pygame.MOUSEWHEEL:
                     moved = False
                     for a in self.textboxes:
-                        if a.scrolleron and a.selected and self.activemenu in a.truemenu:
+                        if a.scrolleron and a.selected and self.activemenu == a.getmenu():
                             if a.pageheight<(a.maxp-a.minp):
                                 a.scroller.scroll-=(event.y*min((a.scroller.maxp-a.scroller.minp)/20,self.scrolllimit))
                                 a.scroller.limitpos(self)
@@ -535,7 +533,7 @@ class UI:
                                 moved = True
                     if not moved:
                         for a in self.scrollers:
-                            if self.activemenu in a.truemenu and type(a.master[0]) != TEXTBOX:
+                            if self.activemenu == a.getmenu() and type(a.master[0]) != TEXTBOX:
                                 if a.pageheight<(a.maxp-a.minp):
                                     a.scroll-=(event.y*min((a.maxp-a.minp)/20,self.scrolllimit))
                                     a.limitpos(self)
@@ -1867,6 +1865,14 @@ class GUI_ITEM:
             else:
                 item.master.append(self)
             self.bounditems.sort(key=lambda x: x.layer,reverse=False)
+    def getmenu(self):
+        if type(self.master[0]) in [WINDOWEDMENU,MENU]:
+            return self.master[0].menu
+        else:
+            return self.master[0].getmenu()
+    def settext(self,text,ui):
+        self.text = text
+        self.refresh(ui)
     def autoscale(self,_):
         pass
     def child_gentext(self,_):
@@ -2335,7 +2341,7 @@ class TABLE(GUI_ITEM):
         self.startboxheight = self.boxheight
         self.tableitemID = str(random.randint(1000000,10000000))
         self.threadactive = False
-        self.tableimages=0
+        self.table = 0
         self.refreshscale(ui)
         self.resetcords(ui)
         self.refreshscale(ui)
@@ -2369,10 +2375,10 @@ class TABLE(GUI_ITEM):
                 
     def disable(self):
         self.enabled = False
-        if self.tableimages != 0:
-            for a in self.tableimages:
+        if self.table != 0:
+            for a in self.table:
                 for b in a:
-                    b[1].enabled = False
+                    b.enabled = False
         else:
             for a in self.data:
                 for b in a:
@@ -2381,12 +2387,11 @@ class TABLE(GUI_ITEM):
             
     def enable(self):
         self.enabled = True
-        if self.tableimages != 0:
-            for a in self.tableimages:
+        if self.table != 0:
+            for a in self.table:
                 for b in a:
-                    b[1].enabled = True
+                    b.enabled = True
     def labeldata(self,ui):
-##        self.labeleddata = []
         self.preprocessed = copy.copy(self.data)
         if len(self.titles)!=0:
             self.preprocessed.insert(0,copy.copy(self.titles))
@@ -2396,27 +2401,6 @@ class TABLE(GUI_ITEM):
             self.columns = max([len(a) for a in self.preprocessed])
             if type(self.startboxwidth) == list:
                 self.columns = max(self.columns,len(self.startboxwidth))
-##        for a in self.preprocessed:
-##            self.labeleddata.append(self.labellist(a))
-##    def labellist(self,lis):
-##        labeled = []
-##        while len(lis)<self.columns:
-##            lis.append('')
-##        for b in lis:
-##            if type(b) in [BUTTON,TEXT,TEXTBOX]: b.enabled = False
-##            if type(b) == str: labeled.append(['text',b])
-##            elif type(b) == int: labeled.append(['text',str(b)])
-##            elif type(b) == list: labeled.append(['text',str(b)])
-##            elif type(b) == BUTTON: labeled.append(['button',b])
-##            elif type(b) == TEXTBOX: labeled.append(['textbox',b])
-##            elif type(b) == TEXT: labeled.append(['textobj',b])
-##            elif type(b) == TABLE: labeled.append(['table',b])
-##            elif type(b) == pygame.Surface: labeled.append(['image',b])
-##            elif type(b) == SLIDER: labeled.append(['slider',b])
-##            else:
-##                labeled.append(['text','-'])
-##                print('unrecognised data type in table:',b)
-##        return labeled
                 
     def gentext(self,ui):
         self.enabled = True
@@ -2434,12 +2418,12 @@ class TABLE(GUI_ITEM):
                 obj = b
             elif type(b) == pygame.Surface:
                 ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+str(i),False)
-                obj = ui.maketext(0,0,'',self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,textcenter=self.textcenter,img=b[1],maxwidth=self.boxwidth[i],
+                obj = ui.maketext(0,0,'',self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,textcenter=self.textcenter,img=b,maxwidth=self.boxwidth[i],
                                   scalesize=self.scalesize,scaleby=self.scaleby,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,enabled=False)
             else:
                 b = str(b)
                 ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+str(i),False)
-                obj = ui.maketext(0,0,b[1],self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+str(i),self.layer,self.roundedcorners,textcenter=self.textcenter,textcol=self.textcol,
+                obj = ui.maketext(0,0,b,self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+str(i),self.layer,self.roundedcorners,textcenter=self.textcenter,textcol=self.textcol,
                                   font=self.font,bold=self.bold,antialiasing=self.antialiasing,pregenerated=self.pregenerated,maxwidth=max([self.boxwidth[i]-self.horizontalspacing*2,-1]),
                                   scalesize=self.scalesize,scaleby=self.scaleby,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,backingcol=self.col,enabled=False)
             row.append(obj)
@@ -2448,10 +2432,10 @@ class TABLE(GUI_ITEM):
                 obj.refresh(ui)
         return row
     def child_refreshcords(self,ui):
-        if self.tableimages!=0:
-            for a in range(len(self.tableimages)):
-                for i,b in enumerate(self.tableimages[a]):
-                    self.itemrefreshcords(ui,b[1],i,a)
+        if self.table!=0:
+            for a in range(len(self.table)):
+                for i,b in enumerate(self.table[a]):
+                    self.itemrefreshcords(ui,b,i,a)
 
     def itemintotable(self,ui,obj,x,y):
         self.binditem(obj)
@@ -2498,13 +2482,13 @@ class TABLE(GUI_ITEM):
         for a in range(len(self.boxwidth)):
             if self.boxwidth[a] == -1:
                 minn = 0
-                for b in [self.tableimages[c][a] for c in range(len(self.tableimages))]:
-                    if b[0] == 'button' or b[0] == 'textobj':
-                        if minn<b[1].textimage.get_width()+b[1].horizontalspacing*2*self.scale:
-                            minn = b[1].textimage.get_width()+b[1].horizontalspacing*2*self.scale
-                    elif b[0] in ['table','slider']:
-                        if minn<b[1].width:
-                            minn = b[1].width*b[1].scale
+                for b in [self.table[c][a] for c in range(len(self.table))]:
+                    if type(b) in [BUTTON,TEXT]:
+                        if minn<b.textimage.get_width()+b.horizontalspacing*2*self.scale:
+                            minn = b.textimage.get_width()+b.horizontalspacing*2*self.scale
+                    elif type(b) in [TABLE,SLIDER]:
+                        if minn<b.width:
+                            minn = b.width*b[1].scale
                 self.boxwidthsinc.append(sum(self.boxwidths))
                 self.boxwidths.append(minn/self.scale)
             else:
@@ -2518,13 +2502,13 @@ class TABLE(GUI_ITEM):
         for a in range(len(self.boxheight)):
             if self.boxheight[a] == -1:
                 minn = 0
-                for b in [self.tableimages[a][c] for c in range(len(self.tableimages[0]))]:
-                    if b[0] == 'button' or b[0] == 'textobj':
-                        if minn<b[1].textimage.get_height()+b[1].verticalspacing*2*self.scale:
-                            minn = b[1].textimage.get_height()+b[1].verticalspacing*2*self.scale
-                    elif b[0] in ['table','slider']:
-                        if minn<b[1].height:
-                            minn = b[1].height*b[1].scale
+                for b in [self.table[a][c] for c in range(len(self.table[0]))]:
+                    if type(b) in [BUTTON,TEXT]:
+                        if minn<b.textimage.get_height()+b.verticalspacing*2*self.scale:
+                            minn = b.textimage.get_height()+b.verticalspacing*2*self.scale
+                    elif type(b) in [TABLE,SLIDER]:
+                        if minn<b.height:
+                            minn = b.height*b[1].scale
                 self.boxheightsinc.append(sum(self.boxheights))
                 self.boxheights.append(minn/self.scale)
             else:
@@ -2549,10 +2533,10 @@ class TABLE(GUI_ITEM):
         
             
     def wipe(self,ui,titles=True):
-        for i,a in enumerate(self.tableimages):
+        for i,a in enumerate(self.table):
             if titles or i>0:
                 for b in a:
-                    ui.delete(b[1].ID,False)
+                    ui.delete(b.ID,False)
         self.data = []
         if titles:
             self.titles = []
@@ -2566,24 +2550,27 @@ class TABLE(GUI_ITEM):
                 screen.blit(self.glowimage,(self.x*self.dirscale[0]-self.glow*self.scale,self.y*self.dirscale[1]-self.glow*self.scale))
             if self.borderdraw:
                 draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))                            
-
+    def getat(self,row,colomn):
+        return self.table[row+1][column]
     def row_append(self,ui,row):
         self.rows+=1
         self.data.append(row)
+        self.preprocessed.append(row)
         self.boxheight.append(-1)
         self.__row_init__(ui,len(self.preprocessed)-1)
     def row_insert(self,ui,row,index):
-        if index<len(self.tableimages):
+        if index<len(self.table):
             self.rows+=1
             self.data.insert(index,row)
             if len(self.titles)!=0: index+=1
             self.preprocessed.insert(index,row)
+##            self.table.insert(index,row)
             self.boxheight.insert(index,-1)
             self.__row_init__(ui,index)
             return True
         else: return False
     def row_remove(self,ui,index):
-        if index<len(self.tableimages)-1:
+        if index<len(self.table)-1:
             self.rows-=1
             if index == -1:
                 self.titles = 0
@@ -2591,16 +2578,15 @@ class TABLE(GUI_ITEM):
             else:
                 del self.data[index]
                 if len(self.titles)!=0: index+=1
-            for a in self.tableimages[index]:
+            for a in self.table[index]:
                 ui.delete(a[1].ID)
-            del self.labeleddata[index]
             del self.boxheight[index]
-            del self.tableimages[index]
+            del self.table[index]
             self.gettableheights(ui)
-            for a in range(index,len(self.tableimages)):
-                for i,b in enumerate(self.tableimages[a]):
-                    ui.reID('tabletext'+self.tableitemID+self.ID+str(a)+str(i),b[1])
-                    self.itemrefreshcords(ui,b[1],i,a)
+            for a in range(index,len(self.table)):
+                for i,b in enumerate(self.table[a]):
+                    ui.reID('tabletext'+self.tableitemID+self.ID+str(a)+str(i),b)
+                    self.itemrefreshcords(ui,b,i,a)
             return True
         else:
             return False
@@ -2610,14 +2596,14 @@ class TABLE(GUI_ITEM):
         
     def __row_init__(self,ui,index):
         self.estimatewidths(ui)
-        for a in range(len(self.tableimages)-1,index-1,-1):
-            for i,b in enumerate(self.tableimages[a]):
-                ui.reID('tabletext'+self.tableitemID+self.ID+str(a+1)+str(i),b[1])
-        self.tableimages.insert(index,self.row_gentext(ui,index))
+        for a in range(len(self.table)-1,index-1,-1):
+            for i,b in enumerate(self.table[a]):
+                ui.reID('tabletext'+self.tableitemID+self.ID+str(a+1)+str(i),b)
+        self.table.insert(index,self.row_gentext(ui,index))
         self.gettableheights(ui)
-        for a in range(index,len(self.tableimages)):
-            for i,b in enumerate(self.tableimages[a]):
-                self.itemrefreshcords(ui,b[1],i,a)
+        for a in range(index,len(self.table)):
+            for i,b in enumerate(self.table[a]):
+                self.itemrefreshcords(ui,b,i,a)
         self.refreshglow(ui)
         self.enable()
     
