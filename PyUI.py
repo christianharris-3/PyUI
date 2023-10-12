@@ -105,6 +105,29 @@ def menuin(objmenu,menulist):
             return True
     return False
 
+def relativetoval(st,w,h,ui):
+    global returnedexecvalue
+    if type(st) == str:
+        st = smartreplace(smartreplace(st,'w',w),'h',h)
+        tlocals = {'ui':ui}
+        execstring = 'returnedexecvalue='+st
+        exec(execstring,tlocals,globals())
+        return returnedexecvalue
+    else:
+        return st
+
+def smartreplace(st,char,replace):
+    # Only replaces when no characters on either side
+    lis = list(st)
+    alphabet = [chr(a) for a in range(97,123)]
+    nstring = ''
+    for i,a in enumerate(lis):
+        if a == char and (i==0 or not(lis[i-1] in alphabet)) and (i == len(lis)-1 or not(lis[i+1] in alphabet)):
+            nstring+=str(replace)
+        else:
+            nstring+=a
+    return nstring
+
 ##def stress(num=10000):
 ####    items = [[[(random.gauss(0,1000),random.gauss(0,1000)),(random.gauss(0,1000),random.gauss(0,1000))],[(random.gauss(0,1000),random.gauss(0,1000)),(random.gauss(0,1000),random.gauss(0,1000))]] for a in range(num)]
 ##    items = [(random.gauss(0,1000),random.gauss(0,1000)) for a in range(num)]
@@ -436,12 +459,16 @@ class UI:
     def __scaleset__(self,scale):
         self.scale = scale
         self.dirscale = [self.screenw/self.basescreensize[0],self.screenh/self.basescreensize[1]]
-        for a in self.items:
-            if a.scalesize:
-                a.refresh(self)
         for a in self.automenus+self.windowedmenus:
+            print('ref as menu',a.ID)
             a.refresh(self)
             a.resetcords(self)
+        for a in self.items:
+            checker = (a.width,a.height)
+            a.autoscale(self)
+            if (a.width,a.height) != checker or a.scalesize:
+                print('ref as scalesize',a.ID)
+                a.refresh(self)
     def setscale(self,scale):
         pygame.event.post(pygame.event.Event(pygame.VIDEORESIZE,w=self.basescreensize[0]*scale,h=self.basescreensize[1]*scale))
     def refreshall(self):
@@ -554,8 +581,9 @@ class UI:
         self.blockf11 = 10
         
     def write(self,screen,x,y,text,size,col='default',center=True,font='default',bold=False,antialiasing=True,scale=False,centery=-1):
-        if font == 'default': font = Style.defaults['font']
-        if col == 'default': col = Style.defaults['textcol']
+        if font == -1: font = Style.defaults['font']
+        if col == -1: col = Style.defaults['textcol']
+        if size == -1: size = Style.defaults['textsize']
         if centery == -1: centery = center
         if scale:
             dirscale = self.dirscale
@@ -575,9 +603,10 @@ class UI:
             textrect.x = int(x)*dirscale[0]
         screen.blit(textsurf, textrect)
     
-    def rendertext(self,text,size,col='default',font='default',bold=False,antialiasing=True,backingcol=(150,150,150),imgin=False,img=''):
-        if font=='default': font = Style.defaults['font']
-        if col == 'default': col = Style.defaults['textcol']
+    def rendertext(self,text,size,col=-1,font=-1,bold=False,antialiasing=True,backingcol=(150,150,150),imgin=False,img=''):
+        if font == -1: font = Style.defaults['font']
+        if col == -1: col = Style.defaults['textcol']
+        if size == -1: size = Style.defaults['textsize']
         if imgin:
             texts,imagenames = self.seperatestring(text) 
         else:
@@ -1329,7 +1358,7 @@ class UI:
         
     def makesearchbar(self,x,y,text='Search',width=400,lines=1,menu='main',command=emptyfunction,ID='textbox',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,img='none',textsize=-1,font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
-                 border=-1,upperborder=-1,lowerborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=0,glowcol=-1,
+                 border=3,upperborder=-1,lowerborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=0,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,titletextcol=-1,backingcol=-1,hovercol=-1,clickdownsize=-1,clicktype=0,textoffsetx=-1,textoffsety=-1,
                  colorkey=-1,spacing=-1,verticalspacing=1,horizontalspacing=4,clickablerect=-1,
                  linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=-1,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,
@@ -1338,10 +1367,9 @@ class UI:
         if titletextcol == -1: titletextcol = textcol
         if upperborder == -1: upperborder = border
         if lowerborder == -1: lowerborder = border
+        if textsize == -1: textsize = Style.defaults['textsize']
         if height == -1:
-            if font == -1: f = Style.defaults['font']
-            else: f = font
-            heightgetter = self.rendertext('Tg',textsize,(255,255,255),f,bold)
+            heightgetter = self.rendertext('Tg',textsize,(255,255,255),font,bold)
             height = upperborder+lowerborder+heightgetter.get_height()*lines
         col = autoshiftcol(col,Style.defaults['col'])
         if backingcol == -1: backingcol = autoshiftcol(Style.defaults['backingcol'],col,20)
@@ -1626,7 +1654,9 @@ class GUI_ITEM:
         self.antialiasing = args['antialiasing']
         self.pregenerated = args['pregenerated']
         self.textcenter = args['textcenter']
+        self.startmaxwidth = args['maxwidth']
         self.maxwidth = args['maxwidth']
+        self.textimages = []
 
         self.col = args['col']
         self.textcol = args['textcol']
@@ -1727,6 +1757,7 @@ class GUI_ITEM:
         
         
     def reset(self,ui):
+        self.autoscale(ui)
         self.refreshscale(ui)
         self.gentext(ui)
         self.autoscale(ui)
@@ -1737,20 +1768,23 @@ class GUI_ITEM:
 
     def refresh(self,ui):
         tscale = self.scale
+        self.autoscale(ui)
         self.refreshscale(ui)
         self.gentext(ui)
-        self.refreshcords(ui)
+        self.resetcords(ui)
         self.refreshglow(ui)
     def gentext(self,ui):
         self.currentframe = 0
         if type(self.img) != list: imgs = [self.img]
-        else: imgs = self.img
+        else:
+            imgs = self.img
+            if len(imgs)<1: imgs.append('')
 
         self.textimages = []
         for img in imgs:
             if type(img) == str:
                 if len(imgs)!=1: txt = img
-                else: txt = self.text  
+                else: txt = self.text
                 self.textimages.append(ui.rendertextlined(txt,self.textsize,self.textcol,self.col,self.font,self.maxwidth,self.bold,self.antialiasing,self.textcenter,imgin=True,img=img,scale=self.scale,linelimit=self.linelimit,cutstartspaces=True))
             else:
                 self.textimages.append(pygame.transform.scale(img,(img.get_width()*(self.textsize/img.get_height())*self.scale,img.get_height()*(self.textsize/img.get_height())*self.scale)))
@@ -1788,7 +1822,16 @@ class GUI_ITEM:
                         master = a
                         break
                         
-        
+##        w = self.getmasterwidth(ui)
+##        h = self.getmasterheight(ui)
+##        print(self.ID,w,h,self.master[0].width)
+##        self.anchor[0] = relativetoval(self.anchor[0],w,h,ui)
+##        self.anchor[1] = relativetoval(self.anchor[1],w,h,ui)
+##        
+##        self.objanchor = self.startobjanchor[:]
+##        self.objanchor[0] = relativetoval(self.objanchor[0],self.width,self.height,ui)
+##        self.objanchor[1] = relativetoval(self.objanchor[1],self.width,self.height,ui)
+
         w = ui.screenw
         h = ui.screenh
         if self.onitem:
@@ -1809,8 +1852,10 @@ class GUI_ITEM:
         if type(self.objanchor[1]) == str:
             exec('returnedexecvalue='+self.objanchor[1].replace('h',str(self.height)),globals())
             self.objanchor[1] = returnedexecvalue
+        
         self.x = int(master.x*master.dirscale[0]+self.anchor[0]+self.startx*self.scale-self.objanchor[0]*self.scale)/self.dirscale[0]-self.scrollcords[0]
         self.y = int(master.y*master.dirscale[1]+self.anchor[1]+self.starty*self.scale-self.objanchor[1]*self.scale)/self.dirscale[1]-self.scrollcords[1]
+
         self.refreshcords(ui)
         for a in self.bounditems:
             a.resetcords(ui)
@@ -1833,6 +1878,11 @@ class GUI_ITEM:
         if not self.scalesize: self.scale = 1
         if not self.scalex: self.dirscale[0] = 1
         if not self.scaley: self.dirscale[1] = 1
+    def autoscale(self,ui):
+        if self.startwidth != -1: self.width = relativetoval(self.startwidth,self.getmasterwidth(ui)/self.scale,self.getmasterheight(ui)/self.scale,ui)
+        if self.startmaxwidth != -1: self.maxwidth = relativetoval(self.startmaxwidth,self.getmasterwidth(ui)/self.scale,self.getmasterheight(ui)/self.scale,ui)
+        if self.startheight != -1: self.height = relativetoval(self.startheight,self.getmasterwidth(ui)/self.scale,self.getmasterheight(ui)/self.scale,ui)
+        self.child_autoscale(ui)
     def render(self,screen,ui):
         if self.killtime != -1 and self.killtime<ui.time:
             ui.delete(self.ID)
@@ -1872,14 +1922,24 @@ class GUI_ITEM:
             return self.master[0].menu
         else:
             return self.master[0].getmenu()
+    def getmasterwidth(self,ui):
+        w = ui.screenw
+        if self.onitem:
+            w = self.master[0].width*self.master[0].scale
+        return w
+    def getmasterheight(self,ui):
+        h = ui.screenh
+        if self.onitem:
+            h = self.master[0].height*self.master[0].scale
+        return h
     def settext(self,text,ui):
         self.text = text
         self.refresh(ui)
-    def autoscale(self,_):
-        pass
     def child_gentext(self,_):
         pass
     def child_refreshcords(self,_):
+        pass
+    def child_autoscale(self,_):
         pass
     def getclickedon(self,ui,rect='default',runcom=True,drag=True,smartdrag=True):
         if rect == 'default':
@@ -1971,13 +2031,14 @@ class BUTTON(GUI_ITEM):
             self.toggletextimages = self.textimages
             self.toggletextimage = self.toggletextimages[0]
         
-    def autoscale(self,ui):
+    def child_autoscale(self,ui):
         imgsizes = [a.get_size() for a in self.textimages]
         if self.toggleable: imgsizes+=[a.get_size() for a in self.toggletextimages]
         if self.startwidth == -1:
             self.width = max([a[0] for a in imgsizes])/self.scale+self.horizontalspacing*2+self.leftborder+self.rightborder
         if self.startheight == -1:
             self.height = max([a[1] for a in imgsizes])/self.scale+self.verticalspacing*2+self.upperborder+self.lowerborder
+            
     def child_refreshcords(self,ui):
         self.colliderect = pygame.Rect(self.x+self.leftborder,self.y+self.upperborder,self.width-self.leftborder-self.rightborder,self.height-self.upperborder-self.lowerborder)
     def child_render(self,screen,ui):
@@ -2028,7 +2089,7 @@ class TEXTBOX(GUI_ITEM):
         self.typingcursor=0
         self.typeline=0
         self.scrolleron=False
-    def autoscale(self,ui):
+    def child_autoscale(self,ui):
         heightgetter = ui.rendertext('Tg',self.textsize,self.textcol,self.font,self.bold)
         if self.height == -1:
             self.height = self.upperborder+self.lowerborder+heightgetter.get_height()*self.lines+self.verticalspacing*2
@@ -2348,7 +2409,7 @@ class TABLE(GUI_ITEM):
         self.resetcords(ui)
         self.refreshscale(ui)
         self.preprocess()
-        self.initheightwidth()
+        self.initheightwidth(ui)
         self.estimatewidths(ui)
         self.gentext(ui)
         self.gettablewidths(ui)
@@ -2359,7 +2420,7 @@ class TABLE(GUI_ITEM):
     def refresh(self,ui):
         self.refreshscale(ui)
         self.preprocess()
-        self.initheightwidth()
+        self.initheightwidth(ui)
         self.estimatewidths(ui)
         self.gentext(ui)
         self.gettablewidths(ui)
@@ -2403,6 +2464,9 @@ class TABLE(GUI_ITEM):
             self.columns = max([len(a) for a in self.preprocessed])
             if type(self.startboxwidth) == list:
                 self.columns = max(self.columns,len(self.startboxwidth))
+        for a in range(len(self.preprocessed)):
+            while len(self.preprocessed[a])<self.columns:
+                self.preprocessed[a].append('')
                 
     def gentext(self,ui):
         self.enabled = True
@@ -2460,23 +2524,33 @@ class TABLE(GUI_ITEM):
         obj.refreshscale(ui)
         obj.resetcords(ui,False)
 
-    def initheightwidth(self):
-        self.boxwidth = self.startboxwidth
-        self.boxheight = self.startboxheight
+    def initheightwidth(self,ui):
+        w = self.getmasterwidth(ui)
+        h = self.getmasterheight(ui)
+        ##
         if type(self.boxwidth) == int:
-            if self.columns == 0: self.boxwidth = [self.boxwidth]
-            else: self.boxwidth = [self.boxwidth for a in range(self.columns)]
+            if self.columns == 0: tempboxwidth = [self.boxwidth]
+            else: tempboxwidth = [self.boxwidth for a in range(self.columns)]
         else:
-            while len(self.boxwidth)<self.columns:
-                self.boxwidth.append(-1)
-        if type(self.boxheight) == int:
-            if self.rows == 0: self.boxheight = [self.boxheight]
-            else: self.boxheight = [self.boxheight for a in range(self.rows)]
+            tempboxwidth = self.startboxwidth[:]
+            while len(tempboxwidth)<self.columns:
+                tempboxwidth.append(-1)
+        self.boxwidth = []
+        for a in tempboxwidth:
+            self.boxwidth.append(relativetoval(a,w,h,ui))
+        ##
+        if type(self.startboxheight) == int:
+            if self.rows == 0: tempboxheight = [self.tempboxheight]
+            else: tempboxheight = [self.startboxheight for a in range(self.rows)]
         else:
-            while len(self.boxheight)<self.rows:
-                self.boxheight.append(-1)
-            while len(self.boxheight)>self.rows and len(self.boxheight)>0 and self.boxheight[-1] == -1:
-                del self.boxheight[-1]
+            tempboxheight = self.startboxheight[:]
+            while len(tempboxheight)<self.rows:
+                tempboxheight.append(-1)
+            while len(tempboxheight)>self.rows and len(tempboxheight)>0 and tempboxheight[-1] == -1:
+                del tempboxheight[-1]
+        self.boxheight = []
+        for a in tempboxheight:
+            self.boxheight.append(relativetoval(a,w,h,ui))
 
     def gettablewidths(self,ui):
         self.boxwidthsinc = []
@@ -2554,7 +2628,7 @@ class TABLE(GUI_ITEM):
                 screen.blit(self.glowimage,(self.x*self.dirscale[0]-self.glow*self.scale,self.y*self.dirscale[1]-self.glow*self.scale))
             if self.borderdraw:
                 draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))                            
-    def getat(self,row,colomn):
+    def getat(self,row,column):
         return self.table[row+1][column]
     def row_append(self,ui,row):
         self.rows+=1
@@ -2568,7 +2642,6 @@ class TABLE(GUI_ITEM):
             self.data.insert(index,row)
             if len(self.titles)!=0: index+=1
             self.preprocessed.insert(index,row)
-##            self.table.insert(index,row)
             self.boxheight.insert(index,-1)
             self.__row_init__(ui,index)
             return True
@@ -2620,7 +2693,7 @@ class TEXT(GUI_ITEM):
         self.resetcords(ui)
         self.refreshcords(ui)
         self.refreshglow(ui)
-    def autoscale(self,ui):
+    def child_autoscale(self,ui):
         if self.startwidth == -1:
             self.width = max([a.get_width() for a in self.textimages])/self.scale+self.horizontalspacing*2
         if self.startheight == -1:
@@ -2660,14 +2733,17 @@ class TEXT(GUI_ITEM):
 
 class SCROLLER(GUI_ITEM):
     def reset(self,ui):
+        self.autoscale(ui)
         self.scroll = self.startp
         self.scheight = self.height-self.border*2
         self.prevholding = self.holding
         self.refreshscale(ui)
         self.refresh(ui)
         self.resetcords(ui)
+        self.checkactive()
     def child_render(self,screen,ui):
-        if (self.maxp-self.minp)>self.pageheight:
+        self.checkactive()
+        if self.active:
             temp = (self.x,self.y)
             self.getclickedon(ui,pygame.Rect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale),smartdrag=False)
             if self.holding:
@@ -2684,13 +2760,21 @@ class SCROLLER(GUI_ITEM):
             self.scroll = self.maxp-self.pageheight
 
     def refresh(self,ui):
+        self.autoscale(ui)
         self.scheight = self.height-self.border*2
         self.refreshcords(ui)
+        self.checkactive()
+        
+    def checkactive(self):
+        if (self.maxp-self.minp)>self.pageheight: self.active = True
+        else: self.active = False
+        
     def scrollobjects(self,ui):
         for a in self.scrollbind:
             if ui.IDs[a].scrollcords != (0,self.scroll):
                 ui.IDs[a].scrollcords = (0,self.scroll)
                 ui.IDs[a].resetcords(ui)
+                
     def child_refreshcords(self,ui):
         if self.maxp-self.minp == 0: self.maxp = self.minp+0.1
         self.scrollerheight = (self.pageheight/(self.maxp-self.minp))*self.scheight
@@ -2699,12 +2783,11 @@ class SCROLLER(GUI_ITEM):
         self.rect = pygame.Rect(self.x,self.y,self.width,self.height)
         self.sliderrect = pygame.Rect(self.x+self.border,self.y+self.border+self.scroll*(self.scheight/(self.maxp-self.minp)),self.scrollerwidth,self.scrollerheight)
     def draw(self,screen,ui):
-        if self.enabled:
+        if self.enabled and self.active:
             if self.glow!=0:
                 screen.blit(self.glowimage,(self.x*self.dirscale[0]-self.glow*self.scale,self.y*self.dirscale[1]-self.glow*self.scale))
-            if (self.maxp-self.minp)>self.pageheight:
-                draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-                draw.rect(screen,self.scrollercol,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            draw.rect(screen,self.scrollercol,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale),border_radius=int(self.roundedcorners*self.scale))
 
 class SLIDER(GUI_ITEM):
     def reset(self,ui):
@@ -2717,6 +2800,7 @@ class SLIDER(GUI_ITEM):
         self.resetcords(ui)
         self.roundedcorners = min([self.roundedcorners,self.width/2,self.height/2])
     def refresh(self,ui):
+        self.autoscale(ui)
         self.refreshcords(ui)
         self.refreshbutton(ui)
         self.refreshglow(ui)
@@ -2807,6 +2891,7 @@ class WINDOWEDMENU(GUI_ITEM):
         ui.delete(f'auto_generated_menu:{self.menu}',False)
         self.bounditems.sort(key=lambda x: x.layer,reverse=False)
     def refresh(self,ui):
+        self.autoscale(ui)
         self.refreshscale(ui)
         self.refreshcords(ui)
         self.refreshglow(ui)
