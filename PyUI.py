@@ -2345,7 +2345,7 @@ class TABLE(GUI_ITEM):
         self.refreshscale(ui)
         self.resetcords(ui)
         self.refreshscale(ui)
-        self.labeldata(ui)
+        self.preprocess()
         self.initheightwidth()
         self.estimatewidths(ui)
         self.gentext(ui)
@@ -2356,7 +2356,7 @@ class TABLE(GUI_ITEM):
         self.enable()
     def refresh(self,ui):
         self.refreshscale(ui)
-        self.labeldata(ui)
+        self.preprocess()
         self.initheightwidth()
         self.estimatewidths(ui)
         self.gentext(ui)
@@ -2391,7 +2391,17 @@ class TABLE(GUI_ITEM):
             for a in self.table:
                 for b in a:
                     b.enabled = True
-          
+    def preprocess(self):
+        self.preprocessed = copy.copy(self.data)
+        if len(self.titles)!=0:
+            self.preprocessed.insert(0,copy.copy(self.titles))
+        self.rows = len(self.preprocessed)
+        if self.rows == 0: self.columns = 0
+        else:
+            self.columns = max([len(a) for a in self.preprocessed])
+            if type(self.startboxwidth) == list:
+                self.columns = max(self.columns,len(self.startboxwidth))
+                
     def gentext(self,ui):
         self.enabled = True
         self.table = []
@@ -2486,6 +2496,8 @@ class TABLE(GUI_ITEM):
                 self.boxwidths.append(self.boxwidth[a])
         self.boxwidthtotal = sum(self.boxwidths)
         self.width = self.boxwidthtotal+self.linesize*(self.columns+1)
+
+        
     def gettableheights(self,ui):
         self.boxheightsinc = [] 
         self.boxheights = []
