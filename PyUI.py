@@ -1339,7 +1339,9 @@ class UI:
         if upperborder == -1: upperborder = border
         if lowerborder == -1: lowerborder = border
         if height == -1:
-            heightgetter = self.rendertext('Tg',textsize,(255,255,255),font,bold)
+            if font == -1: f = Style.defaults['font']
+            else: f = font
+            heightgetter = self.rendertext('Tg',textsize,(255,255,255),f,bold)
             height = upperborder+lowerborder+heightgetter.get_height()*lines
         col = autoshiftcol(col,Style.defaults['col'])
         if backingcol == -1: backingcol = autoshiftcol(Style.defaults['backingcol'],col,20)
