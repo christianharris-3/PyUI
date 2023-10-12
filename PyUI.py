@@ -460,14 +460,12 @@ class UI:
         self.scale = scale
         self.dirscale = [self.screenw/self.basescreensize[0],self.screenh/self.basescreensize[1]]
         for a in self.automenus+self.windowedmenus:
-            print('ref as menu',a.ID)
             a.refresh(self)
             a.resetcords(self)
         for a in self.items:
             checker = (a.width,a.height)
             a.autoscale(self)
             if (a.width,a.height) != checker or a.scalesize:
-                print('ref as scalesize',a.ID)
                 a.refresh(self)
     def setscale(self,scale):
         pygame.event.post(pygame.event.Event(pygame.VIDEORESIZE,w=self.basescreensize[0]*scale,h=self.basescreensize[1]*scale))
@@ -1606,10 +1604,10 @@ class GUI_ITEM:
         if self.centery and self.startobjanchor[1] == 0: self.startobjanchor[1]='h/2'
         self.scrollcords = args['scrollcords']
 
-        self.width = args['width']
-        self.height = args['height']
         self.startwidth = args['width']
         self.startheight = args['height']
+        self.width = relativetoval(args['width'],ui.screenw,ui.screenh,ui)
+        self.height = relativetoval(args['height'],ui.screenw,ui.screenh,ui)
         self.roundedcorners = args['roundedcorners']
         self.scalesize = args['scalesize']
         if args['scalex'] == -1: self.scalex = self.scalesize
@@ -1657,6 +1655,7 @@ class GUI_ITEM:
         self.startmaxwidth = args['maxwidth']
         self.maxwidth = args['maxwidth']
         self.textimages = []
+        self.toggletextimages = []
 
         self.col = args['col']
         self.textcol = args['textcol']
@@ -1822,36 +1821,15 @@ class GUI_ITEM:
                         master = a
                         break
                         
-##        w = self.getmasterwidth(ui)
-##        h = self.getmasterheight(ui)
-##        print(self.ID,w,h,self.master[0].width)
-##        self.anchor[0] = relativetoval(self.anchor[0],w,h,ui)
-##        self.anchor[1] = relativetoval(self.anchor[1],w,h,ui)
-##        
-##        self.objanchor = self.startobjanchor[:]
-##        self.objanchor[0] = relativetoval(self.objanchor[0],self.width,self.height,ui)
-##        self.objanchor[1] = relativetoval(self.objanchor[1],self.width,self.height,ui)
+        w = self.getmasterwidth(ui)
+        h = self.getmasterheight(ui)
 
-        w = ui.screenw
-        h = ui.screenh
-        if self.onitem:
-            w = master.width*self.master[0].scale
-            h = master.height*self.master[0].scale
-        global returnedexecvalue
-        if type(self.anchor[0]) == str:
-            exec('returnedexecvalue='+self.anchor[0].replace('w',str(w)),globals())
-            self.anchor[0] = returnedexecvalue
-        if type(self.anchor[1]) == str:
-            exec('returnedexecvalue='+self.anchor[1].replace('h',str(h)),globals())
-            self.anchor[1] = returnedexecvalue
-            
+        self.anchor[0] = relativetoval(self.anchor[0],w,h,ui)
+        self.anchor[1] = relativetoval(self.anchor[1],w,h,ui)
+        
         self.objanchor = self.startobjanchor[:]
-        if type(self.objanchor[0]) == str:
-            exec('returnedexecvalue='+self.objanchor[0].replace('w',str(self.width)),globals())
-            self.objanchor[0] = returnedexecvalue
-        if type(self.objanchor[1]) == str:
-            exec('returnedexecvalue='+self.objanchor[1].replace('h',str(self.height)),globals())
-            self.objanchor[1] = returnedexecvalue
+        self.objanchor[0] = relativetoval(self.objanchor[0],self.width,self.height,ui)
+        self.objanchor[1] = relativetoval(self.objanchor[1],self.width,self.height,ui)
         
         self.x = int(master.x*master.dirscale[0]+self.anchor[0]+self.startx*self.scale-self.objanchor[0]*self.scale)/self.dirscale[0]-self.scrollcords[0]
         self.y = int(master.y*master.dirscale[1]+self.anchor[1]+self.starty*self.scale-self.objanchor[1]*self.scale)/self.dirscale[1]-self.scrollcords[1]
@@ -1863,8 +1841,7 @@ class GUI_ITEM:
     def refreshcords(self,ui):
         self.refreshscale(ui)
         self.child_refreshcords(ui)
-        self.centerx = self.x+self.width/2
-        self.centery = self.y+self.height/2
+
         
     def refreshscale(self,ui):
         if self.scaleby == -1:
@@ -2032,15 +2009,16 @@ class BUTTON(GUI_ITEM):
             self.toggletextimage = self.toggletextimages[0]
         
     def child_autoscale(self,ui):
-        imgsizes = [a.get_size() for a in self.textimages]
-        if self.toggleable: imgsizes+=[a.get_size() for a in self.toggletextimages]
-        if self.startwidth == -1:
-            self.width = max([a[0] for a in imgsizes])/self.scale+self.horizontalspacing*2+self.leftborder+self.rightborder
-        if self.startheight == -1:
-            self.height = max([a[1] for a in imgsizes])/self.scale+self.verticalspacing*2+self.upperborder+self.lowerborder
+        if len(self.textimages)>0:
+            imgsizes = [a.get_size() for a in self.textimages]
+            if self.toggleable: imgsizes+=[a.get_size() for a in self.toggletextimages]
+            if self.startwidth == -1:
+                self.width = max([a[0] for a in imgsizes])/self.scale+self.horizontalspacing*2+self.leftborder+self.rightborder
+            if self.startheight == -1:
+                self.height = max([a[1] for a in imgsizes])/self.scale+self.verticalspacing*2+self.upperborder+self.lowerborder
             
-    def child_refreshcords(self,ui):
-        self.colliderect = pygame.Rect(self.x+self.leftborder,self.y+self.upperborder,self.width-self.leftborder-self.rightborder,self.height-self.upperborder-self.lowerborder)
+##    def child_refreshcords(self,ui):
+##        self.colliderect = pygame.Rect(self.x+self.leftborder,self.y+self.upperborder,self.width-self.leftborder-self.rightborder,self.height-self.upperborder-self.lowerborder)
     def child_render(self,screen,ui):
         self.innerrect = pygame.Rect(self.x*self.dirscale[0]+(self.leftborder+self.clickdownsize*self.holding)*self.scale,self.y*self.dirscale[1]+(self.upperborder+self.clickdownsize*self.holding)*self.scale,(self.width-self.leftborder-self.rightborder-self.clickdownsize*self.holding*2)*self.scale,(self.height-self.upperborder-self.lowerborder-self.clickdownsize*self.holding*2)*self.scale)
         self.clickrect = pygame.Rect(self.innerrect.x-self.clickableborder*self.scale,self.innerrect.y-self.clickableborder*self.scale,self.innerrect.width+self.clickableborder*2*self.scale,self.innerrect.height+self.clickableborder*2*self.scale)
@@ -2528,9 +2506,9 @@ class TABLE(GUI_ITEM):
         w = self.getmasterwidth(ui)
         h = self.getmasterheight(ui)
         ##
-        if type(self.boxwidth) == int:
-            if self.columns == 0: tempboxwidth = [self.boxwidth]
-            else: tempboxwidth = [self.boxwidth for a in range(self.columns)]
+        if type(self.startboxwidth) == int:
+            if self.columns == 0: tempboxwidth = [self.startboxwidth]
+            else: tempboxwidth = [self.startboxwidth for a in range(self.columns)]
         else:
             tempboxwidth = self.startboxwidth[:]
             while len(tempboxwidth)<self.columns:
@@ -2540,7 +2518,7 @@ class TABLE(GUI_ITEM):
             self.boxwidth.append(relativetoval(a,w,h,ui))
         ##
         if type(self.startboxheight) == int:
-            if self.rows == 0: tempboxheight = [self.tempboxheight]
+            if self.rows == 0: tempboxheight = [self.startboxheight]
             else: tempboxheight = [self.startboxheight for a in range(self.rows)]
         else:
             tempboxheight = self.startboxheight[:]
@@ -2916,6 +2894,8 @@ class MENU(GUI_ITEM):
     def refresh(self,ui):
         self.refreshscale(ui)
         self.refreshcords(ui)
+        self.startwidth = ui.screenw
+        self.startheight = ui.screenh
         self.width = ui.screenw
         self.height = ui.screenh
     def child_refreshcords(self,ui):
