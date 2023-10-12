@@ -1176,12 +1176,12 @@ class UI:
                      dragable=dragable,colorkey=colorkey,toggle=toggle,toggleable=toggleable,toggletext=toggletext,toggleimg=toggleimg,togglecol=togglecol,togglehovercol=togglehovercol,bindtoggle=bindtoggle,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,clickableborder=clickableborder,
                      animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit)
         return obj
-    def makecheckbox(self,x,y,textsize=80,command=emptyfunction,menu='main',ID='checkbox',text='',layer=1,roundedcorners=0,bounditems=[],killtime=-1,width=-1,height=-1,
-                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='tick',font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
+    def makecheckbox(self,x,y,textsize=80,command=emptyfunction,menu='main',ID='checkbox',text='{tick}',layer=1,roundedcorners=0,bounditems=[],killtime=-1,width=-1,height=-1,
+                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
                  border=4,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=-1,clicktype=-1,textoffsetx=-1,textoffsety=-1,maxwidth=-1,
                  dragable=False,colorkey=-1,toggle=True,toggleable=True,toggletext='',toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-15,verticalspacing=-15,horizontalspacing=-15,clickablerect=-1,clickableborder=10,
-                 backingdraw=-1,borderdraw=-1,animationspeed=-1,linelimit=1000):
+                 backingdraw=False,borderdraw=-1,animationspeed=-1,linelimit=1000):
         if width == -1: width = textsize+spacing*2
         if height == -1: height = textsize+spacing*2
         obj = BUTTON(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
@@ -2391,17 +2391,7 @@ class TABLE(GUI_ITEM):
             for a in self.table:
                 for b in a:
                     b.enabled = True
-    def labeldata(self,ui):
-        self.preprocessed = copy.copy(self.data)
-        if len(self.titles)!=0:
-            self.preprocessed.insert(0,copy.copy(self.titles))
-        self.rows = len(self.preprocessed)
-        if self.rows == 0: self.columns = 0
-        else:
-            self.columns = max([len(a) for a in self.preprocessed])
-            if type(self.startboxwidth) == list:
-                self.columns = max(self.columns,len(self.startboxwidth))
-                
+          
     def gentext(self,ui):
         self.enabled = True
         self.table = []
