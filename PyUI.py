@@ -1728,7 +1728,9 @@ class GUI_ITEM:
         self.pageheight = args['pageheight']
 
         self.minp = args['minp']
+##        self.minp = relativetoval(args['minp'],ui.screenw,ui.screenh,ui)
         self.maxp = args['maxp']
+##        self.maxp = relativetoval(args['maxp'],ui.screenw,ui.screenh,ui)
         self.startp = args['startp']
         self.increment = args['increment']
         self.containedslider = args['containedslider']
@@ -1912,6 +1914,12 @@ class GUI_ITEM:
     def settext(self,text,ui):
         self.text = text
         self.refresh(ui)
+    def setwidth(self,width,ui):
+        self.startwidth = width
+        self.autoscale(ui)
+    def setheight(self,height,ui):
+        self.startheight = height
+        self.autoscale(ui)
     def child_gentext(self,_):
         pass
     def child_refreshcords(self,_):
@@ -2730,7 +2738,12 @@ class SCROLLER(GUI_ITEM):
             self.x,self.y = temp
             self.scrollobjects(ui)
             self.draw(screen,ui)
-            
+    def child_autoscale(self,ui):
+        self.scheight = self.height-self.border*2
+##        self.maxp = relativetoval(self.startmaxp,self.getmasterwidth(ui)/self.scale,self.getmasterheight(ui)/self.scale,ui)
+##        self.minp = relativetoval(self.startminp,self.getmasterwidth(ui)/self.scale,self.getmasterheight(ui)/self.scale,ui)
+##        print(self.ID,self.minp,self.maxp,self.startminp,self.startmaxp)
+        
     def limitpos(self,ui):
         if self.scroll<self.minp:
             self.scroll = self.minp
@@ -2739,7 +2752,6 @@ class SCROLLER(GUI_ITEM):
 
     def refresh(self,ui):
         self.autoscale(ui)
-        self.scheight = self.height-self.border*2
         self.refreshcords(ui)
         self.checkactive()
         
