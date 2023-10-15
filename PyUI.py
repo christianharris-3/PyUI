@@ -2746,7 +2746,6 @@ class SCROLLER(GUI_ITEM):
         self.scheight = self.height-self.border*2
         self.maxp = relativetoval(self.startmaxp,self.getmasterwidth()/self.scale,self.getmasterheight()/self.scale,self.ui)
         self.minp = relativetoval(self.startminp,self.getmasterwidth()/self.scale,self.getmasterheight()/self.scale,self.ui)
-        print(self.ID,self.minp,self.maxp,self.startminp,self.startmaxp)
         
     def limitpos(self):
         if self.scroll<self.minp:
