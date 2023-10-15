@@ -1295,7 +1295,7 @@ class UI:
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,enabled=enabled,
                  border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                  command=command,runcommandat=runcommandat,col=col,backingcol=backingcol,clicktype=clicktype,
-                 dragable=dragable,backingdraw=backingdraw,borderdraw=borderdraw,clickablerect=clickablerect,bindtoggle=scrollbind,
+                 dragable=dragable,backingdraw=backingdraw,borderdraw=borderdraw,clickablerect=clickablerect,scrollbind=scrollbind,
                  increment=increment,minp=minp,maxp=maxp,startp=startp,pageheight=pageheight)
         return obj
 
@@ -1556,7 +1556,7 @@ def filloutargs(args):
                 text='',img='none',pregenerated=True,enabled=True,command=emptyfunction,runcommandat=0,
                 dragable=False,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',bindtoggle=[],clickablerect=-1,
                 linelimit=100,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,
-                data='empty',titles=[],boxwidth=-1,boxheight=-1,pageheight=15,scrollcords=(0,0),
+                data='empty',titles=[],boxwidth=-1,boxheight=-1,pageheight=15,scrollcords=(0,0),scrollbind=[],
                 sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',behindmenu='main')
     for a in newargs:
         if not(a in args):
@@ -1728,10 +1728,10 @@ class GUI_ITEM:
         self.scrollerwidth = args['scrollerwidth']
         self.pageheight = args['pageheight']
 
-        self.minp = args['minp']
-##        self.minp = relativetoval(args['minp'],ui.screenw,ui.screenh,ui)
-        self.maxp = args['maxp']
-##        self.maxp = relativetoval(args['maxp'],ui.screenw,ui.screenh,ui)
+        self.startminp = args['minp']
+        self.minp = relativetoval(args['minp'],ui.screenw,ui.screenh,ui)
+        self.startmaxp = args['maxp']
+        self.maxp = relativetoval(args['maxp'],ui.screenw,ui.screenh,ui)
         self.startp = args['startp']
         self.increment = args['increment']
         self.containedslider = args['containedslider']
@@ -1748,7 +1748,7 @@ class GUI_ITEM:
         self.direction = args['direction']
         self.containedslider = args['containedslider']
         self.movetoclick = args['movetoclick']
-        self.scrollbind = args['bindtoggle']
+        self.scrollbind = args['scrollbind']
 
         self.isolated = args['isolated']
         self.darken = args['darken']
@@ -1876,10 +1876,10 @@ class GUI_ITEM:
     def smartcords(self,x='',y='',startset=True):
         if x!='':
             self.x = x
-            if startset: self.startx = (self.x*self.dirscale[0]+self.objanchor[0]*self.scale-self.anchor[0])/self.scale
+            if startset: self.startx = ((self.x+self.scrollcords[0])*self.dirscale[0]+self.objanchor[0]*self.scale-self.anchor[0])/self.scale
         if y!='':
             self.y = y
-            if startset: self.starty = (self.y*self.dirscale[1]+self.objanchor[1]*self.scale-self.anchor[1])/self.scale
+            if startset: self.starty = ((self.y+self.scrollcords[1])*self.dirscale[1]+self.objanchor[1]*self.scale-self.anchor[1])/self.scale
     def binditem(self,item,replace=True):
         if item!=self:
             for a in item.master:
@@ -2737,16 +2737,16 @@ class SCROLLER(GUI_ITEM):
             temp = (self.x,self.y)
             self.getclickedon(pygame.Rect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale),smartdrag=False)
             if self.holding:
-                self.scroll = (self.y-temp[1])/self.scale/(self.scheight/(self.maxp-self.minp))
+                self.scroll = (self.y-temp[1])*self.dirscale[1]/self.dirscale[0]/(self.scheight/(self.maxp-self.minp))
                 self.limitpos()
             self.x,self.y = temp
             self.scrollobjects()
             self.draw(screen)
     def child_autoscale(self):
         self.scheight = self.height-self.border*2
-##        self.maxp = relativetoval(self.startmaxp,self.getmasterwidth(ui)/self.scale,self.getmasterheight(ui)/self.scale,ui)
-##        self.minp = relativetoval(self.startminp,self.getmasterwidth(ui)/self.scale,self.getmasterheight(ui)/self.scale,ui)
-##        print(self.ID,self.minp,self.maxp,self.startminp,self.startmaxp)
+        self.maxp = relativetoval(self.startmaxp,self.getmasterwidth()/self.scale,self.getmasterheight()/self.scale,self.ui)
+        self.minp = relativetoval(self.startminp,self.getmasterwidth()/self.scale,self.getmasterheight()/self.scale,self.ui)
+        print(self.ID,self.minp,self.maxp,self.startminp,self.startmaxp)
         
     def limitpos(self):
         if self.scroll<self.minp:
@@ -2755,6 +2755,7 @@ class SCROLLER(GUI_ITEM):
             self.scroll = self.maxp-self.pageheight
 
     def refresh(self):
+        self.limitpos()
         self.autoscale()
         self.refreshcords()
         self.checkactive()
