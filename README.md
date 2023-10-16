@@ -385,7 +385,6 @@ command=lambda: testfunction('function arguements')
 - **startp**-***int: >minp,<maxp*** = The point inbetween minp and maxp that the object starts its value at.
 #### Scroller
 - **scrollercol** = Remove this it does nothing
-- **scrollerwidth** = Remove this it does nothing
 - **pageheight**-***int/float*** = The height of the page that can be seen, dictates the height of the clickable part of the scroller. if the page height it larger than maxp-minp the scroller will not display.
 - **scrollbind**-***list[str]*** = A list of object IDs that are scrolled when the scroller is moved
 #### Slider
