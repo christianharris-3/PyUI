@@ -1728,6 +1728,8 @@ class GUI_ITEM:
         self.scrollerwidth = args['scrollerwidth']
         self.pageheight = args['pageheight']
 
+##        self.minp = args['minp']
+##        self.maxp = args['maxp']
         self.startminp = args['minp']
         self.minp = relativetoval(args['minp'],ui.screenw,ui.screenh,ui)
         self.startmaxp = args['maxp']
@@ -2209,7 +2211,8 @@ class TEXTBOX(GUI_ITEM):
         self.refreshcursor()
         self.refreshscroller()
         
-        self.scroller.maxp = (self.textimage.get_height())/self.scale+self.verticalspacing*2-1
+        self.scroller.startmaxp = (self.textimage.get_height())/self.scale+self.verticalspacing*2-1
+        self.scroller.maxp = self.scroller.startmaxp
         self.scroller.menu = self.menu
         self.scroller.scalesize = self.scalesize
         self.scroller.scalex = self.scalesize
@@ -2762,6 +2765,19 @@ class SCROLLER(GUI_ITEM):
     def checkactive(self):
         if (self.maxp-self.minp)>self.pageheight: self.active = True
         else: self.active = False
+
+    def setscroll(self,scroll,relative=False):
+        if relative:
+            self.scroll+=scroll
+        else:
+            self.scroll = scroll
+        self.limitpos()
+    def setminp(self,minp):
+        self.startminp = minp
+        self.autoscale()
+    def setmaxp(self,maxp):
+        self.startminp = maxp
+        self.autoscale()
         
     def scrollobjects(self):
         for a in self.scrollbind:
@@ -2854,8 +2870,20 @@ class SLIDER(GUI_ITEM):
             self.slider = self.maxp
         elif self.slider<self.minp:
             self.slider = self.minp
-        
         self.refreshbuttoncords()
+
+    def setslider(self,slider,relative=False):
+        if relative:
+            self.slider+=slider
+        else:
+            self.slider = slider
+        self.limitpos()
+    def setminp(self,minp):
+        self.startminp = minp
+        self.autoscale()
+    def setmaxp(self,maxp):
+        self.startminp = maxp
+        self.autoscale()
 
     def draw(self,screen):
         if self.enabled:
