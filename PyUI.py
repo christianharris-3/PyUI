@@ -1873,13 +1873,17 @@ class GUI_ITEM:
             self.child_render(screen)
             for a in [i.ID for i in self.bounditems][:]:
                 self.ui.IDs[a].render(screen)
-    def smartcords(self,x='',y='',startset=True):
+    def smartcords(self,x='',y='',startset=True,accountscroll=False):
+        scr = [0,0]
+        if accountscroll:
+            scr = self.scrollcords[:]
+        
         if x!='':
             self.x = x
-            if startset: self.startx = ((self.x+self.scrollcords[0])*self.dirscale[0]+self.objanchor[0]*self.scale-self.anchor[0])/self.scale
+            if startset: self.startx = ((self.x+scr[0])*self.dirscale[0]+self.objanchor[0]*self.scale-self.anchor[0])/self.scale
         if y!='':
             self.y = y
-            if startset: self.starty = ((self.y+self.scrollcords[1])*self.dirscale[1]+self.objanchor[1]*self.scale-self.anchor[1])/self.scale
+            if startset: self.starty = ((self.y+scr[1])*self.dirscale[1]+self.objanchor[1]*self.scale-self.anchor[1])/self.scale
     def binditem(self,item,replace=True):
         if item!=self:
             for a in item.master:
@@ -2775,7 +2779,7 @@ class SCROLLER(GUI_ITEM):
         self.startminp = minp
         self.autoscale()
     def setmaxp(self,maxp):
-        self.startminp = maxp
+        self.startmaxp = maxp
         self.autoscale()
     def setpageheight(self,pageheight):
         self.startpageheight = pageheight
@@ -2783,8 +2787,8 @@ class SCROLLER(GUI_ITEM):
         
     def scrollobjects(self):
         for a in self.scrollbind:
-            if self.ui.IDs[a].scrollcords != (0,self.scroll):
-                self.ui.IDs[a].scrollcords = (0,self.scroll)
+            if self.ui.IDs[a].scrollcords != (self.ui.IDs[a].scrollcords[0],self.scroll):
+                self.ui.IDs[a].scrollcords = (self.ui.IDs[a].scrollcords[0],self.scroll)
                 self.ui.IDs[a].resetcords()
                 
     def child_refreshcords(self):
@@ -2810,7 +2814,6 @@ class SLIDER(GUI_ITEM):
         self.roundedcorners = min([self.roundedcorners,self.width/2,self.height/2])
     def refresh(self):
         self.autoscale()
-        self.refreshcords()
         self.refreshbutton()
         self.refreshglow()
     def child_refreshcords(self):
@@ -2881,7 +2884,7 @@ class SLIDER(GUI_ITEM):
         self.startminp = minp
         self.autoscale()
     def setmaxp(self,maxp):
-        self.startminp = maxp
+        self.startmaxp = maxp
         self.autoscale()
 
     def draw(self,screen):
