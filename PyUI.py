@@ -447,7 +447,7 @@ class UI:
                                                clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,clickableborder=0,lines=1,textcenter=False,linesize=2,backingdraw=True,borderdraw=True,
                                                animationspeed=30,containedslider=False,movetoclick=True,isolated=True,darken=60,textcol=(0,0,0),verticalspacing=2,horizontalspacing=8,
                                                text_animationspeed=5,text_backingdraw=False,text_borderdraw=False,text_verticalspacing=3,text_horizontalspacing=3,
-                                               textbox_verticalspacing=2,textbox_horizontalspacing=6,table_textcenter=True,button_textcenter=True)
+                                               textbox_verticalspacing=2,textbox_horizontalspacing=6,table_textcenter=True,button_textcenter=True,guesswidth=100,guessheight=100)
     def styleload_black(self): self.styleset(textcol=(0,0,0),backingcol=(0,0,0),hovercol=(255,255,255),bordercol=(0,0,0),verticalspacing=3,textsize=30,col=(255,255,255),clickdownsize=1)
     def styleload_blue(self): self.styleset(col=(35,0,156),textcol=(230,246,219),wallpapercol=(0,39,254),textsize=30,verticalspacing=2,horizontalspacing=5,clickdownsize=2,roundedcorners=4)
     def styleload_green(self): self.styleset(col=(87,112,86),textcol=(240,239,174),wallpapercol=(59,80,61),textsize=30,verticalspacing=2,horizontalspacing=5,clickdownsize=2,roundedcorners=4)
@@ -1247,7 +1247,7 @@ class UI:
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  command=emptyfunction,runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=-1,textoffsety=-1,
                  dragable=False,colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,
-                 boxwidth=-1,boxheight=-1,linesize=2,textcenter=-1,guesswidth=100,guessheight=100,
+                 boxwidth=-1,boxheight=-1,linesize=2,textcenter=-1,guesswidth=-1,guessheight=-1,
                  backingdraw=-1,borderdraw=-1):
 
         if col == -1: col = Style.objectdefaults[TABLE]['col']
@@ -1259,7 +1259,7 @@ class UI:
                  border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                  command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,
                  colorkey=colorkey,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,
-                 data=data,titles=titles,boxwidth=boxwidth,boxheight=boxheight,linesize=linesize,textcenter=textcenter,scrollerwidth=guesswidth,pageheight=guessheight,
+                 data=data,titles=titles,boxwidth=boxwidth,boxheight=boxheight,linesize=linesize,textcenter=textcenter,guesswidth=guesswidth,guessheight=guessheight,
                  backingdraw=backingdraw,borderdraw=borderdraw)
         return obj
             
@@ -1287,7 +1287,7 @@ class UI:
                  anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=1,col=-1,backingcol=-1,clicktype=0,clickablerect=-1,scrollbind=[],
-                 dragable=True,backingdraw=-1,borderdraw=-1,scrollercol=-1,scrollerwidth=-1,increment=0,startp=0):
+                 dragable=True,backingdraw=-1,borderdraw=-1,scrollercol=-1,increment=0,startp=0):
 
         if maxp == -1: maxp = height
         
@@ -1720,12 +1720,11 @@ class GUI_ITEM:
         self.linesize = args['linesize']
         self.boxwidth = args['boxwidth']
         self.boxheight = args['boxheight']
-        self.guessheight = args['pageheight']
-        self.guesswidth = args['scrollerwidth']
+        self.guessheight = args['guessheight']
+        self.guesswidth = args['guesswidth']
 
         self.backingdraw = args['backingdraw']
         self.borderdraw = args['borderdraw']
-        self.scrollerwidth = args['scrollerwidth']
         self.startpageheight = args['pageheight']
         self.pageheight = relativetoval(args['pageheight'],ui.screenw,ui.screenh,ui)
 
@@ -2737,7 +2736,7 @@ class SCROLLER(GUI_ITEM):
         self.checkactive()
         if self.active:
             temp = (self.x,self.y)
-            self.getclickedon(pygame.Rect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale),smartdrag=False)
+            self.getclickedon(pygame.Rect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,(self.width-self.leftborder-self.rightborder)*self.scale,((self.pageheight/(self.maxp-self.minp))*self.scheight)*self.scale),smartdrag=False)
             if self.holding:
                 self.scroll = (self.y-temp[1])*self.dirscale[1]/self.dirscale[0]/(self.scheight/(self.maxp-self.minp))
                 self.limitpos()
@@ -2790,17 +2789,14 @@ class SCROLLER(GUI_ITEM):
                 
     def child_refreshcords(self):
         if self.maxp-self.minp == 0: self.maxp = self.minp+0.1
-        self.scrollerheight = (self.pageheight/(self.maxp-self.minp))*self.scheight
-        self.scrollerwidth = self.width-self.leftborder-self.rightborder
-        
-        self.rect = pygame.Rect(self.x,self.y,self.width,self.height)
-        self.sliderrect = pygame.Rect(self.x+self.border,self.y+self.border+self.scroll*(self.scheight/(self.maxp-self.minp)),self.scrollerwidth,self.scrollerheight)
+##        self.sliderrect = pygame.Rect(self.x+self.border,self.y+self.border+self.scroll*(self.scheight/(self.maxp-self.minp)),self.scrollerwidth,self.scrollerheight)
+
     def draw(self,screen):
         if self.enabled and self.active:
             if self.glow!=0:
                 screen.blit(self.glowimage,(self.x*self.dirscale[0]-self.glow*self.scale,self.y*self.dirscale[1]-self.glow*self.scale))
             draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
-            draw.rect(screen,self.scrollercol,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,self.scrollerwidth*self.scale,self.scrollerheight*self.scale),border_radius=int(self.roundedcorners*self.scale))
+            draw.rect(screen,self.scrollercol,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.border+self.scroll*(self.scheight/(self.maxp-self.minp)))*self.scale,(self.width-self.leftborder-self.rightborder)*self.scale,((self.pageheight/(self.maxp-self.minp))*self.scheight)*self.scale),border_radius=int(self.roundedcorners*self.scale))
 
 class SLIDER(GUI_ITEM):
     def reset(self):
@@ -3109,10 +3105,10 @@ class Style:
                            'clicktype': 0, 'textoffsetx': 0, 'textoffsety': 0, 'maxwidth': -1, 'colorkey': -1, 'togglecol': -1, 'togglehovercol': -1, 'spacing': -1,
                            'verticalspacing': -1, 'horizontalspacing': -1, 'clickableborder': 0, 'lines': 1, 'selectcol': -1, 'selectbordersize': 2,
                            'selectshrinksize': 0, 'cursorsize': -1, 'textcenter': True, 'linesize': 2, 'backingdraw': True, 'borderdraw': True, 'animationspeed': 5,
-                           'scrollercol': -1, 'scrollerwidth': -1, 'slidercol': -1, 'sliderbordercol': -1, 'slidersize': -1, 'increment': 0,
+                           'scrollercol': -1, 'slidercol': -1, 'sliderbordercol': -1, 'slidersize': -1, 'increment': 0, 'guesswidth': 100, 'guessheight': 100,
                            'sliderroundedcorners': -1, 'containedslider': True, 'movetoclick': True, 'isolated': True, 'darken': 60, 'hsvashift': False}
     
-    replace = {'roundedcorners': -1, 'center': -1, 'textsize': -1,'font': -1,'bold': -1,'antialiasing': -1,'border': -1, 'scalesize': -1,'glow':-1,'col':-1,'clickdownsize': -1,'clicktype': -1,
+    replace = {'roundedcorners': -1, 'center': -1, 'textsize': -1,'font': -1,'bold': -1,'antialiasing': -1,'border': -1, 'scalesize': -1,'glow':-1,'col':-1,'clickdownsize': -1,'clicktype': -1,'guesswidth': -1, 'guessheight': -1,
                'textoffsetx': -1,'textoffsety': -1, 'clickableborder':-1,'textcenter': -1, 'lines': -1,'linesize':-1,'backingdraw':-1,'borderdraw': -1,'animationspeed':-1,'containedslider': -1,'movetoclick': -1,'darken':-1}
     for var in list(replace):
         universaldefaults[var] = replace[var]
