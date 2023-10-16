@@ -1726,10 +1726,9 @@ class GUI_ITEM:
         self.backingdraw = args['backingdraw']
         self.borderdraw = args['borderdraw']
         self.scrollerwidth = args['scrollerwidth']
-        self.pageheight = args['pageheight']
+        self.startpageheight = args['pageheight']
+        self.pageheight = relativetoval(args['pageheight'],ui.screenw,ui.screenh,ui)
 
-##        self.minp = args['minp']
-##        self.maxp = args['maxp']
         self.startminp = args['minp']
         self.minp = relativetoval(args['minp'],ui.screenw,ui.screenh,ui)
         self.startmaxp = args['maxp']
@@ -2749,6 +2748,7 @@ class SCROLLER(GUI_ITEM):
         self.scheight = self.height-self.border*2
         self.maxp = relativetoval(self.startmaxp,self.getmasterwidth()/self.scale,self.getmasterheight()/self.scale,self.ui)
         self.minp = relativetoval(self.startminp,self.getmasterwidth()/self.scale,self.getmasterheight()/self.scale,self.ui)
+        self.pageheight = relativetoval(self.startpageheight,self.getmasterwidth()/self.scale,self.getmasterheight()/self.scale,self.ui)
         
     def limitpos(self):
         if self.scroll<self.minp:
@@ -2777,6 +2777,9 @@ class SCROLLER(GUI_ITEM):
         self.autoscale()
     def setmaxp(self,maxp):
         self.startminp = maxp
+        self.autoscale()
+    def setpageheight(self,pageheight):
+        self.startpageheight = pageheight
         self.autoscale()
         
     def scrollobjects(self):
