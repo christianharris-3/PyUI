@@ -2450,9 +2450,11 @@ class TABLE(GUI_ITEM):
                 for b in a:
                     b.enabled = True
     def preprocess(self):
-        self.preprocessed = copy.copy(self.data)
+        self.preprocessed = []
+        for a in self.data:
+            self.preprocessed.append(list(a))
         if len(self.titles)!=0:
-            self.preprocessed.insert(0,copy.copy(self.titles))
+            self.preprocessed.insert(0,copy.copy(list(self.titles)))
         self.rows = len(self.preprocessed)
         if self.rows == 0: self.columns = 0
         else:
