@@ -167,18 +167,17 @@ A composite object made of a textbox, 2 buttons and some text. Whatever function
 
 ## Using Gui Objects
 Using the ui object, objects can be accessed and deleted.
-To access an object you must give the object an ID when it is generated, and then using the ui.IDs dictionary it can be accessed. When objects are changed in any way, eg moving its x and y position or changing the text inside it, the objects refresh function should be used, if it is only moved the refreshcords function should be used. To delete an object use the ui.delete function, passing in objects ID that is to be deleted.
+To access an object you must give the object an ID when it is generated, and then using the ui.IDs dictionary it can be accessed. The make function also returns the object, meaning it can be stored and used in your code. When objects are changed in any way, eg moving its x and y position or changing the text inside it, the objects refresh function should be used. To delete an object use the ui.delete function, passing in objects ID that is to be deleted. Some functions exist for setting specific values, primarly settext, which allows the refresh function to not be used.
 
 Example code:
 ```py
 ## make a button at x=100,y=200 with the text 'Test Button' 
-ui.makebutton(100,200,'Test Button',ID='test button')
-## update the buttons x position
-ui.IDs['test button'].x = 150
-ui.IDs['test button'].refreshcords(ui)
+button = ui.makebutton(100,200,'Test Button',ID='test button')
 ## update the text on the button
-ui.IDs['test button'].text = 'New'
-ui.IDs['test button'].refresh(ui)
+button.settext('New Text')
+## update the buttons font
+ui.IDs['test button'].font = 'helvetica'
+ui.IDs['test button'].refresh()
 ## delete object
 ui.delete('test button')
 ```
