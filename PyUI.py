@@ -359,7 +359,7 @@ class draw:
 
     
 class UI:
-    def __init__(self,scale=1):
+    def __init__(self,scale=1,PyUItitle=True):
         pygame.key.set_repeat(350,31)
         pygame.scrap.init()
         
@@ -420,6 +420,10 @@ class UI:
         self.checkcaps()
         if self.scale!=1: self.setscale(self.scale)
         self.styleload_default()
+
+        if PyUItitle:
+            pygame.display.set_icon(self.rendershapelogo('logo',100,(0,0,0),(255,255,255)))
+            pygame.display.set_caption('PyUI Application')
         
     def checkcaps(self):
         hllDll = ctypes.WinDLL("User32.dll")
@@ -1868,7 +1872,7 @@ class GUI_ITEM:
         self.child_autoscale()
     def render(self,screen):
         if self.killtime != -1 and self.killtime<self.ui.time:
-            ui.delete(self.ID)
+            self.ui.delete(self.ID)
         elif self.enabled:
             self.child_render(screen)
             for a in [i.ID for i in self.bounditems][:]:
