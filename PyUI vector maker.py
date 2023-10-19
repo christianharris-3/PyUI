@@ -1,4 +1,4 @@
-import pygame,math,random
+import pygame,math,random,json
 import pygame.gfxdraw
 import PyUI
 pygame.init()
@@ -10,7 +10,7 @@ ui = PyUI.UI()
 done = False
 clock = pygame.time.Clock()
 
-ui.defaultcol = (220,220,220)
+ui.styleset(col=(220,220,220))
 
 splines = []
 global nodecount
@@ -100,49 +100,23 @@ def save(splines,name):
             data[-1].append([])
             for c in b:
                 data[-1][-1].append((ui.IDs[c].x,ui.IDs[c].y))
-    
-    with open(name+'.txt','w') as fl:
-        for a in data:
-            fl.write('---\n')
-            for b in a:
-                fl.write('=\n')
-                for c in b:
-                    fl.write(str(c[0])+','+str(c[1])+':\n')
+    with open(name+'.json','w') as fl:
+        json.dump(data,fl)
+        
 def load(splines):
     ui.movemenu('main')
     try:
-        with open(ui.IDs['load textbox'].text+'.txt','r') as fl:
-            data = fl.readlines()
-        while len(splines)>0:
-            delspline(splines)
-        ui.IDs['load textbox'].text = ''
-        ui.IDs['load textbox'].refresh(ui)
-        items = ''
-        for a in data:
-            items+=a.removesuffix('\n')
-        items = items.split('---')
-        proc = []
-        for a in items:
-            proc.append(a.split('='))
-        proc2 = []
-        for a in proc:
-            proc2.append([])
-            for b in a:
-                proc2[-1].append(b.split(':'))
-        del proc2[0]
-        for a in proc2:
-            del a[0]
-            for b in a:
-                del b[-1]
-        data = proc2
+        with open(ui.IDs['load textbox'].text+'.json','r') as fl:
+            data = json.load(fl)
+        data = [[[(275, 200), (450, 200), (450, 400), (600, 400)], [(600, 400), (600, 350)], [(600, 350), (675, 425)], [(675, 425), (600, 500)], [(600, 500), (600, 450)], [(600, 450), (425, 450), (425, 250), (275, 250)], [(275, 250), (275, 200)]], [[(275, 400), (275, 450)], [(275, 450), (360, 450), (420, 390)], [(420, 390), (385, 345)], [(385, 345), (350, 390), (275, 400)]], [[(600, 250), (600, 300)], [(600, 300), (675, 225)], [(675, 225), (600, 150)], [(600, 150), (600, 200)], [(600, 200), (500, 200), (455, 260)], [(455, 260), (490, 300)], [(490, 300), (530, 255), (600, 250)]]]
         global nodecount
         for a in data:
             for b in a:
                 nodecount = len(b)
                 extendspline(splines)
                 for i,c in enumerate(splines[-1][-1]):
-                    ui.IDs[c].x = int(float(b[i].split(',')[0]))
-                    ui.IDs[c].y = int(float(b[i].split(',')[1]))
+                    ui.IDs[c].x = float(b[i][0])
+                    ui.IDs[c].y = float(b[i][1])
             if a[0][0] == a[-1][-1]:
                 completespline(splines)
     except Exception as ex:
@@ -170,20 +144,18 @@ def realign(ID):
 def updatenodecount():
     global nodecount
     nodecount = ui.IDs['nodecount'].slider
-    ui.IDs['node count display'].text = str(nodecount)
-    ui.IDs['node count display'].refresh(ui)
+    ui.IDs['node count display'].settext(str(nodecount))
 
 def updategridsize():
     global gridsize
     gridsize = ui.IDs['gridsize'].slider
-    ui.IDs['grid size display'].text = str(gridsize)
-    ui.IDs['grid size display'].refresh(ui)
+    ui.IDs['grid size display'].settext(str(gridsize))
 
 ui.maketext(0,0,'',screenh,img='rect width=150',textcol=(235,235,235),layer=-1,spacing=0)
 
 ######
 splinesy = 0
-ui.maketext(75,splinesy+2,'-Splines-',25,center=True,centery=False)
+ui.maketext(75,splinesy,'-Splines-',25,center=True,centery=False)
 
 ui.makebutton(0,splinesy+20,'Make Spline',25,lambda: makespline(splines),width=150,center=False,clickdownsize=1,border=1)
 ui.makebutton(0,splinesy+40,'Extend Spline',25,lambda: extendspline(splines),width=150,center=False,clickdownsize=1,border=1)
@@ -196,7 +168,7 @@ ui.maketext(4,splinesy+124,'4',25,center=False,ID='node count display')
 
 ######
 gridy = 146
-ui.maketext(75,gridy+2,'-Grid-',25,center=True,centery=False)
+ui.maketext(75,gridy,'-Grid-',25,center=True,centery=False)
 
 ui.makebutton(0,gridy+20,'Toggle Lines',25,width=150,center=False,clickdownsize=1,border=1,toggle=True,toggleable=True,ID='gridline toggle')
 
@@ -205,7 +177,7 @@ ui.maketext(4,gridy+44,'10',25,center=False,ID='grid size display')
 
 ######
 savey = 210
-ui.maketext(75,savey+2,'-Saving-',25,center=True,centery=False)
+ui.maketext(75,savey-1,'-Saving-',25,center=True,centery=False)
 ui.makebutton(0,savey+20,'Save',25,lambda: save(splines,'image'),width=150,center=False,clickdownsize=1,border=1)
 ui.makebutton(0,savey+40,'Save As',25,lambda: ui.movemenu('savescreen','right'),width=150,center=False,clickdownsize=1,border=1)
 ui.makebutton(0,savey+60,'Load',25,lambda: ui.movemenu('loadscreen','right'),width=150,center=False,clickdownsize=1,border=1)
