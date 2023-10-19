@@ -1390,7 +1390,7 @@ class UI:
                  linelimit,selectcol,selectbordersize,selectshrinksize,cursorsize,textcenter,chrlimit,numsonly,enterreturns,commandifenter,commandifkey,
                  backingdraw,borderdraw)
         
-        cross.command = lambda: obj.settext(self)
+        cross.command = lambda: obj.settext('')
 
     def automakemenu(self,menu):
         obj = MENU(ui=self,x=0,y=0,width=self.screenw,height=self.screenh,menu=menu,ID='auto_generate_menu:'+menu)
