@@ -1434,7 +1434,7 @@ class UI:
                         tofinish.append([a.ID,a.wait])
                 tofinish.sort(key=lambda x: x[0],reverse=False)
                 for a in tofinish:
-                    self.IDs[a[0]].finish(self,True)
+                    self.IDs[a[0]].finish(True)
                     self.delete(a[0])
             else:
                 for a in self.animations:
@@ -1876,7 +1876,8 @@ class GUI_ITEM:
         elif self.enabled:
             self.child_render(screen)
             for a in [i.ID for i in self.bounditems][:]:
-                self.ui.IDs[a].render(screen)
+                if a in self.ui.IDs:
+                    self.ui.IDs[a].render(screen)
     def smartcords(self,x='',y='',startset=True,accountscroll=False):
         scr = [0,0]
         if accountscroll:
