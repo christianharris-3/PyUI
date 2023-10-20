@@ -410,6 +410,7 @@ class UI:
                                      'play':self.rendershapeplay,'pause':self.rendershapepause,'skip':self.rendershapeskip,'circle':self.rendershapecircle,
                                      'rect':self.rendershaperect,'clock':self.rendershapeclock,'loading':self.rendershapeloading,'dots':self.rendershapedots,
                                      'logo':self.rendershapelogo}
+        self.renderedshapes = {}
         
         self.resizable = True
         self.fullscreenable = True
@@ -584,7 +585,7 @@ class UI:
         else: screen = pygame.display.set_mode((self.screenw,self.screenh),pygame.RESIZABLE)       
         self.blockf11 = 10
         
-    def write(self,screen,x,y,text,size,col='default',center=True,font='default',bold=False,antialiasing=True,scale=False,centery=-1):
+    def write(self,screen,x,y,text,size,col=-1,center=True,font=-1,bold=False,antialiasing=True,scale=False,centery=-1):
         if font == -1: font = Style.defaults['font']
         if col == -1: col = Style.defaults['textcol']
         if size == -1: size = Style.defaults['textsize']
@@ -664,6 +665,8 @@ class UI:
     def rendershape(self,name,size,col='default',failmessage=True,backcol=(255,255,255)):
         if col == 'default': col = Style.col
         if col == backcol: backcol = (0,0,0)
+        if (name,size,col,backcol) in self.renderedshapes:
+            return self.renderedshapes[(name,size,col,backcol)]
         if '(' in name and ')' in name:
             try:
                 c = name.split('(')[1].split(')')[0].split(',')
@@ -687,6 +690,7 @@ class UI:
         elif 'down' in name:
             surf = pygame.transform.rotate(surf,-90)
         surf.set_colorkey(backcol)
+        self.renderedshapes[(name,size,col,backcol)] = surf
         return surf
     def rendershapetick(self,name,size,col,backcol):
         vals = self.getshapedata(name,['thickness'],[0.2])
@@ -866,7 +870,8 @@ class UI:
             x+=seperation
         return surf
     def rendershapetext(self,name,size,col,backcol):
-        vals = self.getshapedata(name,['font','bold','italic','strikethrough','underlined','antialias'],[Style.defaults['font'],False,False,False,False,True])
+        vals = self.getshapedata(name,['font','bold','italic','strikethrough','underlined','antialias'],
+                                 [Style.defaults['font'],False,False,False,False,True])
         font = vals[0]
         bold = vals[1]
         italic = vals[2]
@@ -919,6 +924,7 @@ class UI:
                     sc = size/img.get_height()
                     return pygame.transform.scale(img,(img.get_width()*sc,size)),True
             return 0,False
+        
         boundingbox = [1000,1000,0,0]
         for a in splines:
             for b in a:
@@ -928,6 +934,7 @@ class UI:
                     if c[0]>boundingbox[2]: boundingbox[2] = c[0]
                     if c[1]>boundingbox[3]: boundingbox[3] = c[1]
         minus1 = [boundingbox[0],boundingbox[1]]
+        
         mul1 = size/(boundingbox[3]-boundingbox[1])
         polys = []
         for b in splines:
@@ -953,7 +960,6 @@ class UI:
                 else: detail = 200
                 points+=draw.bezierdrawer([(((a[c][0]-minus1[0])*mul1-minus[0])*mul+1,((a[c][1]-minus1[1])*mul1-minus[1])*mul+1) for c in range(len(a))],0,False,detail=detail)
             pygame.draw.polygon(surf,col,points)
-
         return surf,True
     def addinbuiltimage(self,name,surface):
         self.inbuiltimages[name] = surface
