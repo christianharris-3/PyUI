@@ -422,7 +422,9 @@ class UI:
         self.styleload_default()
 
         if PyUItitle:
-            pygame.display.set_icon(self.rendershapelogo('logo',100,(0,0,0),(255,255,255)))
+            self.logo = self.rendershapelogo('logo',100,(0,0,0),(255,255,255),False)
+            self.logo.set_colorkey((255,255,255))
+            pygame.display.set_icon(self.logo)
             pygame.display.set_caption('PyUI Application')
         
     def checkcaps(self):
@@ -739,7 +741,7 @@ class UI:
         draw.roundedline(surf,col,(size*width,size*width),(size*(1-width),size*(1-width)),size*width)
         draw.roundedline(surf,col,(size*(1-width),size*width),(size*width,size*(1-width)),size*width)
         return surf
-    def rendershapesettings(self,name,size,col,backcol):
+    def rendershapesettings(self,name,size,col,backcol,antialiasing=True):
         surf = pygame.Surface((size,size)) 
         surf.fill(backcol)
         vals = self.getshapedata(name,['innercircle','outercircle','prongs','prongwidth','prongsteepness'],[0.15,0.35,6,0.2,1.1])
@@ -748,7 +750,8 @@ class UI:
         prongs = int(vals[2])
         prongwidth = vals[3]
         prongsteepness = vals[4]
-        draw.circle(surf,col,(size*0.5,size*0.5),size*outercircle)
+        if antialiasing: draw.circle(surf,col,(size*0.5,size*0.5),size*outercircle)
+        else: pygame.draw.circle(surf,col,(size*0.5,size*0.5),size*outercircle)
         width=prongwidth
         innerwidth=width+math.sin(width)*prongsteepness
         points = []
@@ -756,16 +759,21 @@ class UI:
         for a in range(prongs):
             ang = (math.pi*2)*a/prongs
             points.append([((math.sin(ang-width)*0.5*0.95+0.5)*size,(math.cos(ang-width)*0.5*0.95+0.5)*size),((math.sin(ang+width)*0.5*0.95+0.5)*size,(math.cos(ang+width)*0.5*0.95+0.5)*size),((math.sin(ang+innerwidth)*0.5*(outercircle*2)+0.5)*size,(math.cos(ang+innerwidth)*0.5*(outercircle*2)+0.5)*size),((math.sin(ang-innerwidth)*0.5*(outercircle*2)+0.5)*size,(math.cos(ang-innerwidth)*0.5*(outercircle*2)+0.5)*size)])
-        for a in points:
-            draw.polygon(surf,col,a)
-        draw.circle(surf,backcol,(size*0.5,size*0.5),size*innercircle)
+        if antialiasing:
+            for a in points:
+                draw.polygon(surf,col,a)
+            draw.circle(surf,backcol,(size*0.5,size*0.5),size*innercircle)
+        else:
+            for a in points:
+                pygame.draw.polygon(surf,col,a)
+            pygame.draw.circle(surf,backcol,(size*0.5,size*0.5),size*innercircle)
         return surf
-    def rendershapelogo(self,name,size,col,backcol):
+    def rendershapelogo(self,name,size,col,backcol,antialiasing=True):
         surf = pygame.Surface((size,size))
         surf.fill(backcol)
-        surf = self.rendershapesettings(name,size,(66,129,180),backcol)
-        self.write(surf,size*0.5,size*0.5,'PyUI',size*(360/600),(62,63,75),True)
-        self.write(surf,size*0.5,size*0.5,'PyUI',size*(380/600),(253,226,93),True)
+        surf = self.rendershapesettings(name,size,(66,129,180),backcol,antialiasing)
+        self.write(surf,size*0.5,size*0.5,'PyUI',size*(360/600),(62,63,75),True,antialiasing=antialiasing)
+        self.write(surf,size*0.5,size*0.5,'PyUI',size*(380/600),(253,226,93),True,antialiasing=antialiasing)
         return surf
         
     def rendershapeplay(self,name,size,col,backcol):
