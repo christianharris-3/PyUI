@@ -665,8 +665,8 @@ class UI:
     def rendershape(self,name,size,col='default',failmessage=True,backcol=(255,255,255)):
         if col == 'default': col = Style.col
         if col == backcol: backcol = (0,0,0)
-        if (name,size,col,backcol) in self.renderedshapes:
-            return self.renderedshapes[(name,size,col,backcol)]
+        if str([name,size,col,backcol]) in self.renderedshapes:
+            return self.renderedshapes[str([name,size,col,backcol])]
         if '(' in name and ')' in name:
             try:
                 c = name.split('(')[1].split(')')[0].split(',')
@@ -690,7 +690,7 @@ class UI:
         elif 'down' in name:
             surf = pygame.transform.rotate(surf,-90)
         surf.set_colorkey(backcol)
-        self.renderedshapes[(name,size,col,backcol)] = surf
+        self.renderedshapes[str([name,size,col,backcol])] = surf
         return surf
     def rendershapetick(self,name,size,col,backcol):
         vals = self.getshapedata(name,['thickness'],[0.2])
