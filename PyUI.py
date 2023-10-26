@@ -635,6 +635,7 @@ class UI:
             xpos+=a.get_width()
         textsurf.set_colorkey(backingcol)
         return textsurf
+    
     def seperatestring(self,text):
         texts = ['']
         imagenames = ['']
@@ -663,7 +664,7 @@ class UI:
         return texts,imagenames
     
     def rendershape(self,name,size,col='default',failmessage=True,backcol=(255,255,255)):
-        if col == 'default': col = Style.col
+        if col == 'default': col = Style.defaults['col']
         if col == backcol: backcol = (0,0,0)
         if str([name,size,col,backcol]) in self.renderedshapes:
             return self.renderedshapes[str([name,size,col,backcol])]
@@ -692,6 +693,7 @@ class UI:
         surf.set_colorkey(backcol)
         self.renderedshapes[str([name,size,col,backcol])] = surf
         return surf
+    
     def rendershapetick(self,name,size,col,backcol):
         vals = self.getshapedata(name,['thickness'],[0.2])
         basethickness = vals[0]
@@ -971,7 +973,7 @@ class UI:
             namesplit = name.split()
             for a in namesplit:
                 for i,b in enumerate(var):
-                    if b in a:
+                    if b == a.split('=')[0]:
                         try:
                             vals[i] = float(a.split('=')[1])
                         except:
