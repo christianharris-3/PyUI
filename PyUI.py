@@ -672,6 +672,7 @@ class UI:
         return texts,imagenames
     
     def rendershape(self,name,size,col='default',failmessage=True,backcol=(255,255,255)):
+        name = name.strip()
         if col == 'default': col = Style.defaults['col']
         if col == backcol: backcol = (0,0,0)
         if 'col=' in name:
@@ -1035,7 +1036,6 @@ class UI:
                 chrwidth = self.gettextsize(linesrealtext[0],font,size,bold,imgin)[0]
                 imgtrackeroffset = 0
                 while chrwidth>width:
-                    imgtracker-=imgtrackeroffset
                     split = linesimgchr[0].rsplit(' ',1)
                     if len(split)>1:
                         slide = split[1]
@@ -1050,22 +1050,14 @@ class UI:
                         else:
                             slide = ''
                     linesimgchr[0] = replace
-                    imgtrackeroffset = 0
-                    while replace.count(imgchr) != 0:
-                        replace = replace.replace(imgchr,'{'+imgnames[imgtracker]+'}',1)
-                        if imgtracker!=len(imgnames)-1:
-                            imgtracker+=1
-                            imgtrackeroffset+=1
+                    replace,imgtrackeroffset = self.replaceimgchr(replace,imgchr,imgtracker,imgnames)
                     linesrealtext[0] = replace
                     newline = slide+newline
                     chrwidth = self.gettextsize(linesrealtext[0],font,size,bold,imgin)[0]
+                imgtracker+=imgtrackeroffset
             if linesimgchr[0] == '':
                 linesimgchr[0] = newline
-                temp = imgtracker
-                while newline.count(imgchr) != 0:
-                    newline = newline.replace(imgchr,'{'+imgnames[temp]+'}',1)
-                    if temp!=len(imgnames)-1:
-                        temp+=1
+                newline,_ = self.replaceimgchr(newline,imgchr,imgtracker,imgnames)
                 linesrealtext[0] = newline
                 newline = ''
             if cutstartspaces and len(linesimgchr[0])>0 and linesimgchr[0][0] == ' ':
@@ -1081,11 +1073,7 @@ class UI:
             del linesrealtext[0]
             if newline!='':
                 linesimgchr.insert(0,newline)
-                temp = imgtracker
-                while newline.count(imgchr) != 0:
-                    newline = newline.replace(imgchr,'{'+imgnames[temp]+'}',1)
-                    if temp!=len(imgnames)-1:
-                        temp+=1
+                newline,_ = self.replaceimgchr(newline,imgchr,imgtracker,imgnames)
                 linesrealtext.insert(0,newline)
             elif not ('\n' in text):
                 break
@@ -1171,6 +1159,14 @@ class UI:
                 size[1] = max(size[1],addon[1])
             
         return size
+    def replaceimgchr(self,line,imgchr,imgtracker,imgnames):
+        count = 0
+        while line.count(imgchr) != 0:
+            line = line.replace(imgchr,'{'+imgnames[imgtracker+count]+'}',1)
+            if imgtracker+count!=len(imgnames)-1:
+                count+=1
+        return line,count
+        
 
     def addid(self,ID,obj,refitems=True):
         if ID in self.IDs:
