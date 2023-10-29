@@ -429,7 +429,8 @@ class UI:
         self.checkcaps()
         if self.scale!=1: self.setscale(self.scale)
         self.styleload_default()
-
+        
+        self.PyUItitle = PyUItitle
         if PyUItitle:
             self.logo = self.rendershapelogo('logo',100,(0,0,0),(255,255,255),False)
             self.logo.set_colorkey((255,255,255))
@@ -590,7 +591,9 @@ class UI:
         else:
             self.__scaleset__(self.screenh/self.basescreensize[1])
         if self.fullscreen: screen = pygame.display.set_mode((self.screenw,self.screenh),pygame.FULLSCREEN)
-        else: screen = pygame.display.set_mode((self.screenw,self.screenh),pygame.RESIZABLE)       
+        else: screen = pygame.display.set_mode((self.screenw,self.screenh),pygame.RESIZABLE)
+        if self.PyUItitle:
+            pygame.display.set_icon(self.logo)
         self.blockf11 = 10
         
     def write(self,screen,x,y,text,size,col=-1,center=True,font=-1,bold=False,antialiasing=True,scale=False,centery=-1):
@@ -1268,7 +1271,7 @@ class UI:
         return obj
     def maketextbox(self,x,y,text='',width=200,lines=-1,menu='main',command=emptyfunction,ID='textbox',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,img='none',textsize=-1,font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
-                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=True,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
+                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=-1,textoffsety=-1,
                  colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,
                  linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=-1,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,
@@ -1741,6 +1744,7 @@ class GUI_ITEM:
         self.clicktype = args['clicktype']
         self.clickablerect = args['clickablerect']
         self.clickableborder = args['clickableborder']
+        self.clickedon = -1
         self.holding = False
         self.hovering = False
         self.animating = False
@@ -2262,8 +2266,9 @@ class TEXTBOX(GUI_ITEM):
         self.refreshcursor()
         self.refreshscroller()
         
-        self.scroller.startmaxp = (self.textimage.get_height())/self.scale+self.verticalspacing*2-1
-        self.scroller.maxp = self.scroller.startmaxp
+        self.scroller.setmaxp((self.textimage.get_height())/self.scale+self.verticalspacing*2-1)
+        self.scroller.setheight(self.height-self.upperborder-self.lowerborder)
+        self.scroller.setpageheight(self.height-self.upperborder-self.lowerborder)
         self.scroller.menu = self.menu
         self.scroller.scalesize = self.scalesize
         self.scroller.scalex = self.scalesize
@@ -2306,11 +2311,11 @@ class TEXTBOX(GUI_ITEM):
         if self.textselected[2]>len(self.chrcorddata): self.textselected[2]=len(self.chrcorddata)
         elif self.textselected[2]<0: self.textselected[2] = 0
     def refreshscroller(self):
-        self.scroller.height = self.height-self.upperborder-self.lowerborder
-        self.scroller.pageheight = self.height-self.upperborder-self.lowerborder
-        self.scroller.resetcords()
+        self.scroller.setheight(self.height-self.upperborder-self.lowerborder)
+        self.scroller.setpageheight(self.height-self.upperborder-self.lowerborder)
+        self.scroller.refresh()
         inc = 0
-        if self.linecenter[1]-self.scroller.scroll>self.height-self.upperborder-self.lowerborder:
+        if self.linecenter[1]-self.scroller.scroll>self.scroller.height:
             inc = self.textsize
         if self.linecenter[1]-self.scroller.scroll<0:
             inc = -self.textsize
@@ -2879,8 +2884,8 @@ class SLIDER(GUI_ITEM):
             pass
         if type(self.data) == BUTTON: self.button = self.data
         else:
-            self.button = self.ui.makebutton(0,0,self.text,self.textsize,self.command,self.menu,self.ID+'button',self.layer+0.01,self.roundedcorners,width=self.slidersize,height=self.slidersize,img=self.img,dragable=self.dragable,
-                                             clickdownsize=int(self.slidersize/15),col=shiftcolor(self.col,-30),runcommandat=self.runcommandat,scaleby=self.scaleby)
+            self.button = self.ui.makebutton(0,0,self.text,self.textsize,emptyfunction,self.menu,self.ID+'button',self.layer+0.01,self.roundedcorners,width=self.slidersize,height=self.slidersize,img=self.img,dragable=self.dragable,
+                                             clickdownsize=int(self.slidersize/15),col=shiftcolor(self.col,-30),scaleby=self.scaleby)
 
         if self.direction == 'vertical': self.button.startobjanchor = [self.button.width/2,self.button.height/2]
         else: self.button.startobjanchor = ['w/2','h/2']
@@ -2905,7 +2910,10 @@ class SLIDER(GUI_ITEM):
         
     def child_render(self,screen):
         self.draw(screen)
-        if self.button.holding: self.movetomouse()
+        if self.button.holding:
+            self.movetomouse()
+        if self.button.clickedon == self.runcommandat:
+            self.command()
         if self.movetoclick: self.movebuttontoclick()
     def movebuttontoclick(self):
         self.getclickedon(roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),False,False)
