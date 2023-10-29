@@ -154,6 +154,12 @@ ui.maketable(240,20,data,spacing=10,roundedcorners=4)
 ```
 ### Slider
 Sliders contain a bar that a button is moved back and forth on when clicked and dragged. The amount the slider is slid can be accessed by the "slider" variable.
+```
+# Make slider with a button with text changing depending on the sliders position
+def updatetext():
+    ui.IDs['slider button'].settext(str(ui.IDs['slider'].slider))
+ui.makeslider(30,280,450,20,button=ui.makebutton(0,0,'4',ID='slider button'),command=updatetext,ID='slider',increment=1)
+```
 ### Scroller
 Scrollers are similar to sliders, however have a set height of the bar being moved. The bar is not a button object, it is in built into the scroller and therefore is more limiting in terms of design.
 ### Windowed Menu
