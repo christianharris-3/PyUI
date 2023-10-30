@@ -2707,13 +2707,13 @@ class TABLE(GUI_ITEM):
                 del self.data[index]
                 if len(self.titles)!=0: index+=1
             for a in self.table[index]:
-                ui.delete(a[1].ID)
+                self.ui.delete(a[1].ID)
             del self.boxheight[index]
             del self.table[index]
             self.gettableheights()
             for a in range(index,len(self.table)):
                 for i,b in enumerate(self.table[a]):
-                    ui.reID('tabletext'+self.tableitemID+self.ID+str(a)+str(i),b)
+                    self.ui.reID('tabletext'+self.tableitemID+self.ID+str(a)+str(i),b)
                     self.itemrefreshcords(b,i,a)
             return True
         else:
@@ -2734,6 +2734,7 @@ class TABLE(GUI_ITEM):
                 self.itemrefreshcords(b,i,a)
         self.refreshglow()
         self.enable()
+        self.resetcords()
     
     
 class TEXT(GUI_ITEM):
