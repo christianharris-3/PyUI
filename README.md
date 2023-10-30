@@ -85,7 +85,8 @@ ui.setstyle(col=(255,0,0),roundedcorners=4,wallpapercol=(255,0,0))
 # set values specifically for buttons
 ui.setstyle(button_font='impact',button_textsize='40')
 ```
-
+There are multiple default styles, all loaded through the styleload function, all represented in this image.
+![image](https://github.com/LazerWolfeGod/PyUI/assets/74326592/764e2fb8-ba43-441d-bce4-1645350d73b3)
 ```py
 #The set of values that can be edited through style system
 col, textsize, textcol, roundedcorners, font, bold, wallpapercol
@@ -154,7 +155,7 @@ ui.maketable(240,20,data,spacing=10,roundedcorners=4)
 ```
 ### Slider
 Sliders contain a bar that a button is moved back and forth on when clicked and dragged. The amount the slider is slid can be accessed by the "slider" variable.
-```
+```py
 # Make slider with a button with text changing depending on the sliders position
 def updatetext():
     ui.IDs['slider button'].settext(str(ui.IDs['slider'].slider))
