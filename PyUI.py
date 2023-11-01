@@ -407,6 +407,7 @@ class UI:
         
         self.clipboard = pygame.scrap.get('str')
 
+        self.timetracker = time.perf_counter()
         
         self.scrolllimit = 100
         self.escapeback = True
@@ -432,7 +433,7 @@ class UI:
         
         self.PyUItitle = PyUItitle
         if PyUItitle:
-            self.logo = self.rendershapelogo('logo',100,(0,0,0),(255,255,255),False)
+            self.logo = self.rendershapelogo('logo',50,(0,0,0),(255,255,255),False)
             self.logo.set_colorkey((255,255,255))
             pygame.display.set_icon(self.logo)
             pygame.display.set_caption('PyUI Application')
@@ -529,6 +530,9 @@ class UI:
             self.IDs[f'auto_generate_menu:{menu}'].drawallmenu(screen)
             
     def loadtickdata(self):
+        t = time.perf_counter()
+        self.deltatime = 60*(t-self.timetracker)
+        self.timetracker = t
         self.blockf11-=1
         self.mpos = list(pygame.mouse.get_pos())
         self.mprs = pygame.mouse.get_pressed()
@@ -3041,6 +3045,7 @@ class ANIMATION:
         self.permamove = permamove
         
         self.progress = 0
+        self.timetracker = 0
         self.wait = wait
         self.skip = skiptoscreen
         self.fadeout = False
@@ -3102,6 +3107,16 @@ class ANIMATION:
         return pygame.Rect(0,0,self.ui.screenw,self.ui.screenh).colliderect(pygame.Rect(cords[0],cords[1],self.ui.IDs[self.animateID].width*scale,self.ui.IDs[self.animateID].height*scale))
         
     def animate(self):
+        prev = round(self.timetracker)
+        if self.wait in [0,1]:
+            self.timetracker+=1
+        self.timetracker+=self.ui.deltatime
+        new = round(self.timetracker)
+        for a in range(prev,new):
+            if self.move1frame():
+                return True
+        return False
+    def move1frame(self):
         self.wait-=1
         if self.wait == 0:
             sp,ep = False,False
