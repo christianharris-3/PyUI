@@ -1191,7 +1191,7 @@ class UI:
         else:
             if type(obj) == BUTTON: self.buttons.append(obj)
             elif type(obj) == TEXTBOX: self.textboxes.append(obj)
-            elif type(obj) == TABLE: self.tables.append(obj)
+            elif type(obj) in [TABLE,SCROLLERTABLE]: self.tables.append(obj)
             elif type(obj) == TEXT: self.texts.append(obj)
             elif type(obj) == SCROLLER: self.scrollers.append(obj)
             elif type(obj) == SLIDER: self.sliders.append(obj)
@@ -1204,7 +1204,7 @@ class UI:
                 if b in self.windowedmenunames:
                     valid = True
                     for a in obj.master:
-                        if type(a) in [BUTTON,TEXTBOX,TEXT,TABLE,SCROLLER,SLIDER,RECT]:
+                        if type(a) in [BUTTON,TEXTBOX,TEXT,TABLE,SCROLLERTABLE,SCROLLER,SLIDER,RECT]:
                             valid = False
                     if valid:
                         self.windowedmenus[self.windowedmenunames.index(b)].binditem(obj,False)
@@ -1445,7 +1445,40 @@ class UI:
                  backingdraw,borderdraw)
         
         cross.command = lambda: obj.settext('')
+        return obj
 
+    def makescrollertable(self,x,y,data=[],titles=[],menu='main',ID='table',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,width=-1,height=-1,
+                 anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,text='',textsize=-1,img='none',font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
+                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
+                 command=emptyfunction,runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=-1,textoffsety=-1,
+                 dragable=False,colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,
+                 boxwidth=-1,boxheight=-1,linesize=2,textcenter=-1,guesswidth=-1,guessheight=-1,
+                 backingdraw=-1,borderdraw=-1,pageheight=-1):
+        if col == -1: col = Style.objectdefaults[TABLE]['col']
+        if backingcol == -1: backingcol = autoshiftcol(Style.objectdefaults[TABLE]['backingcol'],col,-20)
+        
+        obj = SCROLLERTABLE(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
+                 anchor=anchor,objanchor=objanchor,center=center,centery=centery,text=text,textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
+                 border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
+                 command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,
+                 colorkey=colorkey,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,
+                 data=data,titles=titles,boxwidth=boxwidth,boxheight=boxheight,linesize=linesize,textcenter=textcenter,guesswidth=guesswidth,guessheight=guessheight,
+                 backingdraw=backingdraw,borderdraw=borderdraw)
+
+        if pageheight == -1:
+            pageheight=self.IDs[obj.ID].height
+        
+        scroller = self.makescroller(x=border,y=0,width=15,height=pageheight,menu=menu,ID=ID+'scroller',layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
+                 anchor=('w',0),objanchor=objanchor,center=center,centery=centery,enabled=enabled,
+                 border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
+                 col=col,backingcol=backingcol,clicktype=clicktype,
+                 backingdraw=backingdraw,borderdraw=borderdraw,clickablerect=clickablerect,scrollbind=[],
+                 increment=0,minp=0,maxp=f"ui.IDs['{obj.ID}'].height",startp=0,pageheight=pageheight)
+        scroller.command = lambda: obj.scrollerblocks(scroller)
+        obj.binditem(scroller)
+        scroller.resetcords()
+        return obj
+        
     def automakemenu(self,menu):
         obj = MENU(ui=self,x=0,y=0,width=self.screenw,height=self.screenh,menu=menu,ID='auto_generate_menu:'+menu)
         return obj
@@ -1583,7 +1616,7 @@ class UI:
                 self.delete(ID,failmessage)
             if type(self.IDs[ID]) == BUTTON: self.buttons.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == TEXTBOX: self.textboxes.remove(self.IDs[ID])
-            elif type(self.IDs[ID]) == TABLE: self.tables.remove(self.IDs[ID])
+            elif type(self.IDs[ID]) in [TABLE,SCROLLERTABLE]: self.tables.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == TEXT: self.texts.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == SCROLLER: self.scrollers.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == SLIDER: self.sliders.remove(self.IDs[ID])
@@ -2456,6 +2489,7 @@ class TABLE(GUI_ITEM):
         self.startboxheight = self.boxheight
         self.tableitemID = str(random.randint(1000000,10000000))
         self.threadactive = False
+        self.inbuiltscroller = 0
         self.table = 0
         self.refreshscale()
         self.resetcords()
@@ -2533,14 +2567,14 @@ class TABLE(GUI_ITEM):
         a = index
         for i,b in enumerate(self.preprocessed[a]):
             ref = False
-            if type(b) in [BUTTON,TEXTBOX,TEXT,TABLE,SLIDER]:
+            if type(b) in [BUTTON,TEXTBOX,TEXT,TABLE,SCROLLERTABLE,SLIDER]:
                 b.enabled = self.enabled
                 ref = True
                 obj = b
             elif type(b) == pygame.Surface:
                 self.ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+str(i),False)
                 obj = self.ui.maketext(0,0,'',self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,textcenter=self.textcenter,img=b,maxwidth=self.boxwidth[i],
-                                       scalesize=self.scalesize,scaleby=self.scaleby,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,enabled=False)
+                                       scalesize=self.scalesize,scaleby=self.scaleby,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,colorkey=self.colorkey,enabled=False)
             else:
                 b = str(b)
                 self.ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+str(i),False)
@@ -2617,7 +2651,7 @@ class TABLE(GUI_ITEM):
                     if type(b) in [BUTTON,TEXT]:
                         if minn<b.textimage.get_width()+b.horizontalspacing*2*self.scale:
                             minn = b.textimage.get_width()+b.horizontalspacing*2*self.scale
-                    elif type(b) in [TABLE,SLIDER]:
+                    elif type(b) in [TABLE,SCROLLERTABLE,SLIDER]:
                         if minn<b.width:
                             minn = b.width*b[1].scale
                 self.boxwidthsinc.append(sum(self.boxwidths))
@@ -2639,7 +2673,7 @@ class TABLE(GUI_ITEM):
                     if type(b) in [BUTTON,TEXT]:
                         if minn<b.textimage.get_height()+b.verticalspacing*2*self.scale:
                             minn = b.textimage.get_height()+b.verticalspacing*2*self.scale
-                    elif type(b) in [TABLE,SLIDER]:
+                    elif type(b) in [TABLE,SCROLLERTABLE,SLIDER]:
                         if minn<b.height:
                             minn = b.height*b[1].scale
                 self.boxheightsinc.append(sum(self.boxheights))
@@ -2682,7 +2716,7 @@ class TABLE(GUI_ITEM):
             if self.glow!=0:
                 screen.blit(self.glowimage,(self.x*self.dirscale[0]-self.glow*self.scale,self.y*self.dirscale[1]-self.glow*self.scale))
             if self.borderdraw:
-                draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))                            
+                draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,(self.height-self.inbuiltscroller)*self.scale),border_radius=int(self.roundedcorners*self.scale))                            
     def getat(self,row,column):
         return self.table[row+1][column]
     def row_append(self,row):
@@ -2739,7 +2773,46 @@ class TABLE(GUI_ITEM):
         self.refreshglow()
         self.enable()
         self.resetcords()
-    
+
+class SCROLLERTABLE(TABLE):
+    def render(self,screen):
+        if self.killtime != -1 and self.killtime<self.ui.time:
+            self.ui.delete(self.ID)
+        elif self.enabled:
+            self.child_render(screen)
+            
+            if len(self.titles) == 0: titlerem = 1
+            else: titlerem = 0
+            lis = self.table[titlerem:]
+            alltable = []
+            for y in lis:
+                alltable+=[a.ID for a in y]
+            
+            for a in [i.ID for i in self.bounditems][:]:
+                if a in self.ui.IDs and not(a in alltable):
+                    self.ui.IDs[a].render(screen)
+                    
+            surf = pygame.Surface((self.ui.screenw,self.ui.screenh))
+            surf.fill(self.backingcol)
+            surf.set_colorkey(self.backingcol)
+            for a in alltable:
+                if a in self.ui.IDs:
+                    self.ui.IDs[a].render(surf)
+            screen.blit(surf,(self.x,self.y+self.linesize+self.boxheights[0]),(self.x,self.y+self.linesize+self.boxheights[0],self.width,self.height-self.linesize-self.boxheights[0]))
+            
+    def scrollerblocks(self,scroller):
+        self.inbuiltscroller = scroller.scroll
+        if len(self.titles) == 0: titlerem = 1
+        else: titlerem = 0
+        lis = self.table[titlerem:]
+        alltable = []
+        for y in lis:
+            alltable+=y
+        for a in alltable:
+            a.scrollcords = (0,scroller.scroll)
+            a.resetcords()
+        
+                
     
 class TEXT(GUI_ITEM):
     def reset(self):
@@ -3195,7 +3268,7 @@ class Style:
     
     wallpapercol = (255,255,255)
 
-    UI.objectkey = {'button':BUTTON,'text':TEXT,'textbox':TEXTBOX,'table':TABLE,'slider':SLIDER,'scroller':SCROLLER,'menu':MENU,'windowedmenu':WINDOWEDMENU,'rect':RECT}
+    UI.objectkey = {'button':BUTTON,'text':TEXT,'textbox':TEXTBOX,'table':TABLE,'scrollertable':SCROLLERTABLE,'slider':SLIDER,'scroller':SCROLLER,'menu':MENU,'windowedmenu':WINDOWEDMENU,'rect':RECT}
     
     objectdefaults = {}
     for a in [UI.objectkey[o] for o in UI.objectkey]:
