@@ -1,5 +1,5 @@
 import pygame,random,math,time,copy,ctypes,os,threading
-import pygame.gfxdraw
+import pygame.gfxdraw 
 pygame.init()
 
 def resourcepath(relative_path):
@@ -1462,7 +1462,7 @@ class UI:
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,text=text,textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
                  border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                  command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,
-                 colorkey=colorkey,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,
+                 colorkey=colorkey,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=(0,0,'w','h'),
                  data=data,titles=titles,boxwidth=boxwidth,boxheight=boxheight,linesize=linesize,textcenter=textcenter,guesswidth=guesswidth,guessheight=guessheight,
                  backingdraw=backingdraw,borderdraw=borderdraw,refreshbind=refreshbind,scroller=emptyobject(0,0,15,15),compress=compress)
         
@@ -1773,7 +1773,7 @@ class GUI_ITEM:
         self.bindtoggle = args['bindtoggle']
         
         self.clicktype = args['clicktype']
-        self.clickablerect = args['clickablerect']
+        self.startclickablerect = args['clickablerect']
         self.clickableborder = args['clickableborder']
         self.clickedon = -1
         self.holding = False
@@ -1797,6 +1797,7 @@ class GUI_ITEM:
         self.commandifkey = args['commandifkey']
         self.imgdisplay = args['imgdisplay']
 
+        self.tableobject = False
         self.data = args['data']
         self.titles = args['titles']
         self.linesize = args['linesize']
@@ -1842,7 +1843,10 @@ class GUI_ITEM:
         self.reset()
         pygame.event.pump()
         
-        
+    def __str__(self):
+        return  '<'+str(type(self)).split("'")[1]+f' ID:{self.ID}>'
+    def __repr__(self):
+        return  '<'+str(type(self)).split("'")[1]+f' ID:{self.ID}>'
     def reset(self):
         self.autoscale()
         self.refreshscale()
@@ -1949,9 +1953,21 @@ class GUI_ITEM:
         if not self.scalex: self.dirscale[0] = 1
         if not self.scaley: self.dirscale[1] = 1
     def autoscale(self):
-        if self.startwidth != -1: self.width = relativetoval(self.startwidth,self.getmasterwidth()/self.scale,self.getmasterheight()/self.scale,self.ui)
-        if self.startmaxwidth != -1: self.maxwidth = relativetoval(self.startmaxwidth,self.getmasterwidth()/self.scale,self.getmasterheight()/self.scale,self.ui)
-        if self.startheight != -1: self.height = relativetoval(self.startheight,self.getmasterwidth()/self.scale,self.getmasterheight()/self.scale,self.ui)
+        w = self.getmasterwidth()/self.scale
+        h = self.getmasterheight()/self.scale
+        if self.startwidth != -1: self.width = relativetoval(self.startwidth,w,h,self.ui)
+        if self.startmaxwidth != -1: self.maxwidth = relativetoval(self.startmaxwidth,w,h,self.ui)
+        if self.startheight != -1: self.height = relativetoval(self.startheight,w,h,self.ui)
+        if self.startclickablerect != -1:
+            rx,ry,rw,rh = self.startclickablerect
+            ow = self.width
+            oh = self.height
+            if type(self) == SCROLLERTABLE: oh = self.pageheight
+            self.clickablerect = pygame.Rect(self.x+relativetoval(rx,w,h,self.ui),
+                                             self.y+relativetoval(ry,w,h,self.ui),
+                                             relativetoval(rw,ow,oh,self.ui),
+                                             relativetoval(rh,ow,oh,self.ui))
+        else: self.clickablerect = self.startclickablerect
         self.child_autoscale()
     def render(self,screen):
         if self.killtime != -1 and self.killtime<self.ui.time:
@@ -2494,6 +2510,7 @@ class TABLE(GUI_ITEM):
         self.threadactive = False
         self.table = 0
         self.refreshscale()
+        self.autoscale()
         self.resetcords()
         self.refreshscale()
         self.preprocess()
@@ -2508,6 +2525,7 @@ class TABLE(GUI_ITEM):
         
     def refresh(self):
         self.refreshscale()
+        self.autoscale()
         self.preprocess()
         self.initheightwidth()
         self.estimatewidths()
@@ -2562,6 +2580,12 @@ class TABLE(GUI_ITEM):
                 
     def gentext(self):
         self.enabled = True
+        stillactive = []
+        for a in self.preprocessed: stillactive+=a
+        copy = [a.ID for a in self.bounditems][:]
+        for a in copy:
+            if self.ui.IDs[a].tableobject and not(self.ui.IDs[a] in stillactive):
+                self.ui.delete(a)
         self.table = []
         for a in range(len(self.preprocessed)):
             self.table.append(self.row_gentext(a))
@@ -2617,6 +2641,7 @@ class TABLE(GUI_ITEM):
         obj.scalesize = self.scalesize
         obj.scaleby = self.scaleby
         obj.clickablerect = self.clickablerect
+        obj.tableobject = True
         obj.refreshscale()
         obj.resetcords(False)
     def getalltableitems(self):
@@ -2755,37 +2780,52 @@ class TABLE(GUI_ITEM):
     def row_append(self,row):
         self.rows+=1
         self.data.append(row)
+        pre = self.columns
         self.preprocess()
-        self.boxheight.append(-1)
-        self.__row_init__(len(self.preprocessed)-1)
+        if pre!=self.columns:
+            self.refresh()
+            self.__row_refresh__()
+        else:
+            self.boxheight.append(-1)
+            self.__row_init__(len(self.preprocessed)-1)
     def row_insert(self,row,index):
         if index<len(self.table):
             self.rows+=1
             self.data.insert(index,row)
             if len(self.titles)!=0: index+=1
+            pre = self.columns
             self.preprocess()
-            self.boxheight.insert(index,-1)
-            self.__row_init__(index)
+            if pre!=self.columns:
+                self.refresh()
+                self.__row_refresh__()
+            else:
+                self.boxheight.insert(index,-1)
+                self.__row_init__(index)
             return True
         else: return False
     def row_remove(self,index):
         if index<len(self.table)-1:
             self.rows-=1
             if index == -1:
-                self.titles = 0
+                self.titles = []
                 index = 0
             else:
                 del self.data[index]
                 if len(self.titles)!=0: index+=1
-            for a in self.table[index]:
-                self.ui.delete(a.ID)
-            del self.boxheight[index]
-            del self.table[index]
-            self.gettableheights()
-            for a in range(index,len(self.table)):
-                for i,b in enumerate(self.table[a]):
-                    self.ui.reID('tabletext'+self.tableitemID+self.ID+str(a)+str(i),b)
-                    self.itemrefreshcords(b,i,a)
+            pre = self.columns
+            self.preprocess()
+            if pre!=self.columns:
+                self.refresh()
+            else:
+                for a in self.table[index]:
+                    self.ui.delete(a.ID)
+                del self.boxheight[index]
+                del self.table[index]
+                self.gettableheights()
+                for a in range(index,len(self.table)):
+                    for i,b in enumerate(self.table[a]):
+                        self.ui.reID('tabletext'+self.tableitemID+self.ID+str(a)+str(i),b)
+                        self.itemrefreshcords(b,i,a)
             self.__row_refresh__()
             return True
         else:
@@ -2801,13 +2841,14 @@ class TABLE(GUI_ITEM):
             for i,b in enumerate(self.table[a]):
                 self.ui.reID('tabletext'+self.tableitemID+self.ID+str(a+1)+str(i),b)
         self.table.insert(index,self.row_gentext(index))
-        self.gettableheights()
+        self.gettableheights()  
         for a in range(index,len(self.table)):
             for i,b in enumerate(self.table[a]):
                 self.itemrefreshcords(b,i,a)
         self.__row_refresh__()
     def __row_refresh__(self):
         self.refreshglow()
+        self.autoscale()
         self.enable()
         self.gettablewidths()
         self.gettableheights()
@@ -2855,6 +2896,7 @@ class SCROLLERTABLE(TABLE):
     def __row_refresh__(self):
         self.scroller.autoscale()
         self.scroller.checkactive()
+        self.autoscale()
         self.initheightwidth()
         self.refreshglow()
         self.gettablewidths()
