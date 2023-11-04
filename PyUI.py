@@ -483,6 +483,8 @@ class UI:
         for a in self.items:
             checker = (a.width,a.height)
             a.autoscale()
+            if type(a) in [TABLE,SCROLLERTABLE]:
+                a.small_refresh()
             if (a.width,a.height) != checker or a.scalesize:
                 a.refresh()
     def setscale(self,scale):
@@ -1454,7 +1456,7 @@ class UI:
                  command=emptyfunction,runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=-1,textoffsety=-1,
                  dragable=False,colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,
                  boxwidth=-1,boxheight=-1,linesize=2,textcenter=-1,guesswidth=-1,guessheight=-1,
-                 backingdraw=-1,borderdraw=-1,pageheight=-1,refreshbind=[],compress=True,scrollerwidth=15):
+                 backingdraw=-1,borderdraw=-1,pageheight=-1,refreshbind=[],compress=True,scrollerwidth=15,screencompressed=5):
         if col == -1: col = Style.objectdefaults[TABLE]['col']
         if backingcol == -1: backingcol = autoshiftcol(Style.objectdefaults[TABLE]['backingcol'],col,-20)
         
@@ -1468,13 +1470,14 @@ class UI:
         
         if pageheight == -1:
             pageheight = self.IDs[obj.ID].height
-        obj.pageheight = pageheight
-        scroller = self.makescroller(x=border,y=0,width=scrollerwidth,height=pageheight,menu=menu,ID=obj.ID+'scroller',layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
+        obj.startpageheight = pageheight
+        obj.autoscale()
+        scroller = self.makescroller(x=border,y=0,width=scrollerwidth,height=f'ui.IDs["{obj.ID}"].pageheight',menu=menu,ID=obj.ID+'scroller',layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
                  anchor=('w',0),objanchor=(0,0),enabled=enabled,
                  border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                  col=col,backingcol=backingcol,clicktype=clicktype,
-                 backingdraw=backingdraw,borderdraw=borderdraw,clickablerect=clickablerect,scrollbind=[],screencompressed=True,
-                 increment=0,minp=0,maxp=f"ui.IDs['{obj.ID}'].height",startp=0,pageheight=pageheight)
+                 backingdraw=backingdraw,borderdraw=borderdraw,clickablerect=clickablerect,scrollbind=[],screencompressed=screencompressed,
+                 increment=0,minp=0,maxp=f"ui.IDs['{obj.ID}'].height",startp=0,pageheight=f'ui.IDs["{obj.ID}"].pageheight')
         scroller.command = lambda: obj.scrollerblocks(scroller)
         obj.refreshbind.append(scroller.ID)
         obj.binditem(scroller)
@@ -1962,11 +1965,13 @@ class GUI_ITEM:
             rx,ry,rw,rh = self.startclickablerect
             ow = self.width
             oh = self.height
-            if type(self) == SCROLLERTABLE: oh = self.pageheight
+            if type(self) == SCROLLERTABLE:
+                self.pageheight = relativetoval(self.startpageheight,self.ui.screenw,self.ui.screenh,self.ui)
+                oh = self.pageheight
             self.clickablerect = pygame.Rect(self.x+relativetoval(rx,w,h,self.ui),
                                              self.y+relativetoval(ry,w,h,self.ui),
-                                             relativetoval(rw,ow,oh,self.ui),
-                                             relativetoval(rh,ow,oh,self.ui))
+                                             relativetoval(rw,ow,oh,self.ui)*self.scale,
+                                             relativetoval(rh,ow,oh,self.ui)*self.scale)
         else: self.clickablerect = self.startclickablerect
         self.child_autoscale()
     def render(self,screen):
@@ -2657,13 +2662,17 @@ class TABLE(GUI_ITEM):
         w = self.getmasterwidth()
         h = self.getmasterheight()
         ##
-        if type(self.startboxwidth) == int:
+        if self.startboxwidth == -1 and self.startwidth!=-1:
+            tempboxwidth = [(self.width-self.linesize*(self.columns+1))/self.columns for a in range(self.columns)]
+        elif type(self.startboxwidth) == int:
             if self.columns == 0: tempboxwidth = [self.startboxwidth]
             else: tempboxwidth = [self.startboxwidth for a in range(self.columns)]
         else:
             tempboxwidth = self.startboxwidth[:]
             while len(tempboxwidth)<self.columns:
                 tempboxwidth.append(-1)
+
+                
         if not (not self.compress and type(self.compress) == bool):
             if type(self.compress) == bool:
                 compress = normalizelist([1 for a in tempboxwidth])
@@ -2684,7 +2693,9 @@ class TABLE(GUI_ITEM):
         for a in tempboxwidth:
             self.boxwidth.append(max(relativetoval(a,w,h,self.ui),-1))
         ##
-        if type(self.startboxheight) == int:
+        if self.startboxheight == -1 and self.startheight!=-1:
+            tempboxheight = [(self.height-self.linesize*(self.rows+1))/self.rows for a in range(self.rows)]
+        elif type(self.startboxheight) == int:
             if self.rows == 0: tempboxheight = [self.startboxheight]
             else: tempboxheight = [self.startboxheight for a in range(self.rows)]
         else:
@@ -2772,7 +2783,7 @@ class TABLE(GUI_ITEM):
             if self.glow!=0:
                 screen.blit(self.glowimage,(self.x*self.dirscale[0]-self.glow*self.scale,self.y*self.dirscale[1]-self.glow*self.scale))
             if self.borderdraw:
-                if type(self) == SCROLLERTABLE: h = min(self.height,self.pageheight)
+                if type(self) == SCROLLERTABLE: h = min(self.height,self.scroller.pageheight)
                 else: h = self.height
                 draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,(h)*self.scale),border_radius=int(self.roundedcorners*self.scale))                            
     def getat(self,row,column):
@@ -2784,7 +2795,7 @@ class TABLE(GUI_ITEM):
         self.preprocess()
         if pre!=self.columns:
             self.refresh()
-            self.__row_refresh__()
+            self.small_refresh()
         else:
             self.boxheight.append(-1)
             self.__row_init__(len(self.preprocessed)-1)
@@ -2797,7 +2808,7 @@ class TABLE(GUI_ITEM):
             self.preprocess()
             if pre!=self.columns:
                 self.refresh()
-                self.__row_refresh__()
+                self.small_refresh()
             else:
                 self.boxheight.insert(index,-1)
                 self.__row_init__(index)
@@ -2826,7 +2837,7 @@ class TABLE(GUI_ITEM):
                     for i,b in enumerate(self.table[a]):
                         self.ui.reID('tabletext'+self.tableitemID+self.ID+str(a)+str(i),b)
                         self.itemrefreshcords(b,i,a)
-            self.__row_refresh__()
+            self.small_refresh()
             return True
         else:
             return False
@@ -2845,8 +2856,8 @@ class TABLE(GUI_ITEM):
         for a in range(index,len(self.table)):
             for i,b in enumerate(self.table[a]):
                 self.itemrefreshcords(b,i,a)
-        self.__row_refresh__()
-    def __row_refresh__(self):
+        self.small_refresh()
+    def small_refresh(self):
         self.refreshglow()
         self.autoscale()
         self.enable()
@@ -2877,7 +2888,7 @@ class SCROLLERTABLE(TABLE):
                     self.ui.IDs[a].render(surf)
             reduce = 0
             if len(self.titles) != 0: reduce = (self.linesize+self.boxheights[0])
-            screen.blit(surf,(self.x*self.dirscale[0],self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale),(self.x*self.dirscale[0],self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,self.width*self.scale,min(self.height-self.linesize*2-reduce,self.pageheight-self.linesize*2-reduce)*self.scale))
+            screen.blit(surf,(self.x*self.dirscale[0],self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale),(self.x*self.dirscale[0],self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,self.width*self.scale,min(self.height-self.linesize*2-reduce,self.scroller.pageheight-self.linesize*2-reduce)*self.scale))
             
     def scrollerblocks(self,scroller):
         alltable = self.getalltableitems()
@@ -2890,10 +2901,10 @@ class SCROLLERTABLE(TABLE):
         self.initheightwidth()
         self.estimatewidths()
         self.gentext()
-        self.__row_refresh__()
+        self.small_refresh()
         self.scroller.refresh()
         self.threadactive = False
-    def __row_refresh__(self):
+    def small_refresh(self):
         self.scroller.autoscale()
         self.scroller.checkactive()
         self.autoscale()
@@ -2980,7 +2991,7 @@ class SCROLLER(GUI_ITEM):
         compress = 1
         if self.screencompressed:
             if self.y*self.dirscale[1]+self.height*self.scale>self.ui.screenh:
-                compress = 1-(self.y*self.dirscale[1]+self.height*self.scale-self.ui.screenh)/(self.height*self.scale)
+                compress = 1-(self.y*self.dirscale[1]+self.height*self.scale-self.ui.screenh+self.screencompressed)/(self.height*self.scale)
         self.height*=compress
         self.scheight = self.height-self.border*2
         self.maxp = relativetoval(self.startmaxp,self.getmasterwidth()/self.scale,self.getmasterheight()/self.scale,self.ui)
