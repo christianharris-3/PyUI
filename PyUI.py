@@ -1454,7 +1454,7 @@ class UI:
                  command=emptyfunction,runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=-1,textoffsety=-1,
                  dragable=False,colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,
                  boxwidth=-1,boxheight=-1,linesize=2,textcenter=-1,guesswidth=-1,guessheight=-1,
-                 backingdraw=-1,borderdraw=-1,pageheight=-1,refreshbind=[],compress=False):
+                 backingdraw=-1,borderdraw=-1,pageheight=-1,refreshbind=[],compress=True,scrollerwidth=15):
         if col == -1: col = Style.objectdefaults[TABLE]['col']
         if backingcol == -1: backingcol = autoshiftcol(Style.objectdefaults[TABLE]['backingcol'],col,-20)
         
@@ -1469,8 +1469,8 @@ class UI:
         if pageheight == -1:
             pageheight = self.IDs[obj.ID].height
         obj.pageheight = pageheight
-        scroller = self.makescroller(x=border,y=0,width=15,height=pageheight,menu=menu,ID=obj.ID+'scroller',layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
-                 anchor=('w',0),objanchor=objanchor,center=center,centery=centery,enabled=enabled,
+        scroller = self.makescroller(x=border,y=0,width=scrollerwidth,height=pageheight,menu=menu,ID=obj.ID+'scroller',layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
+                 anchor=('w',0),objanchor=(0,0),enabled=enabled,
                  border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                  col=col,backingcol=backingcol,clicktype=clicktype,
                  backingdraw=backingdraw,borderdraw=borderdraw,clickablerect=clickablerect,scrollbind=[],screencompressed=True,
@@ -2620,7 +2620,7 @@ class TABLE(GUI_ITEM):
         obj.refreshscale()
         obj.resetcords(False)
     def getalltableitems(self):
-        if len(self.titles) == 0: titlerem = 1
+        if len(self.titles) != 0: titlerem = 1
         else: titlerem = 0
         lis = self.table[titlerem:]
         alltable = []
@@ -2834,7 +2834,9 @@ class SCROLLERTABLE(TABLE):
             for a in alltable:
                 if a in self.ui.IDs:
                     self.ui.IDs[a].render(surf)
-            screen.blit(surf,(self.x*self.dirscale[0],self.y*self.dirscale[1]+(self.linesize*2+self.boxheights[0])*self.scale),(self.x*self.dirscale[0],self.y*self.dirscale[1]+(self.linesize*2+self.boxheights[0])*self.scale,self.width*self.scale,min(self.height-self.linesize*3-self.boxheights[0],self.pageheight-self.linesize*3-self.boxheights[0])*self.scale))
+            reduce = 0
+            if len(self.titles) != 0: reduce = (self.linesize+self.boxheights[0])
+            screen.blit(surf,(self.x*self.dirscale[0],self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale),(self.x*self.dirscale[0],self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,self.width*self.scale,min(self.height-self.linesize*2-reduce,self.pageheight-self.linesize*2-reduce)*self.scale))
             
     def scrollerblocks(self,scroller):
         alltable = self.getalltableitems()
