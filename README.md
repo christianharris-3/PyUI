@@ -153,6 +153,19 @@ data = [['Test',ui.maketext(0,0,'Colour',textcol=(255,100,0),backingcol=(50,0,25
 
 ui.maketable(240,20,data,spacing=10,roundedcorners=4)
 ```
+### Scroller Table
+A table that works nearly exactly like a normal table, however creates a scroller to its right that scrolls the table up and down. The height of the scroller and therefore table is controlled through the pageheight variable. The compress variable is used to shrink the size of the table when the scroller is active, if set to true it will reduce down the columns it can, any column with an automatic width can not be reduced. Setting it to an int will only reduce that column and only if that column can be reduced. Lastly it can be set to a list in which the length has to be equal to the number of columns, and the ratio of the values put in will reduce the columns by the given ratios.
+```py
+# Create some random dummy data to fill the table
+data = [['Test',ui.maketext(0,0,'Colour',textcol=(255,100,0),backingcol=(50,0,255))],
+        [ui.maketextbox(0,0,textsize=25,spacing=3),'{clock}'],
+        [ui.makebutton(0,0,'Button',spacing=4),3]]
+# Generate the scroller table, second column will compress
+table = ui.makescrollertable(240,20,data,['Text','{shuffle}'],boxwidth=200,compress=1,textcenter=True)
+# Add new data to the table, forcing the scroller to become active
+for a in range(5):
+    table.row_append(['new line',len(table.table)])
+```
 ### Slider
 Sliders contain a bar that a button is moved back and forth on when clicked and dragged. The amount the slider is slid can be accessed by the "slider" variable.
 ```py
@@ -331,6 +344,7 @@ command=lambda: testfunction('function arguements')
 - **borderdraw**-***bool*** = Boolean that toggles if the border is drawn.
 - **glow**-***int*** = An value that changes the size of the glow effect around an object, defaults to no glow.
 - **glowcol**-***(r,g,b,a)*** = Edits the colour of the glow specifically.
+- **refreshbind**-***list[str]*** = A list of object IDs that will be refreshed when this object is refreshed.
 
 ### Text variables
 - **text**-***str*** = The text that is displayed, can be used with [in build images](#In-built-images) with all objects. Textboxes require imgdisplay to be true for this to take effect.
@@ -384,6 +398,11 @@ command=lambda: testfunction('function arguements')
 - **linesize**-***int/float*** = The pixel size of the width of each line seperating objects in the table.
 - **guesswidth**-***int/float*** = When using threading to refresh a table the table, there is no value for boxwidth/height if it is -1, so it assumes this value to be the width of the table before resetting back to proper values when the refresh is finished.
 - **guessheight**-***int/float*** = Same as guesswidth but for height of boxes.
+
+### Scroller Table specific
+- **pageheight**-***int/float*** = The display height of the table, and the height of the scoller that appears next to it. When the table changes in size the display height will stick to this value.
+- **compress**-***bool/int/list[float/int]*** = Default to True, used to shrink the size of the table when the scroller is active, if set to False the table will not change in size when the scroller appears, if True it will reduce down the columns it can, any column with an automatic width can not be reduced. Setting it to an int will only reduce that column and only if that column can be reduced. Lastly it can be set to a list in which the length has to be equal to the number of columns, and the ratio of the values put in will reduce the columns by the given ratios.
+- **scrollerwidth**-***int*** = The width in pixels of the scroller attached to the table.
 
 ### Scroller/Slider specific
 - **minp**-***int*** = The lower bound for the objects scroll/slider value
