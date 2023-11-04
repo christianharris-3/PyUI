@@ -1,5 +1,5 @@
 import pygame,random,math,time,copy,ctypes,os,threading
-import pygame.gfxdraw 
+import pygame.gfxdraw
 pygame.init()
 
 def resourcepath(relative_path):
