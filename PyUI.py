@@ -487,6 +487,8 @@ class UI:
                 a.small_refresh()
             if (a.width,a.height) != checker or a.scalesize:
                 a.refresh()
+            if a.clickablerect != -1:
+                a.refreshclickablerect()
     def setscale(self,scale):
         pygame.event.post(pygame.event.Event(pygame.VIDEORESIZE,w=self.basescreensize[0]*scale,h=self.basescreensize[1]*scale))
     def refreshall(self):
@@ -1454,7 +1456,7 @@ class UI:
                  anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,text='',textsize=-1,img='none',font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  command=emptyfunction,runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=-1,textoffsety=-1,
-                 dragable=False,colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,
+                 dragable=False,colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=(0,0,'w','h'),
                  boxwidth=-1,boxheight=-1,linesize=2,textcenter=-1,guesswidth=-1,guessheight=-1,
                  backingdraw=-1,borderdraw=-1,pageheight=-1,refreshbind=[],compress=True,scrollerwidth=15,screencompressed=5):
         if col == -1: col = Style.objectdefaults[TABLE]['col']
@@ -1464,10 +1466,11 @@ class UI:
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,text=text,textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
                  border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                  command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,
-                 colorkey=colorkey,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=(0,0,'w','h'),
+                 colorkey=colorkey,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,
                  data=data,titles=titles,boxwidth=boxwidth,boxheight=boxheight,linesize=linesize,textcenter=textcenter,guesswidth=guesswidth,guessheight=guessheight,
                  backingdraw=backingdraw,borderdraw=borderdraw,refreshbind=refreshbind,scroller=emptyobject(0,0,15,15),compress=compress)
-        
+        if len(titles) != 0 and clickablerect == (0,0,'w','h'):
+            obj.startclickablerect = (0,f'(ui.IDs["{obj.ID}"].boxheights[0]+ui.IDs["{obj.ID}"].linesize*2)*ui.IDs["{obj.ID}"].scale','w',f'h-(ui.IDs["{obj.ID}"].boxheights[0]-ui.IDs["{obj.ID}"].linesize*2)')
         if pageheight == -1:
             pageheight = self.IDs[obj.ID].height
         obj.startpageheight = pageheight
@@ -1777,6 +1780,7 @@ class GUI_ITEM:
         
         self.clicktype = args['clicktype']
         self.startclickablerect = args['clickablerect']
+        self.clickablerect = args['clickablerect']
         self.clickableborder = args['clickableborder']
         self.clickedon = -1
         self.holding = False
@@ -1868,8 +1872,7 @@ class GUI_ITEM:
         self.gentext()
         self.resetcords()
         self.refreshglow()
-        for a in self.refreshbind:
-            self.ui.IDs[a].refresh()
+        self.refreshbound()
     def gentext(self):
         ui = self.ui
         self.currentframe = 0
@@ -1895,7 +1898,10 @@ class GUI_ITEM:
         if self.glow!=0:
             self.glowimage = pygame.Surface(((self.glow*2+self.width)*self.scale,(self.glow*2+self.height)*self.scale),pygame.SRCALPHA)
             draw.glow(self.glowimage,roundrect(self.glow*self.scale,self.glow*self.scale,self.width*self.scale,self.height*self.scale),self.glow,self.glowcol)
-    
+    def refreshbound(self):
+        for a in self.refreshbind:
+            if a in self.ui.IDs:
+                self.ui.IDs[a].refresh()
     def animatetext(self):
         if self.animating:
             self.animate+=1
@@ -1961,20 +1967,28 @@ class GUI_ITEM:
         if self.startwidth != -1: self.width = relativetoval(self.startwidth,w,h,self.ui)
         if self.startmaxwidth != -1: self.maxwidth = relativetoval(self.startmaxwidth,w,h,self.ui)
         if self.startheight != -1: self.height = relativetoval(self.startheight,w,h,self.ui)
+        self.refreshclickablerect()
+        self.child_autoscale()
+    def refreshclickablerect(self):
+        w = self.getmasterwidth()/self.scale
+        h = self.getmasterheight()/self.scale
         if self.startclickablerect != -1:
             rx,ry,rw,rh = self.startclickablerect
             ow = self.width
             oh = self.height
             if type(self) == SCROLLERTABLE:
-                self.pageheight = relativetoval(self.startpageheight,self.ui.screenw,self.ui.screenh,self.ui)
+                self.pageheight = relativetoval(self.startpageheight,self.ui.screenw/self.scale,self.ui.screenh/self.scale,self.ui)
                 oh = self.pageheight
-            self.clickablerect = pygame.Rect(self.x+relativetoval(rx,w,h,self.ui),
-                                             self.y+relativetoval(ry,w,h,self.ui),
+            self.clickablerect = pygame.Rect(self.x*self.dirscale[0]+relativetoval(rx,w,h,self.ui),
+                                             self.y*self.dirscale[1]+relativetoval(ry,w,h,self.ui),
                                              relativetoval(rw,ow,oh,self.ui)*self.scale,
                                              relativetoval(rh,ow,oh,self.ui)*self.scale)
         else: self.clickablerect = self.startclickablerect
-        self.child_autoscale()
+##        if type(self) == TABLE and self.clickablerect != -1:
+##            print(ow,oh,self.width,self.height)
+        
     def render(self,screen):
+##        if self.ID == 'playlist': print(self.width)
         if self.killtime != -1 and self.killtime<self.ui.time:
             self.ui.delete(self.ID)
         elif self.enabled:
@@ -2110,8 +2124,7 @@ class BUTTON(GUI_ITEM):
         self.gentext()
         self.autoscale()
         self.refreshglow()
-        for a in self.refreshbind:
-            self.ui.IDs[a].refresh()
+        self.refreshbound()
     def child_gentext(self):
         if (self.img != self.toggleimg) or (self.text != self.toggletext):
             if type(self.img) != list: imgs = [self.toggleimg]
@@ -2342,8 +2355,7 @@ class TEXTBOX(GUI_ITEM):
         self.scroller.refresh()
         self.refreshcords()
         self.refreshglow()
-        for a in self.refreshbind:
-            self.ui.IDs[a].refresh()
+        self.refreshbound()
            
     def gentext(self,refcurse=True):
         self.textimage,self.chrcorddatalined = self.ui.rendertextlined(self.text,self.textsize,self.textcol,self.col,self.font,self.width-self.horizontalspacing*2-self.leftborder-self.rightborder-self.scrolleron*self.scroller.width,self.bold,center=self.textcenter,scale=self.scale,linelimit=self.linelimit,getcords=True,imgin=self.imgdisplay)
@@ -2539,9 +2551,9 @@ class TABLE(GUI_ITEM):
         self.gettableheights()        
         self.refreshcords()
         self.refreshglow()
+        self.refreshclickablerect()
         self.enable()
-        for a in self.refreshbind:
-            self.ui.IDs[a].refresh()
+        self.refreshbound()
         self.threadactive = False
     def threadrefresh(self):
         if not self.threadactive:
@@ -2688,7 +2700,7 @@ class TABLE(GUI_ITEM):
                     raise Exception(f'Wrong length of variable "compress" in object {self.ID}')
             for i in range(len(tempboxwidth)):
                 if compress[i] != 0:
-                    tempboxwidth[i] = str(tempboxwidth[i])+f'-ui.IDs["{self.ID}"].scroller.width*ui.IDs["{self.ID}"].scroller.active*{compress[i]}'
+                    tempboxwidth[i] = str(tempboxwidth[i])+f'-(ui.IDs["{self.ID}"].scroller.width+ui.IDs["{self.ID}"].border)*ui.IDs["{self.ID}"].scroller.active*{compress[i]}'
         self.boxwidth = []
         for a in tempboxwidth:
             self.boxwidth.append(max(relativetoval(a,w,h,self.ui),-1))
@@ -2858,14 +2870,14 @@ class TABLE(GUI_ITEM):
                 self.itemrefreshcords(b,i,a)
         self.small_refresh()
     def small_refresh(self):
-        self.refreshglow()
         self.autoscale()
-        self.enable()
+        self.initheightwidth()
+        self.refreshglow()
         self.gettablewidths()
         self.gettableheights()
+        self.refreshclickablerect()
         self.refreshcords()
-        for a in self.refreshbind:
-            self.ui.IDs[a].refresh()
+        self.refreshbound()
 
 class SCROLLERTABLE(TABLE):
     def render(self,screen):
@@ -2912,9 +2924,9 @@ class SCROLLERTABLE(TABLE):
         self.refreshglow()
         self.gettablewidths()
         self.gettableheights()
+        self.refreshclickablerect()
         self.refreshcords()
-        for a in self.refreshbind:
-            self.ui.IDs[a].refresh()
+        self.refreshbound()
         
                 
     
@@ -2963,8 +2975,8 @@ class TEXT(GUI_ITEM):
         self.refreshcords()
         self.refreshglow()
         self.resetcords()
-        for a in self.refreshbind:
-            self.ui.IDs[a].refresh()
+        self.refreshbound()
+        self.refreshclickablerect()
 
 class SCROLLER(GUI_ITEM):
     def reset(self):
@@ -3012,8 +3024,7 @@ class SCROLLER(GUI_ITEM):
         self.checkactive()
         self.limitpos()
         self.command()
-        for a in self.refreshbind:
-            self.ui.IDs[a].refresh()
+        self.refreshbound()
         
     def checkactive(self):
         if (self.maxp-self.minp)>self.pageheight: self.active = True
@@ -3066,8 +3077,7 @@ class SLIDER(GUI_ITEM):
         self.autoscale()
         self.refreshbutton()
         self.refreshglow()
-        for a in self.refreshbind:
-            self.ui.IDs[a].refresh()
+        self.refreshbound()
     def child_refreshcords(self):
         self.slidercenter = (self.x+self.border+(self.width-self.border*2)*(self.slider/(self.maxp-self.minp)),self.y+self.height/2)    
         self.innerrect = pygame.Rect(self.slidercenter[0]-self.slidersize/2+self.border,self.slidercenter[1]-self.slidersize/2+self.border,self.slidersize-self.border*2,self.slidersize-self.border*2)
@@ -3174,8 +3184,7 @@ class WINDOWEDMENU(GUI_ITEM):
         self.refreshscale()
         self.refreshcords()
         self.refreshglow()
-        for a in self.refreshbind:
-            self.ui.IDs[a].refresh()
+        self.refreshbound()
     def child_refreshcords(self):
         for a in self.bounditems:
             a.resetcords()
@@ -3201,8 +3210,7 @@ class MENU(GUI_ITEM):
         self.startheight = self.ui.screenh
         self.width = self.ui.screenw
         self.height = self.ui.screenh
-        for a in self.refreshbind:
-            self.ui.IDs[a].refresh()
+        self.refreshbound()
     def child_refreshcords(self):
         for a in self.bounditems:
             a.resetcords()
