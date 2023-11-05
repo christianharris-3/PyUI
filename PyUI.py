@@ -36,6 +36,9 @@ class emptyobject:
         self.dirscale = [1,1]
         self.empty = True
         self.active = False
+class funcer:
+    def __init__(self,func,**args):
+        self.func = lambda: func(**args)
 
 def normalizelist(lis,sumto=1):
     total = sum(lis)
