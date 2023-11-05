@@ -489,6 +489,7 @@ class UI:
                 a.refresh()
             if a.clickablerect != -1:
                 a.refreshclickablerect()
+                
     def setscale(self,scale):
         pygame.event.post(pygame.event.Event(pygame.VIDEORESIZE,w=self.basescreensize[0]*scale,h=self.basescreensize[1]*scale))
     def refreshall(self):
@@ -1984,11 +1985,8 @@ class GUI_ITEM:
                                              relativetoval(rw,ow,oh,self.ui)*self.scale,
                                              relativetoval(rh,ow,oh,self.ui)*self.scale)
         else: self.clickablerect = self.startclickablerect
-##        if type(self) == TABLE and self.clickablerect != -1:
-##            print(ow,oh,self.width,self.height)
         
     def render(self,screen):
-##        if self.ID == 'playlist': print(self.width)
         if self.killtime != -1 and self.killtime<self.ui.time:
             self.ui.delete(self.ID)
         elif self.enabled:
@@ -2901,7 +2899,26 @@ class SCROLLERTABLE(TABLE):
             reduce = 0
             if len(self.titles) != 0: reduce = (self.linesize+self.boxheights[0])
             screen.blit(surf,(self.x*self.dirscale[0],self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale),(self.x*self.dirscale[0],self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,self.width*self.scale,min(self.height-self.linesize*2-reduce,self.scroller.pageheight-self.linesize*2-reduce)*self.scale))
+    def smartdraw(self,screen):
+        self.child_render(screen)
             
+        alltable = self.getalltableitems()
+        
+        for a in [i.ID for i in self.bounditems][:]:
+            if a in self.ui.IDs and not(a in alltable):
+                self.ui.IDs[a].draw(screen)
+                
+        surf = pygame.Surface((self.ui.screenw,self.ui.screenh))
+        surf.fill(self.backingcol)
+        surf.set_colorkey(self.backingcol)
+        for a in alltable:
+            if a in self.ui.IDs:
+                self.ui.IDs[a].draw(surf)
+        reduce = 0
+        if len(self.titles) != 0:
+            reduce = (self.linesize+self.boxheights[0])
+        screen.blit(surf,(self.x*self.dirscale[0],self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale),(self.x*self.dirscale[0],self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,self.width*self.scale,min(self.height-self.linesize*2-reduce,self.scroller.pageheight-self.linesize*2-reduce)*self.scale))
+
     def scrollerblocks(self,scroller):
         alltable = self.getalltableitems()
         for a in alltable:
@@ -3222,8 +3239,11 @@ class MENU(GUI_ITEM):
             bound = obj.bounditems
             
         for a in bound:
-            a.draw(screen)
-            self.drawallmenu(screen,a)
+            if type(a) == SCROLLERTABLE:
+                a.smartdraw(screen)
+            else:
+                a.draw(screen)
+                self.drawallmenu(screen,a)
         
     def child_render(self,screen):
         pass
