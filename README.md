@@ -403,6 +403,7 @@ command=lambda: testfunction('function arguements')
 - **pageheight**-***int/float*** = The display height of the table, and the height of the scoller that appears next to it. When the table changes in size the display height will stick to this value.
 - **compress**-***bool/int/list[float/int]*** = Default to True, used to shrink the size of the table when the scroller is active, if set to False the table will not change in size when the scroller appears, if True it will reduce down the columns it can, any column with an automatic width can not be reduced. Setting it to an int will only reduce that column and only if that column can be reduced. Lastly it can be set to a list in which the length has to be equal to the number of columns, and the ratio of the values put in will reduce the columns by the given ratios.
 - **scrollerwidth**-***int*** = The width in pixels of the scroller attached to the table.
+- **screencompressed**-***int/bool*** = If False no change, otherwise it cuts of a table (shrinking the pageheight), when it goes below the screen. The int given gives the number of pixels of space given between the table and the bottom of the screen.
 
 ### Scroller/Slider specific
 - **minp**-***int*** = The lower bound for the objects scroll/slider value
