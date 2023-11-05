@@ -1977,7 +1977,7 @@ class GUI_ITEM:
             ow = self.width
             oh = self.height
             if type(self) == SCROLLERTABLE:
-                self.pageheight = relativetoval(self.startpageheight,self.ui.screenw/self.scale,self.ui.screenh/self.scale,self.ui)
+                self.pageheight = relativetoval(self.startpageheight,w,h,self.ui)
                 oh = self.pageheight
             self.clickablerect = pygame.Rect(self.x*self.dirscale[0]+relativetoval(rx,w,h,self.ui),
                                              self.y*self.dirscale[1]+relativetoval(ry,w,h,self.ui),
@@ -3175,8 +3175,9 @@ class WINDOWEDMENU(GUI_ITEM):
         self.resetcords()
         self.refresh()
         for a in self.ui.items:
-            if a.menu == self.menu and a!=self and not(type(a) in [MENU]) and not a.onitem:
+            if a.menu == self.menu and a!=self and not(type(a) in [MENU]) and type(a.master[0]) in [MENU,WINDOWEDMENU]:
                 self.binditem(a)
+                a.refresh()
         self.ui.delete(f'auto_generated_menu:{self.menu}',False)
         self.bounditems.sort(key=lambda x: x.layer,reverse=False)
     def refresh(self):
