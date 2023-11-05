@@ -336,7 +336,7 @@ command=lambda: testfunction('function arguements')
 ```
 
 - **runcommandat**-***int:0/1/2*** = Used to control when a command is ran when clicking a button, 0=when first clicked, 1=every tick the button is held, 2=when the button is released.
-- **clickablerect**-***Pygame.Rect*** = The actual on screen rect (must be Pygame.Rect) that the object can be clicked on in, this is unaffected by any scale variables.
+- **clickablerect**-***Pygame.Rect/tuple(x,y,w,h)*** = Tuple can contain text in terms of w and h, where w and h are relative to the size of this object, and x and y are based around the top left corner of the object.
 - **col**-***(r,g,b)*** = The overall colour of the object, other colours used if not set by the user will be based off this colour. If not set col defaults to the ui.default col variable.
 - **backingcol**-***(r,g,b)/int*** = The colour of the backing,mostly interchangeable with bordercol, if unset it will default to adding 20 to the the r, g and b number of col. Setting it to an Int will add that int value to col instead of 20.
 - **bordercol**-***(r,g,b)*** = Interchangable with backingcol, just used as it is more intuative for some objects.
