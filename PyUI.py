@@ -312,9 +312,7 @@ class draw:
         draw.circle(surf,col,point2,width)
     def rect(surf,col,rect,width=0,border_radius=0):
         x,y,w,h = rect
-        
         radius = abs(int(min([border_radius,rect[2]/2,rect[3]/2])))
-        pygame.draw.rect(surf,col,roundrect(x,y,w,h),int(width),int(border_radius))
         if border_radius != 0 and (radius*(1+(2**0.5)/2)<width or width==0):
             try:
                 pygame.gfxdraw.aacircle(surf,x+radius,y+radius,radius,col)
@@ -324,10 +322,11 @@ class draw:
             except:
                 ## catches error with integer overflow when drawn at large coordinates
                 pass
+        pygame.draw.rect(surf,col,roundrect(x,y,w,h),int(width),int(border_radius))
     def circle(surf,col,center,radius):
         try:
-            pygame.gfxdraw.filled_circle(surf,int(center[0]),int(center[1]),int(radius),col)
             pygame.gfxdraw.aacircle(surf,int(center[0]),int(center[1]),int(radius),col)
+            pygame.gfxdraw.filled_circle(surf,int(center[0]),int(center[1]),int(radius),col)
         except:
             ## catches error with integer overflow when drawn at large coordinates
             pass
@@ -365,6 +364,18 @@ class draw:
             for a in range(segments+1):
                 poly.append([center[0]-rad*math.sin(ang2+diff*a/segments),center[1]-rad*math.cos(ang2+diff*a/segments)])
             draw.polygon(surf,col,poly)
+    def blitroundedcorners(surf,surfto,x,y,roundedcorners,area=None):
+        if area == None: area = surf.get_rect()
+        mask = pygame.Surface(area.size,pygame.SRCALPHA)
+        draw.rect(mask,(255,255,255),(0,0,area.width,area.height),border_radius=roundedcorners)
+        nsurf = pygame.Surface(surf.get_size(),pygame.SRCALPHA)
+        nsurf.blit(surf,(0,0))
+        nsurf.blit(mask,(area.x,area.y),special_flags=pygame.BLEND_RGBA_MIN)
+        surfto.blit(nsurf,(x,y),area)
+        
+        
+        
+        
 
         
 
@@ -1010,6 +1021,19 @@ class UI:
                             else:
                                 vals[i] = str(a.split('=')[1])
         return vals
+    
+    def drawtosurf(self,screen,IDlist,surfcol,x,y,displayrect=None,displaymode='render',roundedcorners=0):
+        surf = pygame.Surface((self.screenw,self.screenh))
+        surf.fill(surfcol)
+        surf.set_colorkey(surfcol)
+        for a in IDlist:
+            if a in self.IDs:
+                if displaymode == 'render':
+                    self.IDs[a].render(surf)
+                else:
+                    self.IDs[a].draw(surf)
+
+        draw.blitroundedcorners(surf,screen,x,y,roundedcorners,pygame.Rect(displayrect))
         
     def rendertextlined(self,text,size,col='default',backingcol=(150,150,150),font='default',width=-1,bold=False,antialiasing=True,center=False,spacing=0,imgin=False,img='',scale='default',linelimit=10000,getcords=False,cutstartspaces=False):
         if font=='default': font = Style.defaults['font']
@@ -1490,6 +1514,22 @@ class UI:
         obj.binditem(scroller)
         obj.scroller = scroller
         scroller.resetcords()
+        return obj
+    def makedropdownbutton(self,x,y,text,options=[],textsize=-1,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,width=-1,height=-1,
+                 anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,img='none',font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
+                 border=-1,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
+                 runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=-1,clicktype=-1,textoffsetx=-1,textoffsety=-1,maxwidth=-1,
+                 dragable=False,colorkey=-1,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,clickableborder=-1,
+                 backingdraw=-1,borderdraw=-1,animationspeed=-1,linelimit=1000,refreshbind=[]):
+        
+        obj = ui.makebutton(x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
+                     anchor=anchor,objanchor=objanchor,center=center,centery=centery,text=text,textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
+                     border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
+                     command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,maxwidth=maxwidth,
+                     dragable=dragable,colorkey=colorkey,toggle=toggle,toggleable=toggleable,toggletext=toggletext,toggleimg=toggleimg,togglecol=togglecol,togglehovercol=togglehovercol,bindtoggle=bindtoggle,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,clickableborder=clickableborder,
+                     animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind)
+        
+
         return obj
         
     def automakemenu(self,menu):
@@ -2082,10 +2122,12 @@ class GUI_ITEM:
             if self.clickedon!=0:
                 self.clickedon = 1
             if self.dragable and drag:
-                if smartdrag: self.smartcords((mpos[0]-self.holdingcords[0])/self.dirscale[0],(mpos[1]-self.holdingcords[1])/self.dirscale[1])
+                if type(self) == SCROLLER: account = [0,-self.border]
+                else: account = [-rect.x+self.x,-rect.y+self.y]
+                if smartdrag: self.smartcords((mpos[0]-self.holdingcords[0]+account[0])/self.dirscale[0],(mpos[1]-self.holdingcords[1]+account[1])/self.dirscale[1])
                 else:
-                    self.x = (mpos[0]-self.holdingcords[0])/self.dirscale[0]
-                    self.y = (mpos[1]-self.holdingcords[1])/self.dirscale[1]
+                    self.x = (mpos[0]-self.holdingcords[0]+account[0])/self.dirscale[0]
+                    self.y = (mpos[1]-self.holdingcords[1]+account[1])/self.dirscale[1]
                 self.centerx = self.x+self.width/2
                 self.centery = self.y+self.height/2
                 for a in self.bounditems:
@@ -2159,8 +2201,14 @@ class BUTTON(GUI_ITEM):
 ##    def child_refreshcords(self,ui):
 ##        self.colliderect = pygame.Rect(self.x+self.leftborder,self.y+self.upperborder,self.width-self.leftborder-self.rightborder,self.height-self.upperborder-self.lowerborder)
     def child_render(self,screen):
-        self.innerrect = pygame.Rect(self.x*self.dirscale[0]+(self.leftborder+self.clickdownsize*self.holding)*self.scale,self.y*self.dirscale[1]+(self.upperborder+self.clickdownsize*self.holding)*self.scale,(self.width-self.leftborder-self.rightborder-self.clickdownsize*self.holding*2)*self.scale,(self.height-self.upperborder-self.lowerborder-self.clickdownsize*self.holding*2)*self.scale)
-        self.clickrect = pygame.Rect(self.innerrect.x-self.clickableborder*self.scale,self.innerrect.y-self.clickableborder*self.scale,self.innerrect.width+self.clickableborder*2*self.scale,self.innerrect.height+self.clickableborder*2*self.scale)
+        self.innerrect = pygame.Rect(self.x*self.dirscale[0]+(self.leftborder+self.clickdownsize*self.holding)*self.scale,
+                                     self.y*self.dirscale[1]+(self.upperborder+self.clickdownsize*self.holding)*self.scale,
+                                     (self.width-self.leftborder-self.rightborder-self.clickdownsize*self.holding*2)*self.scale,
+                                     (self.height-self.upperborder-self.lowerborder-self.clickdownsize*self.holding*2)*self.scale)
+        self.clickrect = pygame.Rect(self.x*self.dirscale[0]+(self.leftborder-self.clickableborder)*self.scale,
+                                     self.y*self.dirscale[1]+(self.upperborder-self.clickableborder)*self.scale,
+                                     (self.width-self.leftborder-self.rightborder+self.clickableborder*2)*self.scale,
+                                     (self.height-self.upperborder-self.lowerborder-+self.clickableborder*2)*self.scale)
         self.getclickedon(self.clickrect)
         if self.clickedon > -1:
             if self.clickedon == 0: self.ui.mouseheld[self.clicktype][1]-=1
@@ -2893,15 +2941,10 @@ class SCROLLERTABLE(TABLE):
                 if a in self.ui.IDs and not(a in alltable):
                     self.ui.IDs[a].render(screen)
                     
-            surf = pygame.Surface((self.ui.screenw,self.ui.screenh))
-            surf.fill(self.backingcol)
-            surf.set_colorkey(self.backingcol)
-            for a in alltable:
-                if a in self.ui.IDs:
-                    self.ui.IDs[a].render(surf)
             reduce = 0
-            if len(self.titles) != 0: reduce = (self.linesize+self.boxheights[0])
-            screen.blit(surf,(self.x*self.dirscale[0],self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale),(self.x*self.dirscale[0],self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,self.width*self.scale,min(self.height-self.linesize*2-reduce,self.scroller.pageheight-self.linesize*2-reduce)*self.scale))
+            if len(self.titles) != 0:
+                reduce = (self.linesize+self.boxheights[0])
+            self.ui.drawtosurf(screen,alltable,self.backingcol,self.x*self.dirscale[0]+self.linesize*self.scale,self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,(self.x*self.dirscale[0]+self.linesize*self.scale,self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,(self.width-self.linesize*2)*self.scale,min(self.height-self.linesize*2-reduce,self.scroller.pageheight-self.linesize*2-reduce)*self.scale),'render',self.roundedcorners)
     def smartdraw(self,screen):
         self.child_render(screen)
             
@@ -2911,16 +2954,10 @@ class SCROLLERTABLE(TABLE):
             if a in self.ui.IDs and not(a in alltable):
                 self.ui.IDs[a].draw(screen)
                 
-        surf = pygame.Surface((self.ui.screenw,self.ui.screenh))
-        surf.fill(self.backingcol)
-        surf.set_colorkey(self.backingcol)
-        for a in alltable:
-            if a in self.ui.IDs:
-                self.ui.IDs[a].draw(surf)
         reduce = 0
         if len(self.titles) != 0:
             reduce = (self.linesize+self.boxheights[0])
-        screen.blit(surf,(self.x*self.dirscale[0],self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale),(self.x*self.dirscale[0],self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,self.width*self.scale,min(self.height-self.linesize*2-reduce,self.scroller.pageheight-self.linesize*2-reduce)*self.scale))
+            self.ui.drawtosurf(screen,alltable,self.backingcol,self.x*self.dirscale[0]+self.linesize*self.scale,self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,(self.x*self.dirscale[0]+self.linesize*self.scale,self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,(self.width-self.linesize*2)*self.scale,min(self.height-self.linesize*2-reduce,self.scroller.pageheight-self.linesize*2-reduce)*self.scale),'draw',self.roundedcorners)
 
     def scrollerblocks(self,scroller):
         alltable = self.getalltableitems()
@@ -2948,7 +2985,12 @@ class SCROLLERTABLE(TABLE):
         self.refreshcords()
         self.refreshbound()
         
-                
+class DROPDOWN(GUI_ITEM):
+    def child_render(self):
+        pass
+
+# Anticlickablerect
+# Non windowed winowedmenu
     
 class TEXT(GUI_ITEM):
     def reset(self):
@@ -3043,7 +3085,7 @@ class SCROLLER(GUI_ITEM):
         self.refreshcords()
         self.checkactive()
         self.limitpos()
-        self.command()
+##        self.command()
         self.refreshbound()
         
     def checkactive(self):
