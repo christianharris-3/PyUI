@@ -2080,6 +2080,10 @@ class GUI_ITEM:
         if self.onitem:
             h = self.master[0].height*self.master[0].scale
         return h
+    def getchildIDs(self):
+        lis = [self.ID]
+        lis += sum([a.getchildIDs() for a in self.bounditems],[])
+        return lis
     def settext(self,text):
         self.text = text
         self.refresh()
