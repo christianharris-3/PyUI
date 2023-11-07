@@ -391,6 +391,7 @@ class UI:
     def __init__(self,scale=1,PyUItitle=True):
         pygame.key.set_repeat(350,31)
         pygame.scrap.init()
+        pygame.scrap.set_mode(pygame.SCRAP_CLIPBOARD)
         
         self.scale = scale
         self.dirscale = [1,1]
@@ -1867,7 +1868,7 @@ class GUI_ITEM:
         self.startclickablerect = args['clickablerect']
         self.clickablerect = args['clickablerect']
         self.noclickrect = []
-        self.noclickrectapplied = []
+        self.noclickrectsapplied = []
         self.clickableborder = args['clickableborder']
         self.clickedon = -1
         self.holding = False
@@ -2344,13 +2345,13 @@ class TEXTBOX(GUI_ITEM):
                 if chr(event.key) == 'a':
                     self.textselected = [True,0,len(self.chrcorddata)]
                 elif chr(event.key) == 'c':
-                    pygame.scrap.put(pygame.SCRAP_TEXT,self.text.encode())
-                    self.ui.clipboard = self.text[self.textselected[1]:self.textselected[2]]
+                    pygame.scrap.put('text/plain;charset=utf-8',self.text.encode())
                 elif chr(event.key) == 'v':
-                    self.clipboard = str(pygame.scrap.get(pygame.SCRAP_TEXT).decode('utf-8'))
-                    self.clipboard = self.clipboard.strip('\x00')
-                    item = self.ui.clipboard
-                    if item == None: item = ''
+                    clipboard = pygame.scrap.get(pygame.SCRAP_TEXT)
+                    if clipboard == None:
+                        clipboard = pygame.scrap.get(pygame.scrap.get_types()[0])
+                    clipboard = clipboard.decode().strip('\x00')
+                    item = clipboard
             else:
                 if (event.key>96 and event.key<123):
                     if caps: item = chr(event.key-32)
