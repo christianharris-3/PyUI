@@ -398,6 +398,7 @@ class UI:
         self.sliders = []
         self.animations = []
         self.rects = []
+        self.dropdowns = []
         self.selectedtextbox = -1
         self.IDs = {}
         self.items = []
@@ -1225,6 +1226,7 @@ class UI:
             if type(obj) == BUTTON: self.buttons.append(obj)
             elif type(obj) == TEXTBOX: self.textboxes.append(obj)
             elif type(obj) in [TABLE,SCROLLERTABLE]: self.tables.append(obj)
+            elif type(obj) == DROPDOWN: self.dropdowns.append(obj)
             elif type(obj) == TEXT: self.texts.append(obj)
             elif type(obj) == SCROLLER: self.scrollers.append(obj)
             elif type(obj) == SLIDER: self.sliders.append(obj)
@@ -1253,7 +1255,7 @@ class UI:
         self.IDs[newid] = self.IDs.pop(obj.ID)
         obj.ID = newid
     def refreshitems(self):
-        self.items = self.buttons+self.textboxes+self.tables+self.texts+self.scrollers+self.sliders+self.windowedmenus+self.rects
+        self.items = self.buttons+self.textboxes+self.tables+self.texts+self.scrollers+self.sliders+self.windowedmenus+self.rects+self.dropdowns
         for a in self.items:
             if len(a.master)<len(a.truemenu) or not a.onitem:
                 menu = a.truemenu
@@ -1522,7 +1524,7 @@ class UI:
                  dragable=False,colorkey=-1,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,clickableborder=-1,
                  backingdraw=-1,borderdraw=-1,animationspeed=-1,linelimit=1000,refreshbind=[]):
         
-        obj = DROPDOWN(x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
+        obj = DROPDOWN(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
                      anchor=anchor,objanchor=objanchor,center=center,centery=centery,text=text,textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
                      border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                      command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,maxwidth=maxwidth,
@@ -1670,6 +1672,7 @@ class UI:
             if type(self.IDs[ID]) == BUTTON: self.buttons.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == TEXTBOX: self.textboxes.remove(self.IDs[ID])
             elif type(self.IDs[ID]) in [TABLE,SCROLLERTABLE]: self.tables.remove(self.IDs[ID])
+            elif type(self.IDs[ID]) == DROPDOWN: self.dropdowns.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == TEXT: self.texts.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == SCROLLER: self.scrollers.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == SLIDER: self.sliders.remove(self.IDs[ID])
@@ -2168,13 +2171,6 @@ class GUI_ITEM:
 ##windowedmenu = menu,behindmenu,x,y,width,height,col,roundedcorners,colorkey,isolated,darken,edgebound,ID
     
 class BUTTON(GUI_ITEM):
-    def refresh(self):
-        self.refreshscale()
-        self.refreshcords()
-        self.gentext()
-        self.autoscale()
-        self.refreshglow()
-        self.refreshbound()
     def child_gentext(self):
         if (self.img != self.toggleimg) or (self.text != self.toggletext):
             if type(self.img) != list: imgs = [self.toggleimg]
