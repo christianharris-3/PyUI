@@ -119,6 +119,11 @@ def relativetoval(st,w,h,ui):
         return returnedexecvalue
     else:
         return st
+def collidepointrects(point,rects):
+    for a in rects:
+        if a.collidepoint(point):
+            return True
+    return False
 
 def smartreplace(st,char,replace):
     # Only replaces when no characters on either side
@@ -366,6 +371,7 @@ class draw:
             draw.polygon(surf,col,poly)
     def blitroundedcorners(surf,surfto,x,y,roundedcorners,area=None):
         if area == None: area = surf.get_rect()
+        area.normalize()
         mask = pygame.Surface(area.size,pygame.SRCALPHA)
         draw.rect(mask,(255,255,255),(0,0,area.width,area.height),border_radius=roundedcorners)
         nsurf = pygame.Surface(surf.get_size(),pygame.SRCALPHA)
@@ -399,6 +405,8 @@ class UI:
         self.animations = []
         self.rects = []
         self.dropdowns = []
+        self.windows = []
+        self.noclickrects = []
         self.selectedtextbox = -1
         self.IDs = {}
         self.items = []
@@ -1231,6 +1239,7 @@ class UI:
             elif type(obj) == SCROLLER: self.scrollers.append(obj)
             elif type(obj) == SLIDER: self.sliders.append(obj)
             elif type(obj) == WINDOWEDMENU: self.windowedmenus.append(obj)
+            elif type(obj) == WINDOW: self.windows.append(obj)
             elif type(obj) == ANIMATION: self.animations.append(obj)
             elif type(obj) == RECT: self.rects.append(obj)
             self.refreshitems()
@@ -1255,7 +1264,7 @@ class UI:
         self.IDs[newid] = self.IDs.pop(obj.ID)
         obj.ID = newid
     def refreshitems(self):
-        self.items = self.buttons+self.textboxes+self.tables+self.texts+self.scrollers+self.sliders+self.windowedmenus+self.rects+self.dropdowns
+        self.items = self.buttons+self.textboxes+self.tables+self.texts+self.scrollers+self.sliders+self.windowedmenus+self.rects+self.dropdowns+self.windows
         for a in self.items:
             if len(a.master)<len(a.truemenu) or not a.onitem:
                 menu = a.truemenu
@@ -1268,6 +1277,23 @@ class UI:
                         obj.binditem(a,False)
         self.items+=self.automenus
         self.items.sort(key=lambda x: x.layer,reverse=False)
+    def refreshnoclickrects(self):
+        self.noclickrects = []
+        for a in self.items:
+            a.noclickrectsapplied = []
+            self.noclickrects+=a.noclickrect
+        # Rect,IDs,menu,whitelist (true=all objects in list blocked by noclickrect)
+        for a in self.noclickrects:
+            objs = self.onmenu(a[2])
+            if a[3]:
+                for b in objs:
+                    if b.ID in a[1]:
+                        b.noclickrectsapplied.append(a[0])
+            else:
+                for b in objs:
+                    if not b.ID in a[1]:
+                        b.noclickrectsapplied.append(a[0])
+            
     def printtree(self):
         for a in self.automenus+self.windowedmenus:
             print('+='*3,a.ID)
@@ -1423,6 +1449,17 @@ class UI:
                  dragable=dragable,colorkey=colorkey,border=0,
                  behindmenu=behindmenu,isolated=isolated,darken=darken,refreshbind=refreshbind)
         return obj
+    def makewindow(self,x,y,width,height,menu='main',col=-1,bounditems=[],colorkey=(255,255,255),
+                   ID='windowedmenu',layer=10,roundedcorners=-1,anchor=(0,0),objanchor=(0,0),
+                   center=False,centery=-1,glow=-1,glowcol=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,refreshbind=[],clickablerect=(0,0,'w','h')):
+
+        if col == -1: col = shiftcolor(Style.objectdefaults[WINDOW]['col'],-35)
+        
+        obj = WINDOW(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,
+                 anchor=anchor,objanchor=objanchor,center=center,centery=centery,
+                 scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,col=col,colorkey=colorkey,refreshbind=refreshbind,clickablerect=clickablerect)
+        return obj
+    
     def makerect(self,x,y,width,height,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,
                  anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,enabled=True,
                  border=0,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
@@ -1531,9 +1568,9 @@ class UI:
                      dragable=dragable,colorkey=colorkey,toggle=toggle,toggleable=toggleable,toggletext=toggletext,toggleimg=toggleimg,togglecol=togglecol,togglehovercol=togglehovercol,bindtoggle=bindtoggle,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,clickableborder=clickableborder,
                      animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind)
         
-
+        obj.command = lambda: obj.mainbuttonclicked()
         return obj
-        
+    
     def automakemenu(self,menu):
         obj = MENU(ui=self,x=0,y=0,width=self.screenw,height=self.screenh,menu=menu,ID='auto_generate_menu:'+menu)
         return obj
@@ -1679,6 +1716,7 @@ class UI:
             elif type(self.IDs[ID]) == ANIMATION: self.animations.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == RECT: self.rects.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == MENU: self.automenus.remove(self.IDs[ID])
+            elif type(self.IDs[ID]) == WINDOW: self.windows.remove(self.IDs[ID])
             del self.IDs[ID]
             self.refreshitems()
             return True
@@ -1829,6 +1867,7 @@ class GUI_ITEM:
         self.startclickablerect = args['clickablerect']
         self.clickablerect = args['clickablerect']
         self.noclickrect = []
+        self.noclickrectapplied = []
         self.clickableborder = args['clickableborder']
         self.clickedon = -1
         self.holding = False
@@ -1915,9 +1954,9 @@ class GUI_ITEM:
     def refresh(self):
         ui = self.ui
         tscale = self.scale
-        self.autoscale()
         self.refreshscale()
         self.gentext()
+        self.autoscale()
         self.resetcords()
         self.refreshglow()
         self.refreshbound()
@@ -2028,8 +2067,14 @@ class GUI_ITEM:
             if type(self) == SCROLLERTABLE:
                 self.pageheight = relativetoval(self.startpageheight,w,h,self.ui)
                 oh = self.pageheight
-            self.clickablerect = pygame.Rect(self.x*self.dirscale[0]+relativetoval(rx,w,h,self.ui),
-                                             self.y*self.dirscale[1]+relativetoval(ry,w,h,self.ui),
+            if type(self) in [WINDOWEDMENU,WINDOW]:
+                xstart = 0
+                ystart = 0
+            else:
+                xstart = self.x*self.dirscale[0]
+                ystart = self.y*self.dirscale[1]
+            self.clickablerect = pygame.Rect(xstart+relativetoval(rx,w,h,self.ui),
+                                             ystart+relativetoval(ry,w,h,self.ui),
                                              relativetoval(rw,ow,oh,self.ui)*self.scale,
                                              relativetoval(rh,ow,oh,self.ui)*self.scale)
 ##            print(self.ID,self.x,self.y,self.width,self.height,self.startclickablerect,self.clickablerect)
@@ -2062,7 +2107,8 @@ class GUI_ITEM:
             if item.onitem and replace:
                 for a in item.master:
                     if type(a) != emptyobject:
-                        a.bounditems.remove(item)
+                        if item in a.bounditems:
+                            a.bounditems.remove(item)
             if not(item in self.bounditems):
                 self.bounditems.append(item)
             item.onitem = True
@@ -2099,6 +2145,10 @@ class GUI_ITEM:
     def setheight(self,height):
         self.startheight = height
         self.autoscale()
+    def getwidth(self):
+        return self.width
+    def getheight(self):
+        return self.height
     def child_gentext(self):
         pass
     def child_refreshcords(self):
@@ -2112,7 +2162,7 @@ class GUI_ITEM:
         self.clickedon = -1
         self.hovering = False
         mpos = ui.mpos
-        if rect.collidepoint(mpos) and (self.clickablerect == -1 or self.clickablerect.collidepoint(mpos)):
+        if rect.collidepoint(mpos) and (self.clickablerect == -1 or self.clickablerect.collidepoint(mpos)) and not(collidepointrects(mpos,self.noclickrectsapplied)):
             if ui.mprs[self.clicktype] and (ui.mouseheld[self.clicktype][1]>0 or self.holding):
                 if ui.mouseheld[self.clicktype][1] == ui.buttondowntimer:
                     self.clickedon = 0
@@ -2709,8 +2759,9 @@ class TABLE(GUI_ITEM):
         obj.scaley = self.scalesize
         obj.scalesize = self.scalesize
         obj.scaleby = self.scaleby
-        obj.clickablerect = self.clickablerect
         obj.tableobject = True
+        if not(y == 0 and len(self.titles) != 0 and type(self) == SCROLLERTABLE):
+            obj.clickablerect = self.clickablerect
         obj.refreshscale()
         obj.resetcords(False)
     def getalltableitems(self):
@@ -2826,7 +2877,8 @@ class TABLE(GUI_ITEM):
         self.boxwidths = []
         for a in self.boxwidth:
             self.boxwidthsinc.append(sum(self.boxwidths))
-            if a == -1: self.boxwidths.append(self.guesswidth)
+            if a == -1:
+                self.boxwidths.append(self.guesswidth)
             else: self.boxwidths.append(a)
         
             
@@ -2967,14 +3019,19 @@ class SCROLLERTABLE(TABLE):
         for a in alltable:
             self.ui.IDs[a].scrollcords = (0,scroller.scroll)
             self.ui.IDs[a].resetcords()
+    def getheight(self):
+        return min(self.height,self.pageheight)
     def refresh(self):
         self.refreshscale()
         self.preprocess()
         self.initheightwidth()
         self.estimatewidths()
         self.gentext()
+        active = self.scroller.active
         self.small_refresh()
         self.scroller.refresh()
+        if self.scroller.active != active:
+            self.small_refresh()
         self.scrollerblocks(self.scroller)
         self.threadactive = False
     def small_refresh(self):
@@ -2987,10 +3044,12 @@ class SCROLLERTABLE(TABLE):
         self.gettableheights()
         self.refreshclickablerect()
         self.refreshcords()
+        self.scrollerblocks(self.scroller)
         self.refreshbound()
         
 class DROPDOWN(BUTTON):
-    pass
+    def mainbuttonclicked(self):
+        print('this does nothing currently')
 ##    def reset(self):
 ##        self.refreshscale()
 ##        self.autoscale()
@@ -3033,7 +3092,7 @@ class TEXT(GUI_ITEM):
             if self.backingdraw:
                 draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
             if self.borderdraw:
-                draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.border,border_radius=int(self.roundedcorners*self.scale))
+                draw.rect(screen,self.bordercol,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.border*self.scale,border_radius=int(self.roundedcorners*self.scale))
             if self.pregenerated:
                 if self.textcenter:
                     try:
@@ -3312,6 +3371,40 @@ class MENU(GUI_ITEM):
     def draw(self,screen):
         pass
 
+class WINDOW(GUI_ITEM):
+    def refresh(self):
+        self.autoscale()
+        self.refreshscale()
+        self.refreshcords()
+        self.refreshglow()
+        self.refreshbound()
+    def child_autoscale(self):
+        # Rect,IDs,menu,whitelist (true=all objects in list blocked by noclickrect)
+        self.noclickrect = [(pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.getchildIDs(),self.menu,False)]
+        self.ui.refreshnoclickrects()
+        for a in self.bounditems: a.clickablerect = self.clickablerect
+    def binditem(self,obj):
+        super().binditem(obj)
+        obj.resetcords()
+        self.child_autoscale()
+        
+    def render(self,screen):
+        if self.killtime != -1 and self.killtime<self.ui.time:
+            self.ui.delete(self.ID)
+        elif self.enabled:
+            self.child_render(screen)
+                    
+            self.ui.drawtosurf(screen,[a.ID for a in self.bounditems],self.col,self.x*self.dirscale[0],self.y*self.dirscale[1],(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),'render',self.roundedcorners)
+
+    def child_render(self,screen):
+        self.draw(screen)
+    def draw(self,screen):
+        if self.enabled:
+            if self.glow!=0:
+                screen.blit(self.glowimage,(self.x*self.dirscale[0]-self.glow*self.scale,self.y*self.dirscale[1]-self.glow*self.scale))
+            if self.backingdraw:
+                draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+
 class ANIMATION:
     def __init__(self,ui,animateID,startpos,endpos,movetype,length,wait,relativemove,command,runcommandat,skiptoscreen,acceleration,permamove,ID):
         self.startpos = startpos
@@ -3460,7 +3553,7 @@ class RECT(GUI_ITEM):
             if self.glow!=0:
                 screen.blit(self.glowimage,(self.x*self.dirscale[0]-self.glow*self.scale,self.y*self.dirscale[1]-self.glow*self.scale))
             if self.backingdraw:
-                draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.border,border_radius=int(self.roundedcorners*self.scale))
+                draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.border*self.scale,border_radius=int(self.roundedcorners*self.scale))
             
 class Style:   
     universaldefaults = {'roundedcorners': 0, 'anchor': (0,0), 'objanchor': (0,0), 'center': False, 'centery': -1, 'textsize': 50, 'font': 'calibre', 'bold': True,
@@ -3481,7 +3574,7 @@ class Style:
     
     wallpapercol = (255,255,255)
 
-    UI.objectkey = {'button':BUTTON,'text':TEXT,'textbox':TEXTBOX,'table':TABLE,'scrollertable':SCROLLERTABLE,'dropdown':DROPDOWN,'slider':SLIDER,'scroller':SCROLLER,'menu':MENU,'windowedmenu':WINDOWEDMENU,'rect':RECT}
+    UI.objectkey = {'button':BUTTON,'text':TEXT,'textbox':TEXTBOX,'table':TABLE,'scrollertable':SCROLLERTABLE,'dropdown':DROPDOWN,'slider':SLIDER,'scroller':SCROLLER,'menu':MENU,'windowedmenu':WINDOWEDMENU,'window':WINDOW,'rect':RECT}
     
     objectdefaults = {}
     for a in [UI.objectkey[o] for o in UI.objectkey]:
