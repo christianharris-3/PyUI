@@ -2068,17 +2068,12 @@ class GUI_ITEM:
             if type(self) == SCROLLERTABLE:
                 self.pageheight = relativetoval(self.startpageheight,w,h,self.ui)
                 oh = self.pageheight
-            if type(self) in [WINDOWEDMENU,WINDOW]:
-                xstart = 0
-                ystart = 0
-            else:
-                xstart = self.x*self.dirscale[0]
-                ystart = self.y*self.dirscale[1]
+            xstart = self.x*self.dirscale[0]
+            ystart = self.y*self.dirscale[1]
             self.clickablerect = pygame.Rect(xstart+relativetoval(rx,w,h,self.ui),
                                              ystart+relativetoval(ry,w,h,self.ui),
                                              relativetoval(rw,ow,oh,self.ui)*self.scale,
                                              relativetoval(rh,ow,oh,self.ui)*self.scale)
-##            print(self.ID,self.x,self.y,self.width,self.height,self.startclickablerect,self.clickablerect)
         else: self.clickablerect = self.startclickablerect
         
     def render(self,screen):
