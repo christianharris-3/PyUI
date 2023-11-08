@@ -287,7 +287,7 @@ class draw:
         else:
             point = roots[0]
         return point
-    def bezierdrawer(points,width,commandpoints=True,detail=200):
+    def bezierdrawer(points,width,commandpoints=True,detail=200,rounded=True):
         curvepoints = []
         for a in range(detail):
             curvepoints.append(draw.bezierpoints(points,a,detail))
@@ -299,6 +299,14 @@ class draw:
                 pygame.draw.line(screen,(100,100,100),points[2],points[3])
             else:
                 pygame.draw.lines(screen,(100,100,100),False,points)
+        if rounded:
+            final = []
+            prev = 0
+            for a in curvepoints:
+                if (round(a[0]),round(a[1])) != prev:
+                    final.append((round(a[0]),round(a[1])))
+                    prev = (round(a[0]),round(a[1]))
+            return final
         return curvepoints
     def roundedline(surf,col,point1,point2,width):
         if point1[0]-point2[0] != 0:
@@ -440,6 +448,7 @@ class UI:
         self.scrollwheelscrolls = True
         self.idmessages = False
         self.queuemenumove = True
+        self.roundedbezier = True
         self.rendershapefunctions = {'tick':self.rendershapetick,'cross':self.rendershapecross,'arrow':self.rendershapearrow,'settings':self.rendershapesettings,
                                      'play':self.rendershapeplay,'pause':self.rendershapepause,'skip':self.rendershapeskip,'circle':self.rendershapecircle,
                                      'rect':self.rendershaperect,'clock':self.rendershapeclock,'loading':self.rendershapeloading,'dots':self.rendershapedots,
@@ -728,14 +737,15 @@ class UI:
         elif name.split(' ')[0] in self.rendershapefunctions:
             surf = self.rendershapefunctions[name.split(' ')[0]](name,size,col,backcol)
         else:
-            surf,worked = self.rendershapebezier(name,size,col,backcol,failmessage)
+            surf,worked,backcol = self.rendershapebezier(name,size,col,backcol,failmessage)
             if not worked:
                 surf = self.rendershapetext(name,size,col,backcol)
-        if 'left' in name:
+        keywords = name.split('"')[-1].split()
+        if 'left' in keywords:
             surf = pygame.transform.flip(surf,True,False)
-        elif 'up' in name:
+        elif 'up' in keywords:
             surf = pygame.transform.rotate(surf,90)
-        elif 'down' in name:
+        elif 'down' in keywords:
             surf = pygame.transform.rotate(surf,-90)
         surf.set_colorkey(backcol)
         self.renderedshapes[str([name,size,col,backcol])] = surf
@@ -960,22 +970,22 @@ class UI:
                 ['lock', [[[(285.0, 205.0), (285.0, 115.0), (385.0, 115.0), (385, 205)], [(385, 205), (365.0, 205.0)], [(365.0, 205.0), (365.0, 145.0), (305, 145), (305.0, 205.0)], [(305.0, 205.0), (285.0, 205.0)]], [[(275.0, 205.0), (395, 205)], [(395, 205), (415, 205), (415, 225)], [(415, 225), (415, 305)], [(415, 305), (415, 325), (395, 325)], [(395, 325), (275, 325)], [(275, 325), (255, 325), (255, 305)], [(255, 305), (255, 225)], [(255, 225), (255, 205), (275, 205)], [(275, 205), (335, 225)], [(335, 225), (355, 225), (355, 245)], [(355, 245), (355, 265), (345, 265)], [(345, 265), (355.0, 305.0)], [(355.0, 305.0), (315.0, 305.0)], [(315.0, 305.0), (325, 265)], [(325, 265), (315, 265), (315.0, 245.0)], [(315.0, 245.0), (315.0, 225.0), (335.0, 225.0)], [(335.0, 225.0), (275.0, 205.0)]]]],
                 ['splat',[[[[385.0, 265.0], [250.0, 85.0], [475.0, 145.0]], [[475.0, 145.0], [670.0, 115.0], [610.0, 190.0]], [[610.0, 190.0], [730.0, 325.0], [580.0, 340.0]], [[580.0, 340.0], [505.0, 475.0], [475.0, 370.0]], [[475.0, 370.0], [295.0, 490.0], [385.0, 265.0]]]]],
                 ['more', [[[(225.0, 175.0), (355.0, 305.0)], [(355.0, 305.0), (415.0, 365.0), (475.0, 305.0)], [(475.0, 305.0), (605.0, 175.0)], [(605.0, 175.0), (625.0, 155.0), (605.0, 135.0)], [(605.0, 135.0), (585.0, 115.0), (565.0, 135.0)], [(565.0, 135.0), (445.0, 255.0)], [(445.0, 255.0), (415.0, 285.0), (385.0, 255.0)], [(385.0, 255.0), (265.0, 135.0)], [(265.0, 135.0), (245.0, 115.0), (225.0, 135.0)], [(225.0, 135.0), (205.0, 155.0), (225.0, 175.0)]]]],
+                ['dropdown', [[[(275.0, 125.0), (435.0, 285.0)], [(435.0, 285.0), (595.0, 125.0)], [(595.0, 125.0), (565.0, 95.0)], [(565.0, 95.0), (435.0, 225.0)], [(435.0, 225.0), (305.0, 95.0)], [(305.0, 95.0), (275.0, 125.0)]]]],
                 ]
         for a in self.images:
             data.append(a)
         names = [a[0] for a in data]
         splines = []
         for a in names:
-            if name[:len(a)] == a:
+            if len(name)>0 and name.split()[0] == a:
                 splines = data[names.index(a)][1]
         if splines == []:
             for a in list(self.inbuiltimages):
-                if name[:len(a)] == a:
+                if len(name)>0 and name.split()[0] == a:
                     img = self.inbuiltimages[a]
                     sc = size/img.get_height()
-                    return pygame.transform.scale(img,(img.get_width()*sc,size)),True
-            return 0,False
-        
+                    return pygame.transform.scale(img,(img.get_width()*sc,size)),True,(255,255,255)
+            return 0,False,backcol
         boundingbox = [1000,1000,0,0]
         for a in splines:
             for b in a:
@@ -991,7 +1001,7 @@ class UI:
         for b in splines:
             points = []
             for a in b:
-                points+=draw.bezierdrawer([((a[c][0]-minus1[0])*mul1,(a[c][1]-minus1[1])*mul1) for c in range(len(a))],0,False)
+                points+=draw.bezierdrawer([((a[c][0]-minus1[0])*mul1,(a[c][1]-minus1[1])*mul1) for c in range(len(a))],0,False,rounded=False)
             polys.append(points)
         boundingbox = [1000,1000,0,0]   
         for a in polys:
@@ -1009,9 +1019,9 @@ class UI:
             for a in b:
                 if len(a) == 2: detail = 1
                 else: detail = 200
-                points+=draw.bezierdrawer([(((a[c][0]-minus1[0])*mul1-minus[0])*mul+1,((a[c][1]-minus1[1])*mul1-minus[1])*mul+1) for c in range(len(a))],0,False,detail=detail)
+                points+=draw.bezierdrawer([(((a[c][0]-minus1[0])*mul1-minus[0])*mul+1,((a[c][1]-minus1[1])*mul1-minus[1])*mul+1) for c in range(len(a))],0,False,detail=detail,rounded=self.roundedbezier)
             pygame.draw.polygon(surf,col,points)
-        return surf,True
+        return surf,True,backcol
     def addinbuiltimage(self,name,surface):
         self.inbuiltimages[name] = surface
                         
@@ -1276,7 +1286,7 @@ class UI:
                             obj = self.automakemenu(m)
                         else:
                             obj = self.IDs['auto_generate_menu:'+m]
-                        obj.binditem(a,False)
+                        obj.binditem(a,False,False)
         self.items+=self.automenus
         self.items.sort(key=lambda x: x.layer,reverse=False)
     def refreshnoclickrects(self):
@@ -1297,12 +1307,23 @@ class UI:
                         b.noclickrectsapplied.append(a[0])
             
     def printtree(self):
+        depth = max([self.gettreedepth(a) for a in self.automenus+self.windowedmenus])
+        prefixes = ['<{-=-{=-[=]-=}-=-}>','#@'*5,'<=>'*3,'+='*3,'--',''][(6-depth):]
         for a in self.automenus+self.windowedmenus:
-            print('+='*3,a.ID)
-            for b in a.bounditems:
-                print('--',b.ID)
-                for c in b.bounditems:
-                    print(c.ID)
+            self.printbound(a,prefixes)
+    def printbound(self,obj,prefixes):
+        if prefixes[0] == '': print(obj.ID)
+        else: print(prefixes[0],obj.ID)
+        for a in obj.bounditems:
+            self.printbound(a,prefixes[1:])
+    def gettreedepth(self,obj,depth=1):
+        ndepths = [depth]
+        if len(obj.bounditems)>0:
+            depth+=1
+            ndepths = []
+            for a in obj.bounditems:
+                ndepths.append(self.gettreedepth(a,depth))
+        return max(ndepths)
     
         
     def makebutton(self,x,y,text,textsize=-1,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,width=-1,height=-1,
@@ -1482,7 +1503,7 @@ class UI:
                  runcommandat=runcommandat,col=col,dragable=dragable,backingdraw=backingdraw,refreshbind=refreshbind)
         return obj
         
-    def makesearchbar(self,x,y,text='Search',width=400,lines=1,menu='main',command=emptyfunction,ID='textbox',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,height=-1,
+    def makesearchbar(self,x,y,text='Search',width=400,lines=1,menu='main',command=emptyfunction,ID='searchbar',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,img='none',textsize=-1,font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=0,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,titletextcol=-1,backingcol=-1,hovercol=-1,clickdownsize=-1,clicktype=0,textoffsetx=-1,textoffsety=-1,
@@ -1521,7 +1542,7 @@ class UI:
         cross.command = lambda: obj.settext('')
         return obj
 
-    def makescrollertable(self,x,y,data=[],titles=[],menu='main',ID='table',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,width=-1,height=-1,
+    def makescrollertable(self,x,y,data=[],titles=[],menu='main',ID='scrollertable',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,width=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,text='',textsize=-1,img='none',font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  command=emptyfunction,runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=-1,textoffsety=-1,
@@ -1557,7 +1578,7 @@ class UI:
         obj.scroller = scroller
         scroller.resetcords()
         return obj
-    def makedropdown(self,x,y,text,options=[],textsize=-1,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,width=-1,height=-1,
+    def makedropdown(self,x,y,options: list,textsize=-1,command=emptyfunction,menu='main',ID='dropdown',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,width=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,img='none',font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=-1,clicktype=-1,textoffsetx=-1,textoffsety=-1,maxwidth=-1,
@@ -1565,6 +1586,9 @@ class UI:
                  backingdraw=-1,borderdraw=-1,animationspeed=-1,linelimit=1000,refreshbind=[]):
 
         pageheight = 300
+        if options == []: options = ['text']
+        text = options[0]
+        if textsize == -1: textsize = Style.defaults['textsize']
         
         if upperborder == -1: upperborder = border
         if lowerborder == -1: lowerborder = border
@@ -1572,25 +1596,40 @@ class UI:
             heightgetter = self.rendertext('Tg',textsize,(255,255,255),font,bold)
             height = upperborder+lowerborder+heightgetter.get_height()
         col = autoshiftcol(col,Style.defaults['col'])
-        
+
         txt = self.maketext(int(border+horizontalspacing)/2,0,text,textsize,anchor=(0,'h/2'),objanchor=(0,'h/2'),
                              img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,
-                             enabled=enabled,textcol=textcol,col=autoshiftcol(backingcol,col,-20),animationspeed=5)
-        table = self.makescrollertable(border,border,[[a] for a in options],pageheight=pageheight,roundedcorners=roundedcorners,textsize=textsize,font=font,bold=bold,border=border,scalesize=scalesize,col=col,textcol=textcol,backingcol=backingcol,width=width-border*2)
+                             enabled=enabled,textcol=textcol,col=col,animationspeed=5,roundedcorners=roundedcorners)
         
-        obj = DROPDOWN(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=[txt]+bounditems,killtime=killtime,
+        obj = DROPDOWN(ui=self,x=x,y=y,width=-1,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=[txt]+bounditems,killtime=killtime,
                        anchor=anchor,objanchor=objanchor,center=center,centery=centery,text='{more scale=0.3}',textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
                        border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=txt.textimage.get_width()+border+horizontalspacing*2,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                        command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,maxwidth=maxwidth,
                        dragable=dragable,colorkey=colorkey,toggle=toggle,toggleable=toggleable,toggletext=toggletext,toggleimg=toggleimg,togglecol=togglecol,togglehovercol=togglehovercol,bindtoggle=bindtoggle,spacing=spacing,
                        verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,clickableborder=clickableborder,
-                       animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind)
-        window = self.makewindow(0,height,obj.width,300,enabled=False)
+                       animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind,options=options)
+        tablew = width
+        if tablew != -1: tablew-=border*2
+        data = []
+        for i,a in enumerate(options):
+            func = funcer(obj.optionclicked,index=i)
+            data.append([self.makebutton(0,0,a,textsize,font=font,bold=bold,textcol=textcol,col=col,roundedcorners=roundedcorners,command=func.func)])
+         
+        table = self.makescrollertable(border,border,data,pageheight=pageheight,roundedcorners=roundedcorners,textsize=textsize,font=font,bold=bold,border=border,scalesize=scalesize,col=col,textcol=textcol,backingcol=backingcol,width=tablew)
+        window = self.makewindow(0,obj.height,f'ui.IDs["{obj.ID}"].width',f'ui.IDs["{table.ID}"].getheight()+{border}*2',enabled=False)
         obj.binditem(window)
         window.binditem(table)
-        obj.resetcords()
+        nwidth = (max([a[0].textimage.get_width() for a in table.table])+(obj.width-obj.leftborder-obj.rightborder)+border*5)
+        obj.leftborder+=nwidth-obj.width
+        obj.refresh()
+        table.startwidth = nwidth-border*2
+        table.refresh()
+        window.refresh()
+        obj.table = table
         obj.window = window
+        obj.titletext = txt
         obj.command = lambda: obj.mainbuttonclicked()
+        obj.truecommand = command
         return obj
     
     def automakemenu(self,menu):
@@ -1760,7 +1799,7 @@ def filloutargs(args):
                 dragable=False,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',bindtoggle=[],clickablerect=-1,
                 linelimit=100,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,
                 data='empty',titles=[],boxwidth=-1,boxheight=-1,pageheight=15,scrollcords=(0,0),scrollbind=[],screencompressed=False,
-                sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',behindmenu='main',scroller=0,compress=False)
+                sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',behindmenu='main',scroller=0,compress=False,options=[])
     for a in newargs:
         if not(a in args):
             args[a] = newargs[a]
@@ -1831,13 +1870,6 @@ class GUI_ITEM:
         self.layer = args['layer']
         if args['ID'] == '': args['ID'] = args['text']
 
-        self.onitem = False
-        self.bounditems = args['bounditems'][:]
-        for a in self.bounditems:
-            self.binditem(a)
-        self.master = [emptyobject(0,0,ui.screenw,ui.screenh)]
-        self.empty = False
-        ui.addid(args['ID'],self)
 
         self.text = args['text']
         self.textsize = args['textsize']
@@ -1916,6 +1948,7 @@ class GUI_ITEM:
         self.tableobject = False
         self.data = args['data']
         self.titles = args['titles']
+        self.table = 0
         self.linesize = args['linesize']
         self.boxwidth = args['boxwidth']
         self.boxheight = args['boxheight']
@@ -1924,6 +1957,8 @@ class GUI_ITEM:
         self.scroller = args['scroller']
         self.compress = args['compress']
 
+        self.options = args['options']
+        
         self.backingdraw = args['backingdraw']
         self.borderdraw = args['borderdraw']
         self.startpageheight = args['pageheight']
@@ -1952,6 +1987,14 @@ class GUI_ITEM:
         self.scrollbind = args['scrollbind']
         self.screencompressed = args['screencompressed']
 
+        self.onitem = False
+        self.bounditems = args['bounditems'][:]
+        for a in self.bounditems:
+            self.binditem(a)
+        self.master = [emptyobject(0,0,ui.screenw,ui.screenh)]
+        self.empty = False
+        ui.addid(args['ID'],self)
+        
         self.isolated = args['isolated']
         self.darken = args['darken']
         for a in self.bounditems:
@@ -2053,6 +2096,7 @@ class GUI_ITEM:
         self.refreshcords()
         for a in self.bounditems:
             a.resetcords()
+        self.refreshclickablerect()
 
     def refreshcords(self):
         self.refreshscale()
@@ -2116,7 +2160,7 @@ class GUI_ITEM:
         if y!='':
             self.y = y
             if startset: self.starty = ((self.y+scr[1])*self.dirscale[1]+self.objanchor[1]*self.scale-self.anchor[1])/self.scale
-    def binditem(self,item,replace=True):
+    def binditem(self,item,replace=True,resetcords=True):
         if item!=self:
             for a in item.master:
                 if type(a) == emptyobject:
@@ -2134,6 +2178,7 @@ class GUI_ITEM:
             else:
                 item.master.append(self)
             self.bounditems.sort(key=lambda x: x.layer,reverse=False)
+            if resetcords: item.resetcords()
     def getmenu(self):
         if type(self.master[0]) in [WINDOWEDMENU,MENU]:
             return self.master[0].menu
@@ -2167,8 +2212,8 @@ class GUI_ITEM:
     def disable(self):
         self.enabled = False
     def enabledtoggle(self):
-        if self.enabled: self.enabled = False
-        else: self.enabled = True
+        if self.enabled: self.disable()
+        else: self.enable()
     def getwidth(self):
         return self.width
     def getheight(self):
@@ -3077,6 +3122,11 @@ class DROPDOWN(BUTTON):
             self.window.disable()
         else:
             self.window.enable()
+    def optionclicked(self,index):
+        self.active = self.options[index]
+        self.titletext.settext(self.options[index])
+        self.command()
+        self.truecommand()
 
 ##        print('this does nothing currently')
 ##    def reset(self):
@@ -3407,9 +3457,18 @@ class WINDOW(GUI_ITEM):
         self.refreshcords()
         self.refreshglow()
         self.refreshbound()
+    def enable(self):
+        self.enabled = True
+        self.child_autoscale()
+    def disable(self):
+        self.enabled = False
+        self.child_autoscale()
     def child_autoscale(self):
         # Rect,IDs,menu,whitelist (true=all objects in list blocked by noclickrect)
-        self.noclickrect = [(pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.getchildIDs(),self.menu,False)]
+        if self.enabled:
+            self.noclickrect = [(pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.getchildIDs(),self.menu,False)]
+        else:
+            self.noclickrect = []
         self.ui.refreshnoclickrects()
         for a in self.bounditems: a.clickablerect = self.clickablerect
     def binditem(self,obj):
