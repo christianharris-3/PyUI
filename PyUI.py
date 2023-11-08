@@ -959,6 +959,7 @@ class UI:
                 ['on', [[[(485.0, 275.0), (445.0, 285.0), (425.0, 345.0), (425.0, 375.0)], [(425.0, 375.0), (425.0, 435.0), (465.0, 485.0), (535.0, 485.0)], [(535.0, 485.0), (605.0, 485.0), (645.0, 435.0), (645.0, 375.0)], [(645.0, 375.0), (645.0, 345.0), (625.0, 285.0), (585.0, 275.0)], [(585.0, 275.0), (565.0, 275.0), (575.0, 295.0)], [(575.0, 295.0), (645.0, 375.0), (645.0, 505.0), (425.0, 505.0), (425.0, 375.0), (495.0, 295.0)], [(495.0, 295.0), (505.0, 275.0), (485.0, 275.0)]], [[(520.0, 315.0), (520.0, 355.0), (550.0, 355.0), (550.0, 315.0)], [(550.0, 315.0), (550.0, 265.0)], [(550.0, 265.0), (550.0, 225.0), (520.0, 225.0), (520.0, 265.0)], [(520.0, 265.0), (520.0, 315.0)]]]],
                 ['lock', [[[(285.0, 205.0), (285.0, 115.0), (385.0, 115.0), (385, 205)], [(385, 205), (365.0, 205.0)], [(365.0, 205.0), (365.0, 145.0), (305, 145), (305.0, 205.0)], [(305.0, 205.0), (285.0, 205.0)]], [[(275.0, 205.0), (395, 205)], [(395, 205), (415, 205), (415, 225)], [(415, 225), (415, 305)], [(415, 305), (415, 325), (395, 325)], [(395, 325), (275, 325)], [(275, 325), (255, 325), (255, 305)], [(255, 305), (255, 225)], [(255, 225), (255, 205), (275, 205)], [(275, 205), (335, 225)], [(335, 225), (355, 225), (355, 245)], [(355, 245), (355, 265), (345, 265)], [(345, 265), (355.0, 305.0)], [(355.0, 305.0), (315.0, 305.0)], [(315.0, 305.0), (325, 265)], [(325, 265), (315, 265), (315.0, 245.0)], [(315.0, 245.0), (315.0, 225.0), (335.0, 225.0)], [(335.0, 225.0), (275.0, 205.0)]]]],
                 ['splat',[[[[385.0, 265.0], [250.0, 85.0], [475.0, 145.0]], [[475.0, 145.0], [670.0, 115.0], [610.0, 190.0]], [[610.0, 190.0], [730.0, 325.0], [580.0, 340.0]], [[580.0, 340.0], [505.0, 475.0], [475.0, 370.0]], [[475.0, 370.0], [295.0, 490.0], [385.0, 265.0]]]]],
+                ['more', [[[(225.0, 175.0), (355.0, 305.0)], [(355.0, 305.0), (415.0, 365.0), (475.0, 305.0)], [(475.0, 305.0), (605.0, 175.0)], [(605.0, 175.0), (625.0, 155.0), (605.0, 135.0)], [(605.0, 135.0), (585.0, 115.0), (565.0, 135.0)], [(565.0, 135.0), (445.0, 255.0)], [(445.0, 255.0), (415.0, 285.0), (385.0, 255.0)], [(385.0, 255.0), (265.0, 135.0)], [(265.0, 135.0), (245.0, 115.0), (225.0, 135.0)], [(225.0, 135.0), (205.0, 155.0), (225.0, 175.0)]]]],
                 ]
         for a in self.images:
             data.append(a)
@@ -1435,7 +1436,7 @@ class UI:
 ##    def makewindowedmenu(self,x,y,width,height,menu,behindmenu,edgebound=(1,0,0,1),col='default',isolated=True,roundedcorners=0,darken=60,colourkey=(243,244,242),ID='default'):
     def makewindowedmenu(self,x,y,width,height,menu,behindmenu='main',col=-1,bounditems=[],
                  dragable=False,colorkey=(255,255,255),isolated=True,darken=-1,ID='windowedmenu',layer=1,roundedcorners=-1,
-                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,glow=-1,glowcol=-1,
+                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,enabled=True,glow=-1,glowcol=-1,
                  scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,command=emptyfunction,runcommandat=0,refreshbind=[]):
 
         if col == -1: col = shiftcolor(Style.objectdefaults[WINDOWEDMENU]['col'],-35)
@@ -1447,17 +1448,17 @@ class UI:
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,
                  scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,
                  command=emptyfunction,runcommandat=runcommandat,col=col,
-                 dragable=dragable,colorkey=colorkey,border=0,
+                 dragable=dragable,colorkey=colorkey,border=0,enabled=enabled,
                  behindmenu=behindmenu,isolated=isolated,darken=darken,refreshbind=refreshbind)
         return obj
     def makewindow(self,x,y,width,height,menu='main',col=-1,bounditems=[],colorkey=(255,255,255),
-                   ID='windowedmenu',layer=10,roundedcorners=-1,anchor=(0,0),objanchor=(0,0),
-                   center=False,centery=-1,glow=-1,glowcol=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,refreshbind=[],clickablerect=(0,0,'w','h')):
+                   ID='window',layer=10,roundedcorners=-1,anchor=(0,0),objanchor=(0,0),
+                   center=False,centery=-1,enabled=True,glow=-1,glowcol=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,refreshbind=[],clickablerect=(0,0,'w','h')):
 
         if col == -1: col = shiftcolor(Style.objectdefaults[WINDOW]['col'],-35)
         
         obj = WINDOW(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,
-                 anchor=anchor,objanchor=objanchor,center=center,centery=centery,
+                 anchor=anchor,objanchor=objanchor,center=center,centery=centery,enabled=enabled,
                  scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,col=col,colorkey=colorkey,refreshbind=refreshbind,clickablerect=clickablerect)
         return obj
     
@@ -1527,6 +1528,7 @@ class UI:
                  dragable=False,colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=(0,0,'w','h'),
                  boxwidth=-1,boxheight=-1,linesize=2,textcenter=-1,guesswidth=-1,guessheight=-1,
                  backingdraw=-1,borderdraw=-1,pageheight=-1,refreshbind=[],compress=True,scrollerwidth=15,screencompressed=5):
+        
         if col == -1: col = Style.objectdefaults[TABLE]['col']
         if backingcol == -1: backingcol = autoshiftcol(Style.objectdefaults[TABLE]['backingcol'],col,-20)
         
@@ -1557,18 +1559,37 @@ class UI:
         return obj
     def makedropdown(self,x,y,text,options=[],textsize=-1,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,width=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,img='none',font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
-                 border=-1,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
+                 border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=-1,clicktype=-1,textoffsetx=-1,textoffsety=-1,maxwidth=-1,
-                 dragable=False,colorkey=-1,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,clickableborder=-1,
+                 dragable=False,colorkey=-1,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=1,horizontalspacing=4,clickablerect=-1,clickableborder=-1,
                  backingdraw=-1,borderdraw=-1,animationspeed=-1,linelimit=1000,refreshbind=[]):
+
+        pageheight = 300
         
-        obj = DROPDOWN(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
-                     anchor=anchor,objanchor=objanchor,center=center,centery=centery,text=text,textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
-                     border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
-                     command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,maxwidth=maxwidth,
-                     dragable=dragable,colorkey=colorkey,toggle=toggle,toggleable=toggleable,toggletext=toggletext,toggleimg=toggleimg,togglecol=togglecol,togglehovercol=togglehovercol,bindtoggle=bindtoggle,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,clickableborder=clickableborder,
-                     animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind)
+        if upperborder == -1: upperborder = border
+        if lowerborder == -1: lowerborder = border
+        if height == -1:
+            heightgetter = self.rendertext('Tg',textsize,(255,255,255),font,bold)
+            height = upperborder+lowerborder+heightgetter.get_height()
+        col = autoshiftcol(col,Style.defaults['col'])
         
+        txt = self.maketext(int(border+horizontalspacing)/2,0,text,textsize,anchor=(0,'h/2'),objanchor=(0,'h/2'),
+                             img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,
+                             enabled=enabled,textcol=textcol,col=autoshiftcol(backingcol,col,-20),animationspeed=5)
+        table = self.makescrollertable(border,border,[[a] for a in options],pageheight=pageheight,roundedcorners=roundedcorners,textsize=textsize,font=font,bold=bold,border=border,scalesize=scalesize,col=col,textcol=textcol,backingcol=backingcol,width=width-border*2)
+        
+        obj = DROPDOWN(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=[txt]+bounditems,killtime=killtime,
+                       anchor=anchor,objanchor=objanchor,center=center,centery=centery,text='{more scale=0.3}',textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
+                       border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=txt.textimage.get_width()+border+horizontalspacing*2,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
+                       command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,maxwidth=maxwidth,
+                       dragable=dragable,colorkey=colorkey,toggle=toggle,toggleable=toggleable,toggletext=toggletext,toggleimg=toggleimg,togglecol=togglecol,togglehovercol=togglehovercol,bindtoggle=bindtoggle,spacing=spacing,
+                       verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,clickableborder=clickableborder,
+                       animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind)
+        window = self.makewindow(0,height,obj.width,300,enabled=False)
+        obj.binditem(window)
+        window.binditem(table)
+        obj.resetcords()
+        obj.window = window
         obj.command = lambda: obj.mainbuttonclicked()
         return obj
     
@@ -2141,6 +2162,13 @@ class GUI_ITEM:
     def setheight(self,height):
         self.startheight = height
         self.autoscale()
+    def enable(self):
+        self.enabled = True
+    def disable(self):
+        self.enabled = False
+    def enabledtoggle(self):
+        if self.enabled: self.enabled = False
+        else: self.enabled = True
     def getwidth(self):
         return self.width
     def getheight(self):
@@ -3045,7 +3073,12 @@ class SCROLLERTABLE(TABLE):
         
 class DROPDOWN(BUTTON):
     def mainbuttonclicked(self):
-        print('this does nothing currently')
+        if self.window.enabled:
+            self.window.disable()
+        else:
+            self.window.enable()
+
+##        print('this does nothing currently')
 ##    def reset(self):
 ##        self.refreshscale()
 ##        self.autoscale()
