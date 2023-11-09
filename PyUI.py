@@ -2853,16 +2853,24 @@ class TABLE(GUI_ITEM):
         w = self.getmasterwidth()
         h = self.getmasterheight()
         ##
-        if self.startboxwidth == -1 and self.startwidth!=-1:
-            tempboxwidth = [(self.width-self.linesize*(self.columns+1))/self.columns for a in range(self.columns)]
-        elif type(self.startboxwidth) == int:
+        ratiowidth = False
+        if self.startwidth!=-1 and self.startboxwidth!=-1: ratiowidth = True
+        if type(self.startboxwidth) == int:
             if self.columns == 0: tempboxwidth = [self.startboxwidth]
             else: tempboxwidth = [self.startboxwidth for a in range(self.columns)]
         else:
             tempboxwidth = self.startboxwidth[:]
             while len(tempboxwidth)<self.columns:
                 tempboxwidth.append(-1)
-
+        if ratiowidth:
+            splitwidth = self.width-self.linesize*(self.columns+1)
+            count = 0
+            for a in tempboxwidth:
+                if a == -1: count+=1
+                elif type(a) == int: splitwidth-=a
+                elif type(a) == str: splitwidth-=relativetoval(a,w,h,self.ui)
+            for i,a in enumerate(tempboxwidth):
+                if a == -1: tempboxwidth[i] = splitwidth/count
                 
         if not (not self.compress and type(self.compress) == bool):
             if type(self.compress) == bool:
