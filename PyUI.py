@@ -1474,13 +1474,15 @@ class UI:
         return obj
     def makewindow(self,x,y,width,height,menu='main',col=-1,bounditems=[],colorkey=(255,255,255),
                    ID='window',layer=10,roundedcorners=-1,anchor=(0,0),objanchor=(0,0),
-                   center=False,centery=-1,enabled=True,glow=-1,glowcol=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,refreshbind=[],clickablerect=(0,0,'w','h')):
+                   center=False,centery=-1,enabled=True,glow=-1,glowcol=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,
+                   refreshbind=[],clickablerect=(0,0,'w','h'),animationspeed=-1,animationtype='moveup'):
 
         if col == -1: col = shiftcolor(Style.objectdefaults[WINDOW]['col'],-35)
         
         obj = WINDOW(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,enabled=enabled,
-                 scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,col=col,colorkey=colorkey,refreshbind=refreshbind,clickablerect=clickablerect)
+                 scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,col=col,colorkey=colorkey,
+                     refreshbind=refreshbind,clickablerect=clickablerect,animationspeed=animationspeed,animationtype=animationtype)
         return obj
     
     def makerect(self,x,y,width,height,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,
@@ -1583,7 +1585,7 @@ class UI:
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=-1,clicktype=-1,textoffsetx=-1,textoffsety=-1,maxwidth=-1,
                  dragable=False,colorkey=-1,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=1,horizontalspacing=4,clickablerect=-1,clickableborder=-1,
-                 backingdraw=-1,borderdraw=-1,animationspeed=-1,linelimit=1000,refreshbind=[]):
+                 backingdraw=-1,borderdraw=-1,linelimit=1000,refreshbind=[],animationspeed=-1,animationtype='compressleft'):
 
         if options == []: options = ['text']
         text = options[0]
@@ -1615,7 +1617,7 @@ class UI:
             data.append([self.makebutton(0,0,a,textsize,font=font,bold=bold,textcol=textcol,col=col,roundedcorners=roundedcorners,command=func.func)])
          
         table = self.makescrollertable(border,border,data,pageheight=pageheight,roundedcorners=roundedcorners,textsize=textsize,font=font,bold=bold,border=border,scalesize=scalesize,col=col,textcol=textcol,backingcol=backingcol,width=tablew)
-        window = self.makewindow(0,obj.height,f'ui.IDs["{obj.ID}"].width',f'ui.IDs["{table.ID}"].getheight()+{border}*2',enabled=False)
+        window = self.makewindow(0,obj.height,f'ui.IDs["{obj.ID}"].width',f'ui.IDs["{table.ID}"].getheight()+{border}*2',enabled=False,animationspeed=animationspeed,animationtype=animationtype)
         obj.binditem(window)
         window.binditem(table)
         nwidth = (max([a[0].textimage.get_width() for a in table.table])+(obj.width-obj.leftborder-obj.rightborder)+border*5)
@@ -1798,7 +1800,7 @@ def filloutargs(args):
                 dragable=False,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',bindtoggle=[],clickablerect=-1,
                 linelimit=100,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,
                 data='empty',titles=[],boxwidth=-1,boxheight=-1,pageheight=15,scrollcords=(0,0),scrollbind=[],screencompressed=False,
-                sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',behindmenu='main',scroller=0,compress=False,options=[])
+                sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',behindmenu='main',scroller=0,compress=False,options=[],animationtype='movedown')
     for a in newargs:
         if not(a in args):
             args[a] = newargs[a]
@@ -1956,6 +1958,7 @@ class GUI_ITEM:
         self.scroller = args['scroller']
         self.compress = args['compress']
 
+        self.animationtype = args['animationtype']
         self.options = args['options']
         
         self.backingdraw = args['backingdraw']
@@ -1987,12 +1990,13 @@ class GUI_ITEM:
         self.screencompressed = args['screencompressed']
 
         self.onitem = False
+        self.master = [emptyobject(0,0,ui.screenw,ui.screenh)]
+        ui.addid(args['ID'],self)
         self.bounditems = args['bounditems'][:]
         for a in self.bounditems:
             self.binditem(a)
-        self.master = [emptyobject(0,0,ui.screenw,ui.screenh)]
         self.empty = False
-        ui.addid(args['ID'],self)
+
         
         self.isolated = args['isolated']
         self.darken = args['darken']
@@ -3466,18 +3470,24 @@ class WINDOW(GUI_ITEM):
     def disable(self):
         self.enabled = False
         self.child_autoscale()
-    def open(self,animation='none',animationlength=30,toggleopen=True):
+    def open(self,animation='default',animationlength=-1,toggleopen=True):
+        if animation == 'default': animation = self.animationtype
+        if animationlength == -1: animationlength = self.animationspeed
         if not self.opening:
             self.enable()
             self.opening = True
             self.makeanimation(animation,animationlength,False)
         elif toggleopen:
             self.shut()
-    def shut(self,animation='none'):
+    def shut(self,animation='default',animationlength=-1):
+        if animation == 'default': animation = self.animationtype
+        if animationlength == -1: animationlength = self.animationspeed
         self.opening = False
         self.makeanimation(animation,flippable=False)
         if animation == 'none': self.disable()
-    def makeanimation(self,animation='none',length=30,forward=True,flippable=True):
+    def makeanimation(self,animation='default',length=-1,forward=True,flippable=True):
+        if animation == 'default': animation = self.animationtype
+        if length == -1: length = self.animationspeed
         if animation !='none':
             self.enable()
             for a in animation.split():
