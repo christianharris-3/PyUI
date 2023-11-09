@@ -41,7 +41,6 @@ screenh = 900
 # creates screen objects of size screenw and screenh
 # resizable tag allows the screen to be scaled, remove it to lock screen size
 screen = pygame.display.set_mode((screenw, screenh),pygame.RESIZABLE)
-pygame.scrap.init()
 # ui object is how most of the PyUI module is operated through
 ui = pyui.UI()
 # when done is set to True the gameloop ends
@@ -100,6 +99,15 @@ lines, selectcol, selectbordersize, selectshrinksize, cursorsize, textcenter
 slidersize, increment, containedslider, movetoclick
 isolated, darken, hsvashift
 ```
+## Useful Tools
+The main UI object has several functions that can be used for various purposes.
+
+# color functions
+# printtree
+# quit
+# write
+# delete
+
 
 ## Menu System
 Every object in PyUI has a menu in the form of a string which dictates what menu it is displayed on, with the current menu being stored in the ui.activemenu variable. When a new object is created it will be automatically placed on the 'main' menu.
