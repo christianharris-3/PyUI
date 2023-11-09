@@ -4,7 +4,6 @@ pygame.init()
 screenw = 1200
 screenh = 900
 screen = pygame.display.set_mode((screenw, screenh),pygame.RESIZABLE)
-pygame.scrap.init()
 ui = pyui.UI()
 done = False
 clock = pygame.time.Clock()
