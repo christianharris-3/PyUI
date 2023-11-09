@@ -178,6 +178,24 @@ ui.makeslider(30,280,450,20,button=ui.makebutton(0,0,'4',ID='slider button'),com
 Scrollers are similar to sliders, however have a set height of the bar being moved. The bar is not a button object, it is in built into the scroller and therefore is more limiting in terms of design.
 ### Windowed Menu
 A windowed menu is a replacement for a menu, give it a menu and a behindmenu and then all gui objects on its menu will be drawn onto the windowed menu, with 0 0 starting at the upper left corner of the windowed menu not the screen. This means when the activemenu is a windowed menu, the behind menu will still be displayed.
+### Window
+Acts very similar to a windowed menu, however acts without a seperate menu. Objects cant be placed on it by putting them on the same menu as the window, as it is not a seperate menu. Instead to put objects on the menu either when it is first created pass the attached objects into the windows "bounditems" parameter list, or after it is created run the window.binditem(object) code to bind it. The window can be open and shut through window.open() and window.shut(), open will automatically shut it the menu if it is already open unless the "toggleopen" parameter of the open function is set to false, while shut will always shut the menu. 
+
+The menu will animate opening and shutting, there are 8 different types of animation, each can be given one of 4 waves. The animation sections split into 2 types, "move" and "compress", with move being the window moves off screen in a given direction, while comress being where a menu gets squished into a specific direction. 
+The wave changes how the speed of the animation changes, the waves being "linear" where the speed remains consistent, "sin" starts slow and ends slow, speeds up in the middle, "sinin" starts fast and slows down and "sinout" starts slow and speeds up.
+When giving an animation to an object, it is given in a single string where multiple types of different waves can be given in a string. 
+The string should look like this: "moveup:sinout compressdown:linear moveleft"
+Each animation is seperated by a space, with the wave being after a colon without spaces. If no wave is given, it defaults to "sinout".
+```py
+# Create a window with a textbox on it
+window = ui.makewindow(200,30,200,200,animationtype='compressup moveleft',bounditems=[
+    ui.maketextbox(10,10,width=180,lines=2)])
+
+# Add a button to the window
+window.binditem(ui.makebutton(10,100,'test'))
+# Make a button to open the menu
+ui.makebutton(20,80,'open menu',40,lambda: window.open())
+```
 ### Rect
 A simple rectangle with no additional function.
 ### Circle
