@@ -497,7 +497,7 @@ class UI:
     def styleload_default(self): self.styleset(roundedcorners=0,center=False,textsize=50,font='calibre',bold=False,antialiasing=True,border=3,scalesize=True,glow=0,col=(150,150,150),
                                                clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,clickableborder=0,lines=1,textcenter=False,linesize=2,backingdraw=True,borderdraw=True,
                                                animationspeed=30,containedslider=False,movetoclick=True,isolated=True,darken=60,textcol=(0,0,0),verticalspacing=2,horizontalspacing=8,
-                                               text_animationspeed=5,text_backingdraw=False,text_borderdraw=False,text_verticalspacing=3,text_horizontalspacing=3,
+                                               text_animationspeed=5,text_backingdraw=False,text_borderdraw=False,text_verticalspacing=3,text_horizontalspacing=3,dropdown_animationspeed=15,
                                                textbox_verticalspacing=2,textbox_horizontalspacing=6,table_textcenter=True,button_textcenter=True,guesswidth=100,guessheight=100)
     def styleload_black(self): self.styleset(textcol=(0,0,0),backingcol=(0,0,0),hovercol=(255,255,255),bordercol=(0,0,0),verticalspacing=3,textsize=30,col=(255,255,255),clickdownsize=1)
     def styleload_blue(self): self.styleset(col=(35,0,156),textcol=(230,246,219),wallpapercol=(0,39,254),textsize=30,verticalspacing=2,horizontalspacing=5,clickdownsize=2,roundedcorners=4)
@@ -1587,7 +1587,7 @@ class UI:
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=-1,clicktype=-1,textoffsetx=-1,textoffsety=-1,maxwidth=-1,
                  dragable=False,colorkey=-1,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=1,horizontalspacing=4,clickablerect=-1,clickableborder=-1,
-                 backingdraw=-1,borderdraw=-1,linelimit=1000,refreshbind=[],animationspeed=-1,animationtype='compressleft'):
+                 backingdraw=-1,borderdraw=-1,linelimit=1000,refreshbind=[],animationspeed=15,animationtype='compressleft'):
 
         if options == []: options = ['text']
         text = options[0]
@@ -1602,7 +1602,7 @@ class UI:
 
         txt = self.maketext(int(border+horizontalspacing)/2,0,text,textsize,anchor=(0,'h/2'),objanchor=(0,'h/2'),
                              img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,
-                             enabled=enabled,textcol=textcol,col=col,animationspeed=5,roundedcorners=roundedcorners)
+                             enabled=enabled,textcol=textcol,col=autoshiftcol(backingcol,col,20),animationspeed=5,roundedcorners=roundedcorners)
         
         obj = DROPDOWN(ui=self,x=x,y=y,width=-1,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=[txt]+bounditems,killtime=killtime,
                        anchor=anchor,objanchor=objanchor,center=center,centery=centery,text='{more scale=0.3}',textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
@@ -1815,7 +1815,9 @@ def filloutargs(args):
 class GUI_ITEM:
     def __init__(self,**args):
         execs = []
-        for var in Style.objectdefaults[type(self)]:
+        defaulttype = type(self)
+        if 'defaulttype' in args: defaulttype = args['defaulttype']
+        for var in Style.objectdefaults[defaulttype]:
             if not (var in args):
                 args[var] = Style.objectdefaults[type(self)][var]
             elif args[var] == Style.universaldefaults[var]:
