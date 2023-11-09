@@ -525,6 +525,8 @@ class UI:
                 
     def setscale(self,scale):
         pygame.event.post(pygame.event.Event(pygame.VIDEORESIZE,w=self.basescreensize[0]*scale,h=self.basescreensize[1]*scale))
+    def quit(self):
+        pygame.event.post(pygame.event.Event(pygame.QUIT))
     def refreshall(self):
         for a in self.automenus+self.windowedmenus:
             a.enabled = False
@@ -3509,6 +3511,8 @@ class WINDOW(GUI_ITEM):
     def decodeanimations(self):
         xoff = 0
         yoff = 0
+        objxoff = 0
+        objyoff = 0
         widthoff = 0
         heightoff = 0
         for a in self.animationdata:
@@ -3520,15 +3524,19 @@ class WINDOW(GUI_ITEM):
                     if 'up' in a: yoff-=prog*(self.y+self.height)
                     elif 'down' in a: yoff+=prog*(self.ui.screenh/self.scale-self.y)
                 elif 'compress' in a:
-                    if 'left' in a: widthoff-=prog*(self.width)
+                    if 'left' in a:
+                        widthoff-=prog*(self.width)
+                        objxoff+=prog*(self.width)
                     elif 'right' in a:
                         widthoff-=prog*(self.width)
                         xoff+=prog*(self.width)
-                    if 'up' in a: heightoff-=prog*(self.height)
+                    if 'up' in a:
+                        heightoff-=prog*(self.height)
+                        objyoff+=prog*(self.height)
                     elif 'down' in a:
                         heightoff-=prog*(self.height)
                         yoff+=prog*(self.height)
-        return xoff,yoff,widthoff,heightoff
+        return xoff,yoff,objxoff,objyoff,widthoff,heightoff
     def moveanimation(self):
         for a in self.animationdata:
             if self.animationdata[a]['active']:
@@ -3561,14 +3569,14 @@ class WINDOW(GUI_ITEM):
         
     def render(self,screen):
         self.moveanimation()
-        self.xoff,self.yoff,self.widthoff,self.heightoff = self.decodeanimations()
+        self.xoff,self.yoff,self.objxoff,self.objyoff,self.widthoff,self.heightoff = self.decodeanimations()
         if self.killtime != -1 and self.killtime<self.ui.time:
             self.ui.delete(self.ID)
         elif self.enabled:
             
             self.child_render(screen)
             
-            self.ui.drawtosurf(screen,[a.ID for a in self.bounditems],self.col,self.x*self.dirscale[0]+self.xoff*self.scale,self.y*self.dirscale[1]+self.yoff*self.scale,(self.x*self.dirscale[0],self.y*self.dirscale[1],(self.width+self.widthoff)*self.scale,(self.height+self.heightoff)*self.scale),'render',self.roundedcorners)
+            self.ui.drawtosurf(screen,[a.ID for a in self.bounditems],self.col,self.x*self.dirscale[0]+self.xoff*self.scale,self.y*self.dirscale[1]+self.yoff*self.scale,(self.x*self.dirscale[0]+self.objxoff*self.scale,self.y*self.dirscale[1]+self.objyoff*self.scale,(self.width+self.widthoff)*self.scale,(self.height+self.heightoff)*self.scale),'render',self.roundedcorners)
 
     def child_render(self,screen):
         self.draw(screen)
