@@ -984,7 +984,7 @@ class UI:
                 if len(name)>0 and name.split()[0] == a:
                     img = self.inbuiltimages[a]
                     sc = size/img.get_height()
-                    return pygame.transform.scale(img,(img.get_width()*sc,size)),True,(255,255,255)
+                    return pygame.transform.scale(img,(img.get_width()*sc,size)),True,img.get_colorkey()
             return 0,False,backcol
         boundingbox = [1000,1000,0,0]
         for a in splines:
@@ -1579,13 +1579,12 @@ class UI:
         scroller.resetcords()
         return obj
     def makedropdown(self,x,y,options: list,textsize=-1,command=emptyfunction,menu='main',ID='dropdown',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,width=-1,height=-1,
-                 anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,img='none',font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
+                 anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,img='none',font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,pageheight=300,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=-1,clicktype=-1,textoffsetx=-1,textoffsety=-1,maxwidth=-1,
                  dragable=False,colorkey=-1,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=1,horizontalspacing=4,clickablerect=-1,clickableborder=-1,
                  backingdraw=-1,borderdraw=-1,animationspeed=-1,linelimit=1000,refreshbind=[]):
 
-        pageheight = 300
         if options == []: options = ['text']
         text = options[0]
         if textsize == -1: textsize = Style.defaults['textsize']
@@ -3084,6 +3083,7 @@ class SCROLLERTABLE(TABLE):
             self.ui.drawtosurf(screen,alltable,self.backingcol,self.x*self.dirscale[0]+self.linesize*self.scale,self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,(self.x*self.dirscale[0]+self.linesize*self.scale,self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,(self.width-self.linesize*2)*self.scale,min(self.height-self.linesize*2-reduce,self.scroller.pageheight-self.linesize*2-reduce)*self.scale),'draw',self.roundedcorners)
 
     def scrollerblocks(self,scroller):
+        scroller.limitpos()
         alltable = self.getalltableitems()
         for a in alltable:
             self.ui.IDs[a].scrollcords = (0,scroller.scroll)
@@ -3118,30 +3118,16 @@ class SCROLLERTABLE(TABLE):
         
 class DROPDOWN(BUTTON):
     def mainbuttonclicked(self):
-        if self.window.enabled:
-            self.window.disable()
+        if not self.window.opening:
+            self.window.open('compressup',toggleopen=False)
         else:
-            self.window.enable()
+            self.window.shut('compressup')
     def optionclicked(self,index):
         self.active = self.options[index]
         self.titletext.settext(self.options[index])
-        self.command()
+        self.window.shut('compressup')
         self.truecommand()
-
-##        print('this does nothing currently')
-##    def reset(self):
-##        self.refreshscale()
-##        self.autoscale()
-##        self.resetcords()
-##        self.refresh()
-##    def child_render(self,screen):
-##        self.draw(screen)
-##    def draw(self,screen):
-##        if self.enabled:
-##            if self.glow!=0:
-##                screen.blit(self.glowimage,(self.x*self.dirscale[0]-self.glow*self.scale,self.y*self.dirscale[1]-self.glow*self.scale))
-##            if self.backingdraw:
-##                draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.border,border_radius=int(self.roundedcorners*self.scale))
+    
     
 
 # Anticlickablerect
@@ -3451,6 +3437,23 @@ class MENU(GUI_ITEM):
         pass
 
 class WINDOW(GUI_ITEM):
+    def reset(self):
+        self.refreshscale()
+        self.autoscale()
+        self.refreshcords()
+        self.resetcords()
+        self.refresh()
+        self.clearanimations()
+        self.opening = self.enabled
+    def clearanimations(self):
+        self.animationdata = {'moveleft':{'active':False,'progress':0,'wave':'linear','forward':True},
+                              'moveright':{'active':False,'progress':0,'wave':'linear','forward':True},
+                              'moveup':{'active':False,'progress':0,'wave':'linear','forward':True},
+                              'movedown':{'active':False,'progress':0,'wave':'linear','forward':True},
+                              'compressleft':{'active':False,'progress':0,'wave':'linear','forward':True},
+                              'compressright':{'active':False,'progress':0,'wave':'linear','forward':True},
+                              'compressup':{'active':False,'progress':0,'wave':'linear','forward':True},
+                              'compressdown':{'active':False,'progress':0,'wave':'linear','forward':True}}
     def refresh(self):
         self.autoscale()
         self.refreshscale()
@@ -3463,6 +3466,76 @@ class WINDOW(GUI_ITEM):
     def disable(self):
         self.enabled = False
         self.child_autoscale()
+    def open(self,animation='none',animationlength=30,toggleopen=True):
+        if not self.opening:
+            self.enable()
+            self.opening = True
+            self.makeanimation(animation,animationlength,False)
+        elif toggleopen:
+            self.shut()
+    def shut(self,animation='none'):
+        self.opening = False
+        self.makeanimation(animation,flippable=False)
+        if animation == 'none': self.disable()
+    def makeanimation(self,animation='none',length=30,forward=True,flippable=True):
+        if animation !='none':
+            self.enable()
+            for a in animation.split():
+                if a.split(':')[0] in list(self.animationdata):
+                    if self.animationdata[a.split(':')[0]]['active']:
+                        if flippable or self.animationdata[a.split(':')[0]]['forward']!=forward:
+                            self.animationdata[a.split(':')[0]]['progress'] = 1- self.animationdata[a.split(':')[0]]['progress']
+                            self.animationdata[a.split(':')[0]]['forward'] = not self.animationdata[a.split(':')[0]]['forward']
+                    else:
+                        wave = 'sinout'
+                        if len(a.split(':'))>1:
+                            if a.split(':')[1] in ['linear','sin','sinin','sinout']:
+                                wave = a.split(':')[1]
+                        self.animationdata[a.split(':')[0]]['progress'] = 0
+                        self.animationdata[a.split(':')[0]]['active'] = True
+                        self.animationdata[a.split(':')[0]]['wave'] = wave
+                        self.animationdata[a.split(':')[0]]['forward'] = forward
+            self.animationlength = length
+    def decodeanimations(self):
+        xoff = 0
+        yoff = 0
+        widthoff = 0
+        heightoff = 0
+        for a in self.animationdata:
+            if self.animationdata[a]['active']:
+                prog = self.convertprogress(self.animationdata[a])
+                if 'move' in a:
+                    if 'left' in a: xoff-=prog*(self.x+self.width)
+                    elif 'right' in a: xoff+=prog*(self.ui.screenw/self.scale-self.x)
+                    if 'up' in a: yoff-=prog*(self.y+self.height)
+                    elif 'down' in a: yoff+=prog*(self.ui.screenh/self.scale-self.y)
+                elif 'compress' in a:
+                    if 'left' in a: widthoff-=prog*(self.width)
+                    elif 'right' in a:
+                        widthoff-=prog*(self.width)
+                        xoff+=prog*(self.width)
+                    if 'up' in a: heightoff-=prog*(self.height)
+                    elif 'down' in a:
+                        heightoff-=prog*(self.height)
+                        yoff+=prog*(self.height)
+        return xoff,yoff,widthoff,heightoff
+    def moveanimation(self):
+        for a in self.animationdata:
+            if self.animationdata[a]['active']:
+                self.animationdata[a]['progress']+=self.ui.deltatime/self.animationlength
+                if self.animationdata[a]['progress']>1:
+                    self.animationdata[a]['active'] = False
+                    if self.animationdata[a]['forward']:
+                        self.disable()
+    def convertprogress(self,data):
+        progress = data['progress']
+        wave = data['wave']
+        if not data['forward']: progress = 1-progress
+        if wave == 'sinin': return math.sin(progress*math.pi/2)
+        elif wave == 'sinout': return math.sin((progress-1)*math.pi/2)+1
+        elif wave == 'siun': return math.sin((progress-0.5)*math.pi)/2+0.5
+        else: return progress
+        
     def child_autoscale(self):
         # Rect,IDs,menu,whitelist (true=all objects in list blocked by noclickrect)
         if self.enabled:
@@ -3477,12 +3550,15 @@ class WINDOW(GUI_ITEM):
         self.child_autoscale()
         
     def render(self,screen):
+        self.moveanimation()
+        self.xoff,self.yoff,self.widthoff,self.heightoff = self.decodeanimations()
         if self.killtime != -1 and self.killtime<self.ui.time:
             self.ui.delete(self.ID)
         elif self.enabled:
+            
             self.child_render(screen)
-                    
-            self.ui.drawtosurf(screen,[a.ID for a in self.bounditems],self.col,self.x*self.dirscale[0],self.y*self.dirscale[1],(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),'render',self.roundedcorners)
+            
+            self.ui.drawtosurf(screen,[a.ID for a in self.bounditems],self.col,self.x*self.dirscale[0]+self.xoff*self.scale,self.y*self.dirscale[1]+self.yoff*self.scale,(self.x*self.dirscale[0],self.y*self.dirscale[1],(self.width+self.widthoff)*self.scale,(self.height+self.heightoff)*self.scale),'render',self.roundedcorners)
 
     def child_render(self,screen):
         self.draw(screen)
@@ -3491,7 +3567,7 @@ class WINDOW(GUI_ITEM):
             if self.glow!=0:
                 screen.blit(self.glowimage,(self.x*self.dirscale[0]-self.glow*self.scale,self.y*self.dirscale[1]-self.glow*self.scale))
             if self.backingdraw:
-                draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),border_radius=int(self.roundedcorners*self.scale))
+                draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.xoff*self.scale,self.y*self.dirscale[1]+self.yoff*self.scale,(self.width+self.widthoff)*self.scale,(self.height+self.heightoff)*self.scale),border_radius=int(self.roundedcorners*self.scale))
 
 class ANIMATION:
     def __init__(self,ui,animateID,startpos,endpos,movetype,length,wait,relativemove,command,runcommandat,skiptoscreen,acceleration,permamove,ID):
