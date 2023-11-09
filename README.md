@@ -202,11 +202,19 @@ A simple rectangle with no additional function.
 A circle is actually a rect object, with equal width and height and roundedcorners set to half the width(radius), creating a circle from the same rect object. This means it can be treated the same way a Rect is.
 ### Search Bar
 A composite object made of a textbox, 2 buttons and some text. Whatever function is inputed as the command will be run when a user clicks the enter key, or the search button. The cross just wipes the textbox, and text arguement is used to create the display text.
-
+### DropDown
+A dropdown is an object used to select one of multiple items in a list. When clicked it opens a window object containing a scroller table with a button for each item that can be selected. The command is ran when a button on the scroller table is pressed and the main display text is swapped out. The active text can be accessed through the objects "active" attribute.
+```py
+# Function to output the selected item
+def output():
+    print(ui.IDs['dropdown'].active)
+# Creates the dropdown menu with that function
+ui.makedropdown(10,10,['Option 1','Option 2','Option 3'],
+                command=output,ID='dropdown')
+```
 ## Using Gui Objects
 Using the ui object, objects can be accessed and deleted.
 To access an object you must give the object an ID when it is generated, and then using the ui.IDs dictionary it can be accessed. The make function also returns the object, meaning it can be stored and used in your code. When objects are changed in any way, eg moving its x and y position or changing the text inside it, the objects refresh function should be used. To delete an object use the ui.delete function, passing in objects ID that is to be deleted. Some functions exist for setting specific values, primarly settext, which allows the refresh function to not be used.
-
 Example code:
 ```py
 ## make a button at x=100,y=200 with the text 'Test Button' 
