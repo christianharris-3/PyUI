@@ -36,6 +36,8 @@ class emptyobject:
         self.dirscale = [1,1]
         self.empty = True
         self.active = False
+    def getenabled(self):
+        return True
 class funcer:
     def __init__(self,func,**args):
         self.func = lambda: func(**args)
@@ -144,6 +146,27 @@ def losslesssplit(text,splitter):
     if text[-2:] == splitter:
         splitted.append(splitter)
     return splitted
+
+def distance(point1,point2):
+    return ((point1[0]-point2[0])**2+(point1[1]-point2[1])**2)**0.5
+
+def distancetorect(point,rect):
+    x,y,w,h = rect
+    if pygame.Rect(x,y,w,h).collidepoint(point): return 0
+    if point[0]<x:
+        if point[1]>y:
+            if point[1]<y+h: return x-point[0]
+            else: return distance(point,(x,y+h))
+        else: return distance(point,(x,y))
+    elif point[0]>x+w:
+        if point[1]>y:
+            if point[1]<y+h: return point[0]-(x+w)
+            else: return distance(point,(x+w,y+h))
+        else: return distance(point,(x+w,y))
+    else:
+        if point[1]>y: return y-point[1]
+        else: return point[1]-(y-h)
+        
 
 ##def stress(num=10000):
 ####    items = [[[(random.gauss(0,1000),random.gauss(0,1000)),(random.gauss(0,1000),random.gauss(0,1000))],[(random.gauss(0,1000),random.gauss(0,1000)),(random.gauss(0,1000),random.gauss(0,1000))]] for a in range(num)]
@@ -618,13 +641,21 @@ class UI:
                                 a.scroller.command()
                                 moved = True
                     if not moved:
+                        scrollable = []
                         for a in self.scrollers:
                             if self.activemenu == a.getmenu() and type(a.master[0]) != TEXTBOX:
-                                if a.pageheight<(a.maxp-a.minp):
-                                    a.scroll-=(event.y*min((a.maxp-a.minp)/20,self.scrolllimit))
-                                    a.limitpos()
-                                    a.command()
-                                    break
+                                if a.pageheight<(a.maxp-a.minp) and a.getenabled():
+                                    scrollable.append(a)
+                        for x in scrollable:
+                            x.tempdistancetomouse = distancetorect([self.mpos[0]/x.dirscale[0],self.mpos[1]/x.dirscale[1]],(x.x,x.y,x.width,x.height))
+                            if type(x.master[0]) == SCROLLERTABLE:
+                                x.tempdistancetomouse = distancetorect([self.mpos[0]/x.dirscale[0],self.mpos[1]/x.dirscale[1]],(x.master[0].x,x.master[0].y,x.master[0].width,x.master[0].height))
+                        scrollable.sort(key= lambda x: x.tempdistancetomouse)
+                        for a in scrollable:
+                            a.scroll-=(event.y*min((a.maxp-a.minp)/20,self.scrolllimit))
+                            a.limitpos()
+                            a.command()
+                            break
         return repeatchecker
     def togglefullscreen(self,screen):
         if self.fullscreen: self.fullscreen = False
@@ -1476,7 +1507,7 @@ class UI:
         return obj
     def makewindow(self,x,y,width,height,menu='main',col=-1,bounditems=[],colorkey=(255,255,255),
                    ID='window',layer=10,roundedcorners=-1,anchor=(0,0),objanchor=(0,0),isolated=True,darken=-1,
-                   center=False,centery=-1,enabled=True,glow=-1,glowcol=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,
+                   center=False,centery=-1,enabled=False,glow=-1,glowcol=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,
                    refreshbind=[],clickablerect=(0,0,'w','h'),animationspeed=-1,animationtype='moveup'):
 
         if col == -1: col = shiftcolor(Style.objectdefaults[WINDOW]['col'],-35)
@@ -1587,10 +1618,10 @@ class UI:
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=-1,clicktype=-1,textoffsetx=-1,textoffsety=-1,maxwidth=-1,
                  dragable=False,colorkey=-1,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=1,horizontalspacing=4,clickablerect=-1,clickableborder=-1,
-                 backingdraw=-1,borderdraw=-1,linelimit=1000,refreshbind=[],animationspeed=15,animationtype='compressleft'):
+                 backingdraw=-1,borderdraw=-1,linelimit=1000,refreshbind=[],animationspeed=15,animationtype='compressleft',startoptionindex=0):
 
         if options == []: options = ['text']
-        text = options[0]
+        text = options[startoptionindex]
         if textsize == -1: textsize = Style.defaults['textsize']
         
         if upperborder == -1: upperborder = border
@@ -1610,7 +1641,7 @@ class UI:
                        command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,maxwidth=maxwidth,
                        dragable=dragable,colorkey=colorkey,toggle=toggle,toggleable=toggleable,toggletext=toggletext,toggleimg=toggleimg,togglecol=togglecol,togglehovercol=togglehovercol,bindtoggle=bindtoggle,spacing=spacing,
                        verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,clickableborder=clickableborder,
-                       animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind,options=options)
+                       animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind,options=options,startoptionindex=startoptionindex)
         tablew = width
         if tablew != -1: tablew-=border*2
         data = []
@@ -1802,7 +1833,8 @@ def filloutargs(args):
                 dragable=False,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',bindtoggle=[],clickablerect=-1,
                 linelimit=100,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,
                 data='empty',titles=[],boxwidth=-1,boxheight=-1,pageheight=15,scrollcords=(0,0),scrollbind=[],screencompressed=False,
-                sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',behindmenu='main',scroller=0,compress=False,options=[],animationtype='movedown')
+                sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',behindmenu='main',scroller=0,compress=False,
+                options=[],startoptionindex=0,animationtype='movedown')
     for a in newargs:
         if not(a in args):
             args[a] = newargs[a]
@@ -1964,6 +1996,7 @@ class GUI_ITEM:
 
         self.animationtype = args['animationtype']
         self.options = args['options']
+        if len(self.options)>0: self.active = self.options[args['startoptionindex']]
         
         self.backingdraw = args['backingdraw']
         self.borderdraw = args['borderdraw']
@@ -2205,6 +2238,11 @@ class GUI_ITEM:
         lis = [self.ID]
         lis += sum([a.getchildIDs() for a in self.bounditems],[])
         return lis
+    def getenabled(self):
+        if not self.enabled:
+            return False
+        else:
+            return self.master[0].getenabled()
     def settext(self,text):
         self.text = str(text)
         self.refresh()
