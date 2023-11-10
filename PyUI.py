@@ -1337,7 +1337,7 @@ class UI:
         if maxwidth == -1: maxwidth = width
         if backingcol == -1: backingcol = bordercol
         obj = BUTTON(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
-                     anchor=anchor,objanchor=objanchor,center=center,centery=centery,text=text,textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
+                     anchor=anchor,objanchor=objanchor,center=center,centery=centery,text=str(text),textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
                      border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                      command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,maxwidth=maxwidth,
                      dragable=dragable,colorkey=colorkey,toggle=toggle,toggleable=toggleable,toggletext=toggletext,toggleimg=toggleimg,togglecol=togglecol,togglehovercol=togglehovercol,bindtoggle=bindtoggle,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,clickableborder=clickableborder,
@@ -1415,7 +1415,7 @@ class UI:
         backingcol = bordercol
         
         obj = TEXT(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
-                 anchor=anchor,objanchor=objanchor,center=center,centery=centery,text=text,textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
+                 anchor=anchor,objanchor=objanchor,center=center,centery=centery,text=str(text),textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
                  border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                  command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,maxwidth=maxwidth,
                  dragable=dragable,colorkey=colorkey,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,
@@ -1475,7 +1475,7 @@ class UI:
                  behindmenu=behindmenu,isolated=isolated,darken=darken,refreshbind=refreshbind)
         return obj
     def makewindow(self,x,y,width,height,menu='main',col=-1,bounditems=[],colorkey=(255,255,255),
-                   ID='window',layer=10,roundedcorners=-1,anchor=(0,0),objanchor=(0,0),
+                   ID='window',layer=10,roundedcorners=-1,anchor=(0,0),objanchor=(0,0),isolated=True,darken=-1,
                    center=False,centery=-1,enabled=True,glow=-1,glowcol=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,
                    refreshbind=[],clickablerect=(0,0,'w','h'),animationspeed=-1,animationtype='moveup'):
 
@@ -1484,7 +1484,7 @@ class UI:
         obj = WINDOW(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,enabled=enabled,
                  scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,col=col,colorkey=colorkey,
-                     refreshbind=refreshbind,clickablerect=clickablerect,animationspeed=animationspeed,animationtype=animationtype)
+                 refreshbind=refreshbind,isolated=isolated,darken=darken,clickablerect=clickablerect,animationspeed=animationspeed,animationtype=animationtype)
         return obj
     
     def makerect(self,x,y,width,height,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,
@@ -1876,7 +1876,7 @@ class GUI_ITEM:
         if args['ID'] == '': args['ID'] = args['text']
 
 
-        self.text = args['text']
+        self.text = str(args['text'])
         self.textsize = args['textsize']
         self.img = args['img']
         self.font = args['font']
@@ -1995,8 +1995,8 @@ class GUI_ITEM:
 
         self.onitem = False
         self.master = [emptyobject(0,0,ui.screenw,ui.screenh)]
-        ui.addid(args['ID'],self)
         self.bounditems = args['bounditems'][:]
+        ui.addid(args['ID'],self)
         for a in self.bounditems:
             self.binditem(a)
         self.empty = False
@@ -2206,7 +2206,7 @@ class GUI_ITEM:
         lis += sum([a.getchildIDs() for a in self.bounditems],[])
         return lis
     def settext(self,text):
-        self.text = text
+        self.text = str(text)
         self.refresh()
     def setwidth(self,width):
         self.startwidth = width
@@ -2531,7 +2531,7 @@ class TEXTBOX(GUI_ITEM):
         else:
             self.scrolleron = False
         self.scroller.refresh()
-        self.refreshcords()
+        self.resetcords()
         self.refreshglow()
         self.refreshbound()
            
@@ -2854,7 +2854,7 @@ class TABLE(GUI_ITEM):
         h = self.getmasterheight()
         ##
         ratiowidth = False
-        if self.startwidth!=-1 and self.startboxwidth!=-1: ratiowidth = True
+        if self.startwidth!=-1: ratiowidth = True
         if type(self.startboxwidth) == int:
             if self.columns == 0: tempboxwidth = [self.startboxwidth]
             else: tempboxwidth = [self.startboxwidth for a in range(self.columns)]
