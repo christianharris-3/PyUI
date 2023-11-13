@@ -134,6 +134,8 @@ ui.makecheckbox(30,110,60,ID='checkbox 1',bindtoggle=['checkbox 2','checkbox 3']
 ui.makecheckbox(90,110,60,ID='checkbox 2',bindtoggle=['checkbox 1','checkbox 3'],toggle=False)
 ui.makecheckbox(150,110,60,ID='checkbox 3',bindtoggle=['checkbox 1','checkbox 2'],toggle=False)
 ```
+### Labeled checkbox
+
 ### Text
 Text is an object that displays text, it can be given a command. Text can have trouble with antialiasing, as the antialiasing can only be done onto a set surface, so pregenerating the text and reblitting the same image every frame may look bad on a changing background. The background colour may need to be given to give the text something to antialias onto, however if that fails to look good set pregenerated to False, meaning new text is blitted every frame, giving perfect antialiasing but very bad performance.
 ```py
@@ -176,6 +178,7 @@ for a in range(5):
 ```
 ### Slider
 Sliders contain a bar that a button is moved back and forth on when clicked and dragged. The amount the slider is slid can be accessed by the "slider" variable.
+--note to self talk about the binding text and textboxes thing
 ```py
 # Make slider with a button with text changing depending on the sliders position
 def updatetext():
