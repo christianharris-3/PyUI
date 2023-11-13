@@ -1339,11 +1339,17 @@ class UI:
                     if not b.ID in a[1]:
                         b.noclickrectsapplied.append(a[0])
             
-    def printtree(self):
-        depth = max([self.gettreedepth(a) for a in self.automenus+self.windowedmenus])
-        prefixes = ['<{-=-{=-[=]-=}-=-}>','#@'*5,'<=>'*3,'+='*3,'--',''][(6-depth):]
-        for a in self.automenus+self.windowedmenus:
-            self.printbound(a,prefixes)
+    def printtree(self,obj=False):
+        if type(obj) == str: obj = self.IDs[obj]
+        prefixes = ['<{-=-{=-[=]-=}-=-}>','#@'*5,'<=>'*3,'+='*3,'--','']
+        if obj == False:
+            depth = max([self.gettreedepth(a) for a in self.automenus+self.windowedmenus])
+            prefixes = prefixes[(6-depth):]
+            for a in self.automenus+self.windowedmenus:
+                self.printbound(a,prefixes)
+        else:
+            prefixes = prefixes[(6-self.gettreedepth(obj)):]
+            self.printbound(obj,prefixes)
     def printbound(self,obj,prefixes):
         if prefixes[0] == '': print(obj.ID)
         else: print(prefixes[0],obj.ID)
@@ -1374,12 +1380,14 @@ class UI:
                      dragable=dragable,colorkey=colorkey,toggle=toggle,toggleable=toggleable,toggletext=toggletext,toggleimg=toggleimg,togglecol=togglecol,togglehovercol=togglehovercol,bindtoggle=bindtoggle,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,clickableborder=clickableborder,
                      animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind)
         return obj
-    def makecheckbox(self,x,y,textsize=80,command=emptyfunction,menu='main',ID='checkbox',text='{tick}',layer=1,roundedcorners=0,bounditems=[],killtime=-1,width=-1,height=-1,
+    def makecheckbox(self,x,y,textsize=-1,command=emptyfunction,menu='main',ID='checkbox',text='{tick}',layer=1,roundedcorners=0,bounditems=[],killtime=-1,width=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
                  border=4,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=-1,clicktype=-1,textoffsetx=-1,textoffsety=-1,maxwidth=-1,
-                 dragable=False,colorkey=-1,toggle=True,toggleable=True,toggletext='',toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-15,verticalspacing=-15,horizontalspacing=-15,clickablerect=-1,clickableborder=10,
+                 dragable=False,colorkey=-1,toggle=True,toggleable=True,toggletext='',toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,clickableborder=10,
                  backingdraw=False,borderdraw=-1,animationspeed=-1,linelimit=1000,refreshbind=[]):
+        if textsize == -1: textsize = Style.defaults['textsize']
+        if spacing == -1: spacing = -int(textsize/5)
         if width == -1: width = textsize+spacing*2
         if height == -1: height = textsize+spacing*2
         obj = BUTTON(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
@@ -1486,6 +1494,8 @@ class UI:
                  dragable=dragable,colorkey=colorkey,backingdraw=backingdraw,borderdraw=borderdraw,
                  slidersize=slidersize,increment=increment,sliderroundedcorners=sliderroundedcorners,minp=minp,maxp=maxp,startp=startp,direction=direction,containedslider=containedslider,data=button,movetoclick=movetoclick,refreshbind=refreshbind)
         obj.boundtext = boundtext
+        if type(boundtext) == TEXTBOX:
+            boundtext.slider = obj
         obj.updatetext()
         return obj
  
@@ -1666,6 +1676,38 @@ class UI:
         obj.titletext = txt
         obj.command = lambda: obj.mainbuttonclicked()
         obj.truecommand = command
+        return obj
+
+    def makelabeledcheckbox(self,x,y,text,textsize=-1,command=emptyfunction,menu='main',ID='checkbox',textpos='left',layer=1,roundedcorners=0,bounditems=[],killtime=-1,width=-1,height=-1,
+                 anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
+                 border=4,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
+                 runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=-1,clicktype=-1,textoffsetx=-1,textoffsety=-1,maxwidth=-1,
+                 dragable=False,colorkey=-1,toggle=True,toggleable=True,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,horizontalspacing=5,clickablerect=-1,clickableborder=10,
+                 backingdraw=False,borderdraw=-1,animationspeed=-1,linelimit=1000,refreshbind=[]):
+
+        if textsize == -1: textsize = Style.defaults['textsize']
+        
+        if textpos == 'left':
+            anch = (0,'h/2')
+            objanch = ('w','h/2')
+            tx = -horizontalspacing
+        else:
+            anch = ('w','h/2')
+            objanch = (0,'h/2')
+            tx = horizontalspacing
+        text = self.maketext(tx,0,text,textsize,menu,ID=ID+'text',
+                         anchor=anch,objanchor=objanch,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
+                         scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,
+                         col=col,textcol=textcol,backingcol=backingcol,textoffsetx=textoffsetx,textoffsety=textoffsety,
+                         colorkey=colorkey,maxwidth=maxwidth,animationspeed=animationspeed)
+        
+        obj = self.makecheckbox(x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems+[text],killtime=killtime,
+                                anchor=anchor,objanchor=objanchor,center=center,centery=centery,textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
+                                border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
+                                command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,maxwidth=maxwidth,
+                                dragable=dragable,colorkey=colorkey,toggle=toggle,toggleable=toggleable,toggleimg=toggleimg,togglecol=togglecol,togglehovercol=togglehovercol,bindtoggle=bindtoggle,
+                                spacing=spacing,clickablerect=clickablerect,clickableborder=clickableborder,
+                                animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind)
         return obj
     
     def automakemenu(self,menu):
@@ -2170,13 +2212,18 @@ class GUI_ITEM:
         h = self.getmasterheight()/self.scale
         if self.startclickablerect != -1:
             rx,ry,rw,rh = self.startclickablerect
-            ow = self.width
-            oh = self.height
+            xstart = self.master[0].x
+            ystart = self.master[0].y
+            ow = self.getmasterwidth()/self.scale
+            oh = self.getmasterheight()/self.scale
             if type(self) == SCROLLERTABLE:
                 self.pageheight = relativetoval(self.startpageheight,w,h,self.ui)
                 oh = self.pageheight
-            xstart = self.x*self.dirscale[0]
-            ystart = self.y*self.dirscale[1]
+            if type(self) in [SCROLLERTABLE,TABLE]:
+                xstart = self.x*self.dirscale[0]
+                ystart = self.y*self.dirscale[1]
+                ow = self.width
+                oh = self.height
             self.clickablerect = pygame.Rect(xstart+relativetoval(rx,w,h,self.ui),
                                              ystart+relativetoval(ry,w,h,self.ui),
                                              relativetoval(rw,ow,oh,self.ui)*self.scale,
@@ -2221,6 +2268,23 @@ class GUI_ITEM:
                 item.master.append(self)
             self.bounditems.sort(key=lambda x: x.layer,reverse=False)
             if resetcords: item.resetcords()
+    def setmenu(self,menu):
+        old = self.truemenu
+        self.menu = menu
+        self.truemenu = self.menu
+        if type(self.truemenu) == str: self.truemenu = [self.truemenu]
+
+        for a in self.master:
+            if type(a) in [WINDOWEDMENU,MENU]:
+                a.bounditems.remove(self)
+        self.master = []
+        for a in self.truemenu:
+            if w in self.ui.windowedmenunames:
+                self.ui.windowedmenus[self.ui.windowedmenunames.index(a)].binditem(self,False,False)
+        self.ui.refreshitems()
+        self.resetcords()
+        
+        
     def getmenu(self):
         if type(self.master[0]) in [WINDOWEDMENU,MENU]:
             return self.master[0].menu
@@ -2377,7 +2441,7 @@ class BUTTON(GUI_ITEM):
         self.clickrect = pygame.Rect(self.x*self.dirscale[0]+(self.leftborder-self.clickableborder)*self.scale,
                                      self.y*self.dirscale[1]+(self.upperborder-self.clickableborder)*self.scale,
                                      (self.width-self.leftborder-self.rightborder+self.clickableborder*2)*self.scale,
-                                     (self.height-self.upperborder-self.lowerborder-+self.clickableborder*2)*self.scale)
+                                     (self.height-self.upperborder-self.lowerborder+self.clickableborder*2)*self.scale)
         self.getclickedon(self.clickrect)
         if self.clickedon > -1:
             if self.clickedon == 0: self.ui.mouseheld[self.clicktype][1]-=1
@@ -2423,6 +2487,7 @@ class TEXTBOX(GUI_ITEM):
         self.typingcursor=0
         self.typeline=0
         self.scrolleron=False
+        self.slider = -1
     def child_autoscale(self):
         heightgetter = self.ui.rendertext('Tg',self.textsize,self.textcol,self.font,self.bold)
         if self.height == -1:
@@ -2537,6 +2602,7 @@ class TEXTBOX(GUI_ITEM):
             self.text = self.text[:self.chrlimit]
         if self.text!=starttext:
             self.refresh()
+            self.updateslider()
         else:
             self.refreshcursor()
    
@@ -2549,7 +2615,14 @@ class TEXTBOX(GUI_ITEM):
         self.scroller = self.ui.makescroller(-self.rightborder-15+self.border/2,self.upperborder,self.height-self.upperborder-self.lowerborder,emptyfunction,15,0,self.height-self.upperborder-self.lowerborder,self.height,anchor=('w',0),
                                              menu=self.menu,roundedcorners=self.roundedcorners,col=self.col,scalesize=self.scalesize,scaley=self.scalesize,scalex=self.scalesize,scaleby=self.scaleby)
         self.binditem(self.scroller)
-        
+    def updateslider(self):
+        if self.slider != -1:
+            try:
+                self.slider.slider = int(self.text)
+                self.slider.limitpos()
+                self.slider.updatetext()
+            except:
+                pass
     def refresh(self):
         self.refreshscale()
         self.gentext()
@@ -2771,7 +2844,6 @@ class TABLE(GUI_ITEM):
         self.refreshglow()
         self.refreshclickablerect()
         self.enable()
-        self.refreshbound()
         self.threadactive = False
     def threadrefresh(self):
         if not self.threadactive:
@@ -2824,6 +2896,7 @@ class TABLE(GUI_ITEM):
         self.table = []
         for a in range(len(self.preprocessed)):
             self.table.append(self.row_gentext(a))
+            
     def row_gentext(self,index):
         row = []
         a = index
@@ -2876,7 +2949,8 @@ class TABLE(GUI_ITEM):
         obj.scalesize = self.scalesize
         obj.scaleby = self.scaleby
         obj.tableobject = True
-        if not(y == 0 and len(self.titles) != 0 and type(self) == SCROLLERTABLE):
+        if type(self) == SCROLLERTABLE:# and not(y==0 and len(self.titles)!=0):
+            obj.startclickablerect = self.startclickablerect
             obj.clickablerect = self.clickablerect
         obj.refreshscale()
         obj.resetcords(False)
@@ -3334,6 +3408,7 @@ class SLIDER(GUI_ITEM):
         self.roundedcorners = min([self.roundedcorners,self.width/2,self.height/2])
     def refresh(self):
         self.autoscale()
+        self.limitpos()
         self.refreshbutton()
         self.refreshglow()
         self.refreshbound()
@@ -3536,11 +3611,12 @@ class WINDOW(GUI_ITEM):
         elif toggleopen:
             self.shut()
     def shut(self,animation='default',animationlength=-1):
-        if animation == 'default': animation = self.animationtype
-        if animationlength == -1: animationlength = self.animationspeed
-        self.opening = False
-        self.makeanimation(animation,flippable=False)
-        if animation == 'none': self.disable()
+        if self.opening:
+            if animation == 'default': animation = self.animationtype
+            if animationlength == -1: animationlength = self.animationspeed
+            self.opening = False
+            self.makeanimation(animation,flippable=False)
+            if animation == 'none': self.disable()
     def makeanimation(self,animation='default',length=-1,forward=True,flippable=True):
         if animation == 'default': animation = self.animationtype
         if length == -1: length = self.animationspeed
