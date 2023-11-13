@@ -1471,20 +1471,22 @@ class UI:
         return obj
 
 ##    def makeslider(self,x,y,width,height,maxp=100,menu='main',command=emptyfunction,menuexceptions=[],edgebound=(1,0,0,1),col='default',slidercol=-1,sliderbordercol=-1,hovercol=-1,clickcol=-1,clickdownsize=2,bordercol=-1,border=2,slidersize=-1,increment=0,img='none',colorkey=(255,255,255),minp=0,startp=0,style='square',roundedcorners=0,barroundedcorners=-1,dragable=True,runcommandat=1,clicktype=0,layer=1,ID='default',returnobj=False):
-    def makeslider(self,x,y,width,height,maxp=100,menu='main',command=emptyfunction,ID='slider',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,
+    def makeslider(self,x,y,width,height,maxp=100,menu='main',command=emptyfunction,ID='slider',layer=1,roundedcorners=-1,bounditems=[],boundtext=-1,killtime=-1,
                  anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=1,col=-1,backingcol=-1,button='default',clickablerect=-1,
                  dragable=True,colorkey=(255,255,255),backingdraw=-1,borderdraw=-1,
                  slidersize=-1,increment=0,sliderroundedcorners=-1,minp=0,startp=0,direction='horizontal',containedslider=-1,movetoclick=-1,refreshbind=[]):
-
+        if boundtext!=-1:
+            bounditems.append(boundtext)
         obj = SLIDER(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,enabled=enabled,
                  border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                  command=command,runcommandat=runcommandat,col=col,backingcol=backingcol,clickablerect=clickablerect,
                  dragable=dragable,colorkey=colorkey,backingdraw=backingdraw,borderdraw=borderdraw,
                  slidersize=slidersize,increment=increment,sliderroundedcorners=sliderroundedcorners,minp=minp,maxp=maxp,startp=startp,direction=direction,containedslider=containedslider,data=button,movetoclick=movetoclick,refreshbind=refreshbind)
-
+        obj.boundtext = boundtext
+        obj.updatetext()
         return obj
  
 ##    def makewindowedmenu(self,x,y,width,height,menu,behindmenu,edgebound=(1,0,0,1),col='default',isolated=True,roundedcorners=0,darken=60,colourkey=(243,244,242),ID='default'):
@@ -3370,6 +3372,9 @@ class SLIDER(GUI_ITEM):
     def refreshbutton(self):
         self.button.refresh()
         self.refreshbuttoncords()
+    def updatetext(self):
+        if self.boundtext!=-1:
+            self.boundtext.settext(str(self.slider))
         
     def child_render(self,screen):
         self.draw(screen)
@@ -3389,6 +3394,7 @@ class SLIDER(GUI_ITEM):
             self.slider = (self.ui.mpos[1]-self.y*self.dirscale[1]-self.upperborder*self.scale)/((self.height-self.upperborder-self.lowerborder)*self.scale/(self.maxp-self.minp))+self.minp
         if self.increment!=0: self.slider = round(self.slider/self.increment)*self.increment
         self.limitpos()
+        self.updatetext()
     def limitpos(self):
         if self.slider>self.maxp:
             self.slider = self.maxp
