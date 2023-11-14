@@ -483,7 +483,6 @@ class UI:
         self.autoscale = 'width'
         tempscreen = pygame.display.get_surface()
         self.basescreensize = [tempscreen.get_width(),tempscreen.get_height()]
-        self.loadtickdata()
         self.checkcaps()
         if self.scale!=1: self.setscale(self.scale)
         self.styleload_default()
@@ -494,6 +493,7 @@ class UI:
             self.logo.set_colorkey((255,255,255))
             pygame.display.set_icon(self.logo)
             pygame.display.set_caption('PyUI Application')
+        self.loadtickdata()
         
     def checkcaps(self):
         hllDll = ctypes.WinDLL("User32.dll")
