@@ -1564,7 +1564,7 @@ class UI:
         if textsize == -1: textsize = Style.defaults['textsize']
         if height == -1:
             heightgetter = self.rendertext('Tg',textsize,(255,255,255),font,bold)
-            height = upperborder+lowerborder+heightgetter.get_height()*lines
+            height = upperborder+lowerborder+heightgetter.get_height()*lines+verticalspacing*2
         col = autoshiftcol(col,Style.defaults['col'])
         if backingcol == -1: backingcol = autoshiftcol(Style.defaults['backingcol'],col,20)
         
@@ -1577,7 +1577,7 @@ class UI:
         cross = self.makebutton(-border,0,'{cross}',textsize*0.5,command=emptyfunction,roundedcorners=roundedcorners,width=bsize,height=bsize,
                  anchor=('w','h/2'),objanchor=('w','h/2'),border=0,col=col,textcol=textcol,backingcol=backingcol,bordercol=col,
                  clickdownsize=1,textoffsetx=1,textoffsety=1,spacing=2,clickablerect=clickablerect,hovercol=autoshiftcol(hovercol,col,-6),borderdraw=False)
-        
+
         obj = self.maketextbox(x,y,'',width,lines,menu,command,ID,layer,roundedcorners,bounditems+[txt,search,cross],killtime,height,
                  anchor,objanchor,center,centery,img,textsize,font,bold,antialiasing,pregenerated,enabled,
                  border,upperborder,lowerborder,bsize*2+border*3,txt.textimage.get_width()+border+horizontalspacing*2,scalesize,scalex,scaley,scaleby,glow,glowcol,
@@ -1585,7 +1585,7 @@ class UI:
                  colorkey,spacing,verticalspacing,horizontalspacing,clickablerect,
                  linelimit,selectcol,selectbordersize,selectshrinksize,cursorsize,textcenter,chrlimit,numsonly,enterreturns,commandifenter,commandifkey,imgdisplay,
                  backingdraw,borderdraw,refreshbind)
-        
+
         cross.command = lambda: obj.settext('')
         return obj
 
@@ -3413,10 +3413,10 @@ class SLIDER(GUI_ITEM):
         self.refreshglow()
         self.refreshbound()
     def child_refreshcords(self):
-        self.slidercenter = (self.x+self.border+(self.width-self.border*2)*(self.slider/(self.maxp-self.minp)),self.y+self.height/2)    
         self.innerrect = pygame.Rect(self.slidercenter[0]-self.slidersize/2+self.border,self.slidercenter[1]-self.slidersize/2+self.border,self.slidersize-self.border*2,self.slidersize-self.border*2)
         self.refreshbuttoncords()
     def resetbutton(self):
+        self.getslidercenter()
         try:
             self.bounditems.remove(self.button)
             self.ui.delete(self.button.ID,False)
@@ -3432,13 +3432,18 @@ class SLIDER(GUI_ITEM):
         self.button.dragable = False
         self.binditem(self.button)
         
-    def refreshbuttoncords(self):
+    def getslidercenter(self):
         offset = 0
         if self.containedslider: offset = self.button.width/2
-        self.slidercenter = (self.leftborder+offset+(self.width-self.leftborder-self.rightborder-offset*2)*((self.slider-self.minp)/(self.maxp-self.minp)),self.height/2)
+        if self.maxp-self.minp != 0: pos = (self.slider-self.minp)/(self.maxp-self.minp)
+        else: pos = 0
+            
+        self.slidercenter = (self.leftborder+offset+(self.width-self.leftborder-self.rightborder-offset*2)*pos,self.height/2)
         if self.direction == 'vertical':
             if self.containedslider: offset = self.button.height/2
-            self.slidercenter = (self.width/2,self.upperborder+offset+(self.height-self.upperborder-self.lowerborder-offset*2)*((self.slider-self.minp)/(self.maxp-self.minp)))
+            self.slidercenter = (self.width/2,self.upperborder+offset+(self.height-self.upperborder-self.lowerborder-offset*2)*pos)
+    def refreshbuttoncords(self):
+        self.getslidercenter()
         self.button.startx = self.slidercenter[0]
         self.button.starty = self.slidercenter[1]
         self.button.startanchor = [0,0]
@@ -3464,9 +3469,11 @@ class SLIDER(GUI_ITEM):
             self.button.holding = True
             self.button.holdingcords = [self.button.width/2,self.button.height/2]
     def movetomouse(self):
-        self.slider = (self.ui.mpos[0]-self.x*self.dirscale[0]-self.leftborder*self.scale)/((self.width-self.leftborder-self.rightborder)*self.scale/(self.maxp-self.minp))+self.minp
+        if self.maxp-self.minp != 0: pos = self.scale/(self.maxp-self.minp)
+        else: pos = 0
+        self.slider = (self.ui.mpos[0]-self.x*self.dirscale[0]-self.leftborder*self.scale)/((self.width-self.leftborder-self.rightborder)*pos)+self.minp
         if self.direction == 'vertical':
-            self.slider = (self.ui.mpos[1]-self.y*self.dirscale[1]-self.upperborder*self.scale)/((self.height-self.upperborder-self.lowerborder)*self.scale/(self.maxp-self.minp))+self.minp
+            self.slider = (self.ui.mpos[1]-self.y*self.dirscale[1]-self.upperborder*self.scale)/((self.height-self.upperborder-self.lowerborder)*pos)+self.minp
         if self.increment!=0: self.slider = round(self.slider/self.increment)*self.increment
         self.limitpos()
         self.updatetext()
@@ -3476,7 +3483,9 @@ class SLIDER(GUI_ITEM):
         elif self.slider<self.minp:
             self.slider = self.minp
         self.refreshbuttoncords()
-
+    def child_autoscale(self):
+        self.maxp = relativetoval(self.startmaxp,self.getmasterwidth()/self.scale,self.getmasterheight()/self.scale,self.ui)
+        self.minp = relativetoval(self.startminp,self.getmasterwidth()/self.scale,self.getmasterheight()/self.scale,self.ui)
     def setslider(self,slider,relative=False):
         if relative:
             self.slider+=slider
