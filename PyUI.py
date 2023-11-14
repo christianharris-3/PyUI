@@ -1296,7 +1296,7 @@ class UI:
                         if type(a) in [BUTTON,TEXTBOX,TEXT,TABLE,SCROLLERTABLE,SCROLLER,SLIDER,RECT]:
                             valid = False
                     if valid:
-                        self.windowedmenus[self.windowedmenunames.index(b)].binditem(obj,False)
+                        self.windowedmenus[self.windowedmenunames.index(b)].binditem(obj,False,False)
     def reID(self,ID,obj):
         newid = ID
         if ID in self.IDs:
@@ -2279,7 +2279,7 @@ class GUI_ITEM:
                 a.bounditems.remove(self)
         self.master = []
         for a in self.truemenu:
-            if w in self.ui.windowedmenunames:
+            if a in self.ui.windowedmenunames:
                 self.ui.windowedmenus[self.ui.windowedmenunames.index(a)].binditem(self,False,False)
         self.ui.refreshitems()
         self.resetcords()
@@ -3413,7 +3413,8 @@ class SLIDER(GUI_ITEM):
         self.refreshglow()
         self.refreshbound()
     def child_refreshcords(self):
-        self.innerrect = pygame.Rect(self.slidercenter[0]-self.slidersize/2+self.border,self.slidercenter[1]-self.slidersize/2+self.border,self.slidersize-self.border*2,self.slidersize-self.border*2)
+##        self.
+##        self.innerrect = pygame.Rect(self.slidercenter[0]-self.slidersize/2+self.border,self.slidercenter[1]-self.slidersize/2+self.border,self.slidersize-self.border*2,self.slidersize-self.border*2)
         self.refreshbuttoncords()
     def resetbutton(self):
         self.getslidercenter()
