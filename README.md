@@ -100,9 +100,39 @@ slidersize, increment, containedslider, movetoclick
 isolated, darken, hsvashift
 ```
 ## Useful Tools
-The main UI object has several functions that can be used for various purposes.
+The main UI object has several functions that can be used for various purposes, some of these functions are seperate from the ui object as just independant functions.
 
-# color functions
+### Colour Functions
+There are several useful functions for processing rgb values of colour.
+- The first is a basic interpolation function that takes 2 rgb or rgba values and a weight of 0 to 1, interpolating between them.
+    ```py
+    col1 = (255,0,0)
+    col2 = (0,0,255)
+    weight = 0.3
+    newcolour = pyui.colav(col1,col2,weight)
+    ```
+- Second is a more useable collection of this, generating a list of colours that fade through multiple colours. The inputs are a list of colours, which must contain at least 2 rgb colours, and an int for the number of colours generated per 2 colours. e.g. inputting a list of 3 colours, red, green and blue, and the number 10, will return a list of 20 colours, fading through red, green and blue.
+    ```py
+    cols = [(255,0,0),(0,255,0),(0,0,255)]
+    sizeperfade = 10
+    fade = pyui.genfade(cols,sizeperfade)
+    ```
+- Last is a function to make a colour lighter or darker, where a single rgb is input along with an int, where the int is a value -255 to 255. Returned is a new colour that is lighter or darker by thje given value, positive makes it lighter negative makes darker.
+     ```py
+    col = (100,150,100)
+    shift = 40
+    newcol = pyui.shiftcolor(col,shift)
+    ```
+### Collision functions
+These are some functions i designed for (another project)[https://github.com/LazerWolfeGod/Car-Game], that i have put into PyUI as they may be useful.
+####
+- The first function is used to calculate the distance between a rectangle and a given point, the rect input can be either a pygame.Rect, or a tuple in the form (x,y,width,height), and the point is a simple (x,y) tuple. It returns a distance of 0 if the point is colliding with the rectangle.
+   ```py
+   point = (100,20)
+   rect = (20,30,60,100)
+   distance = pyui.distancetorect(point,rect)
+   ```
+   
 # printtree
 # quit
 # write
