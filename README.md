@@ -132,12 +132,36 @@ These are some functions i designed for (another project)[https://github.com/Laz
    rect = (20,30,60,100)
    distance = pyui.distancetorect(point,rect)
    ```
-   
-# printtree
-# quit
-# write
-# delete
-
+- Second is a function to calculate if and where 2 lines cross, the inputs are L1 and L2, which are 2 lines represneted by 2 sets of points. multipled variables are returned, if the lines do not cross False and an int is returned, the int being some info for debugging, if they do cross returned is True, an x and a y. The x and y being the crossing points.
+    ```py
+    L1 = [(10,40),(20,90)]
+    L2 = [(5,20),(40,60)]
+    cross = pyui.linecross(L1,L2)
+    if cross[0]:
+        print('x':cross[1],'y':cross[2])
+    ```
+- Next is a very similar function with a similar purpose, this function takes a circle and a line and returns if they cross and where they cross if they do. L1 is the line, L2 is the circle in the form of a point and a radius. Similar formating for the returned value, only one point is returned.
+    ```py
+    L1 = [(10,40),(20,90)]
+    L2 = [(40,50),40]
+    cross = pyui.linecirclecross(L1,L2)
+    if cross[0]:
+        print('x':cross[1][0],'y':cross[1][1])
+    ```
+- Last is a function to detect if a point is inside a polygon, taking a single point and a list of points. This is done by drawing a line out from the point and counting how many times this point crosses the polygon, if its even the point is outside if its odd the point is inside. A single Boolean True/False is returned
+    ```py
+    point = (50,80)
+    polygon = [(10,20),(50,90),(30,50)]
+    collide = pyui.polycollide(point,polygon)
+    ```
+### UI object functions
+The ui object has several utility functions for a range uses.
+#### printtree
+The function printtree is a debugging tool for outputting the object tree, or what objects are bound to each other. The only objects that are not bound to anything are menu objects and windowedmenu objects. The menu objects are automatically created and processed, no user input is required. The only input to the function is not needed, by default the function will print out the ID of every object, however an object ID or object itself can be input, only outputing the tree below that object.
+#### quit
+The quit function exits pygame via queueing a pygame.quit event. Acts as a simple and effective way to exit the entire pygame program.
+#### write
+The write function takes several variables as input, however the primary is a surface, x and y pos, some text and a textsize. Some rendered text is then displayed to the surface, no value is returned as the pygame surface is just edited.
 
 ## Menu System
 Every object in PyUI has a menu in the form of a string which dictates what menu it is displayed on, with the current menu being stored in the ui.activemenu variable. When a new object is created it will be automatically placed on the 'main' menu.
