@@ -189,7 +189,7 @@ ui.makecheckbox(90,110,60,ID='checkbox 2',bindtoggle=['checkbox 1','checkbox 3']
 ui.makecheckbox(150,110,60,ID='checkbox 3',bindtoggle=['checkbox 1','checkbox 2'],toggle=False)
 ```
 ### Labeled checkbox
-
+The labeled check box is a combination of the text object and a checkbox, as inputs it takes everything the same as with a checkbox, however the text input now controls the text that is displayed next to it. As input it also takes a textpos variable, which can be either "left" or "right" and controls if the text is put to the left or right of the checkbox. The horizontal spacing variable is used to control how far away from the text is from checkbox.
 ### Text
 Text is an object that displays text, it can be given a command. Text can have trouble with antialiasing, as the antialiasing can only be done onto a set surface, so pregenerating the text and reblitting the same image every frame may look bad on a changing background. The background colour may need to be given to give the text something to antialias onto, however if that fails to look good set pregenerated to False, meaning new text is blitted every frame, giving perfect antialiasing but very bad performance.
 ```py
