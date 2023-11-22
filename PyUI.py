@@ -496,8 +496,11 @@ class UI:
         self.loadtickdata()
         
     def checkcaps(self):
-        hllDll = ctypes.WinDLL("User32.dll")
-        self.capslock = bool(hllDll.GetKeyState(0x14))
+        try:
+            hllDll = ctypes.WinDLL("User32.dll")
+            self.capslock = bool(hllDll.GetKeyState(0x14))
+        except:
+            self.capslock = False
 
     def styleset(self,**args):
         marked = {}
