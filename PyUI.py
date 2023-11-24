@@ -187,7 +187,30 @@ def distancetorect(point,rect):
 ##        linecross(a[0],a[1])
 ##    total = time.time()-start
 ##    print('total:',total,'per:',total/num)
-    
+
+def pointdis(point1,point2):
+    tot = 0
+    for a in range(len(point1)):
+        tot+=(point1[a]-point2[a])**2
+    return tot**0.5
+
+def trianglearea(points):
+    a = pointdis(points[2],points[0])
+    b = pointdis(points[1],points[0])
+    c = pointdis(points[2],points[1])
+    if b == 0 or c == 0: return 0
+    return 0.5*c*b*math.sin(math.acos(max([min([(b**2+c**2-a**2)/(2*b*c),1]),-1])))
+
+def trianglecollide(point,poly):
+    mainA = trianglearea(poly)
+    A1 = trianglearea([poly[0],poly[1],point])
+    A2 = trianglearea([poly[0],point,poly[2]])
+    A3 = trianglearea([point,poly[1],poly[2]])
+    if A1+A2+A3-0.000001>mainA: return False
+    return True
+
+
+
 def polycollide(point,poly,angle=0.5):
     center = point
     crosses = 0
