@@ -2964,11 +2964,19 @@ class TABLE(GUI_ITEM):
     def itemrefreshcords(self,obj,x,y):
         obj.startx = (self.linesize*(x+1)+self.boxwidthsinc[x])
         obj.starty = (self.linesize*(y+1)+self.boxheightsinc[y])
-        if not (type(obj) in [SLIDER]):
+        if not(type(obj) in [SLIDER,TABLE,SCROLLERTABLE]):
             obj.width = self.boxwidths[x]
             obj.height = self.boxheights[y]
             obj.startwidth = self.boxwidths[x]
             obj.startheight = self.boxheights[y]
+        elif type(obj) in [TABLE,SCROLLERTABLE]:
+            if type(self.master[0]) != TABLE: print(obj.width,self.boxwidths[x])
+            if obj.width<self.boxwidths[x]:
+                obj.width = self.boxwidths[x]
+                obj.startwidth = self.boxwidths[x]
+            elif obj.height<self.boxheights[x]:
+                obj.height = self.boxheights[y]
+                obj.startheight = self.boxheights[y]
         obj.backingdraw = self.backingdraw
         obj.scalex = self.scalesize
         obj.scaley = self.scalesize
@@ -2996,7 +3004,7 @@ class TABLE(GUI_ITEM):
         ratiowidth = False
         if self.startwidth!=-1: ratiowidth = True
         if type(self.startboxwidth) == int:
-            if self.columns == 0: tempboxwidth = [self.startboxwidth]
+            if self.columns == 0: tempboxwidth = []
             else: tempboxwidth = [self.startboxwidth for a in range(self.columns)]
         else:
             tempboxwidth = self.startboxwidth[:]
@@ -3035,7 +3043,7 @@ class TABLE(GUI_ITEM):
         if self.startboxheight == -1 and self.startheight!=-1:
             tempboxheight = [(self.height-self.linesize*(self.rows+1))/self.rows for a in range(self.rows)]
         elif type(self.startboxheight) == int:
-            if self.rows == 0: tempboxheight = [self.startboxheight]
+            if self.rows == 0: tempboxheight = []
             else: tempboxheight = [self.startboxheight for a in range(self.rows)]
         else:
             tempboxheight = self.startboxheight[:]
@@ -3059,7 +3067,7 @@ class TABLE(GUI_ITEM):
                             minn = b.textimage.get_width()+b.horizontalspacing*2*self.scale
                     elif type(b) in [TABLE,SCROLLERTABLE,SLIDER]:
                         if minn<b.width:
-                            minn = b.width*b[1].scale
+                            minn = b.width*b.scale
                 self.boxwidthsinc.append(sum(self.boxwidths))
                 self.boxwidths.append(minn/self.scale)
             else:
@@ -3081,7 +3089,7 @@ class TABLE(GUI_ITEM):
                             minn = b.textimage.get_height()+b.verticalspacing*2*self.scale
                     elif type(b) in [TABLE,SCROLLERTABLE,SLIDER]:
                         if minn<b.height:
-                            minn = b.height*b[1].scale
+                            minn = b.height*b.scale
                 self.boxheightsinc.append(sum(self.boxheights))
                 self.boxheights.append(minn/self.scale)
             else:
