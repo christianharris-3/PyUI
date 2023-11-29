@@ -2933,12 +2933,12 @@ class TABLE(GUI_ITEM):
                 ref = True
                 obj = b
             elif type(b) == pygame.Surface:
-                self.ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+str(i),False)
-                obj = self.ui.maketext(0,0,'',self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+str(i),self.layer+0.01,self.roundedcorners,textcenter=self.textcenter,img=b,maxwidth=self.boxwidth[i],
+                self.ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+'-'+str(i),False)
+                obj = self.ui.maketext(0,0,'',self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+'-'+str(i),self.layer+0.01,self.roundedcorners,textcenter=self.textcenter,img=b,maxwidth=self.boxwidth[i],
                                        scalesize=self.scalesize,scaleby=self.scaleby,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,colorkey=self.colorkey,enabled=False)
             else:
                 b = str(b)
-                self.ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+str(i),False)
+                self.ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+'-'+str(i),False)
                 obj = self.ui.maketext(0,0,b,self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+str(i),self.layer,self.roundedcorners,textcenter=self.textcenter,textcol=self.textcol,
                                        font=self.font,bold=self.bold,antialiasing=self.antialiasing,pregenerated=self.pregenerated,maxwidth=max([self.boxwidth[i]-self.horizontalspacing*2,-1]),
                                        scalesize=self.scalesize,scaleby=self.scaleby,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,backingcol=self.col,enabled=False)
@@ -2970,7 +2970,6 @@ class TABLE(GUI_ITEM):
             obj.startwidth = self.boxwidths[x]
             obj.startheight = self.boxheights[y]
         elif type(obj) in [TABLE,SCROLLERTABLE]:
-            if type(self.master[0]) != TABLE: print(obj.width,self.boxwidths[x])
             if obj.width<self.boxwidths[x]:
                 obj.width = self.boxwidths[x]
                 obj.startwidth = self.boxwidths[x]
@@ -3183,7 +3182,7 @@ class TABLE(GUI_ITEM):
                 self.gettableheights()
                 for a in range(index,len(self.table)):
                     for i,b in enumerate(self.table[a]):
-                        self.ui.reID('tabletext'+self.tableitemID+self.ID+str(a)+str(i),b)
+                        self.ui.reID('tabletext'+self.tableitemID+self.ID+str(a)+'-'+str(i),b)
                         self.itemrefreshcords(b,i,a)
             self.small_refresh()
             return True
@@ -3198,7 +3197,7 @@ class TABLE(GUI_ITEM):
         self.estimatewidths()
         for a in range(len(self.table)-1,index-1,-1):
             for i,b in enumerate(self.table[a]):
-                self.ui.reID('tabletext'+self.tableitemID+self.ID+str(a+1)+str(i),b)
+                self.ui.reID('tabletext'+self.tableitemID+self.ID+str(a+1)+'-'+str(i),b)
         self.table.insert(index,self.row_gentext(index))
         self.gettableheights()  
         for a in range(index,len(self.table)):
