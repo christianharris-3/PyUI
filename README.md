@@ -69,9 +69,9 @@ while not done:
 pygame.quit() 
 ```
 
-## Initialiazation
-The ui object is how the user accesses all of PyUIs features, it contains all of the necessary functions and variables for using and manipulating the gui. It must be initially created at the start of any program using PyUI with.
-### Style System
+## Initialiazation and Style System
+The UI object is how the user accesses all of PyUIs features, it contains all of the necessary functions and variables for using and manipulating the gui. It should be initially created at the start of any program using PyUI so the module can be used and a GUI created.
+
 A style is a set of default varibles, stored inside the Style class. The style class stores the defaults for a large set of variables, and it will act as the default value for all new objects unless that value is specified when creating the obejct. Styles can be set through the function ui.setstyle(), or via using one of the in built default styles. A default value can be set specifically for each unique object, which is done by adding the objectname and underscore before the variable name.
 
 Example code:
@@ -155,7 +155,7 @@ These are some functions i designed for (another project)[https://github.com/Laz
     collide = pyui.polycollide(point,polygon)
     ```
 ### UI object functions
-The ui object has several utility functions for a range uses.
+The ui object has multiple utility functions for a range uses.
 #### printtree
 The function printtree is a debugging tool for outputting the object tree, or what objects are bound to each other. The only objects that are not bound to anything are menu objects and windowedmenu objects. The menu objects are automatically created and processed, no user input is required. The only input to the function is not needed, by default the function will print out the ID of every object, however an object ID or object itself can be input, only outputing the tree below that object.
 #### quit
