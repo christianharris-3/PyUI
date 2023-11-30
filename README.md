@@ -99,78 +99,6 @@ lines, selectcol, selectbordersize, selectshrinksize, cursorsize, textcenter
 slidersize, increment, containedslider, movetoclick
 isolated, darken, hsvashift
 ```
-## Useful Tools
-The main UI object has several functions that can be used for various purposes, some of these functions are seperate from the ui object as just independant functions.
-
-### Colour Functions
-There are several useful functions for processing rgb values of colour.
-- The first is a basic interpolation function that takes 2 rgb or rgba values and a weight of 0 to 1, interpolating between them.
-    ```py
-    col1 = (255,0,0)
-    col2 = (0,0,255)
-    weight = 0.3
-    newcolour = pyui.colav(col1,col2,weight)
-    ```
-- Second is a more useable collection of this, generating a list of colours that fade through multiple colours. The inputs are a list of colours, which must contain at least 2 rgb colours, and an int for the number of colours generated per 2 colours. e.g. inputting a list of 3 colours, red, green and blue, and the number 10, will return a list of 20 colours, fading through red, green and blue.
-    ```py
-    cols = [(255,0,0),(0,255,0),(0,0,255)]
-    sizeperfade = 10
-    fade = pyui.genfade(cols,sizeperfade)
-    ```
-- Last is a function to make a colour lighter or darker, where a single rgb is input along with an int, where the int is a value -255 to 255. Returned is a new colour that is lighter or darker by thje given value, positive makes it lighter negative makes darker.
-     ```py
-    col = (100,150,100)
-    shift = 40
-    newcol = pyui.shiftcolor(col,shift)
-    ```
-### Collision functions
-These are some functions i designed for (another project)[https://github.com/LazerWolfeGod/Car-Game], that i have put into PyUI as they may be useful.
-####
-- The first function is used to calculate the distance between a rectangle and a given point, the rect input can be either a pygame.Rect, or a tuple in the form (x,y,width,height), and the point is a simple (x,y) tuple. It returns a distance of 0 if the point is colliding with the rectangle.
-   ```py
-   point = (100,20)
-   rect = (20,30,60,100)
-   distance = pyui.distancetorect(point,rect)
-   ```
-- Second is a function to calculate if and where 2 lines cross, the inputs are L1 and L2, which are 2 lines represneted by 2 sets of points. multipled variables are returned, if the lines do not cross False and an int is returned, the int being some info for debugging, if they do cross returned is True, an x and a y. The x and y being the crossing points.
-    ```py
-    L1 = [(10,40),(20,90)]
-    L2 = [(5,20),(40,60)]
-    cross = pyui.linecross(L1,L2)
-    if cross[0]:
-        print('x':cross[1],'y':cross[2])
-    ```
-- Next is a very similar function with a similar purpose, this function takes a circle and a line and returns if they cross and where they cross if they do. L1 is the line, L2 is the circle in the form of a point and a radius. Similar formating for the returned value, only one point is returned.
-    ```py
-    L1 = [(10,40),(20,90)]
-    L2 = [(40,50),40]
-    cross = pyui.linecirclecross(L1,L2)
-    if cross[0]:
-        print('x':cross[1][0],'y':cross[1][1])
-    ```
-- Last is a function to detect if a point is inside a polygon, taking a single point and a list of points. This is done by drawing a line out from the point and counting how many times this point crosses the polygon, if its even the point is outside if its odd the point is inside. A single Boolean True/False is returned
-    ```py
-    point = (50,80)
-    polygon = [(10,20),(50,90),(30,50)]
-    collide = pyui.polycollide(point,polygon)
-    ```
-### UI object functions
-The ui object has multiple utility functions for a range uses.
-#### printtree
-The function printtree is a debugging tool for outputting the object tree, or what objects are bound to each other. The only objects that are not bound to anything are menu objects and windowedmenu objects. The menu objects are automatically created and processed, no user input is required. The only input to the function is not needed, by default the function will print out the ID of every object, however an object ID or object itself can be input, only outputing the tree below that object.
-#### quit
-The quit function exits pygame via queueing a pygame.quit event. Acts as a simple and effective way to exit the entire pygame program.
-#### write
-The write function takes several variables as input, however the primary is a surface, x and y pos, some text and a textsize. Some rendered text is then displayed to the surface, no value is returned as the pygame surface is just edited.
-
-## Menu System
-Every object in PyUI has a menu in the form of a string which dictates what menu it is displayed on, with the current menu being stored in the ui.activemenu variable. When a new object is created it will be automatically placed on the 'main' menu.
-You can move between menus using 2 functions in the ui object:
-```py
-ui.movemenu('new menu','left')
-ui.menuback()
-```
-The menumove function will swap the activemenu to the menu entered, with an optional direction which will animate all menu objects moving away, and the all the objects on the new menu moving in making a clean slide from one menu to another. The menuback function will move to the previous activemenu and doing the reverse direction of the previous used slide. 
 
 ## Gui Objects
 There are several objects that can be made, each being produced through a command in the ui object, then being rendered through the rendergui() function.
@@ -293,6 +221,15 @@ ui.IDs['test button'].refresh()
 ui.delete('test button')
 ```
 
+## Menu System
+Every object in PyUI has a menu in the form of a string which dictates what menu it is displayed on, with the current menu being stored in the ui.activemenu variable. When a new object is created it will be automatically placed on the 'main' menu.
+You can move between menus using 2 functions in the ui object:
+```py
+ui.movemenu('new menu','left')
+ui.menuback()
+```
+The menumove function will swap the activemenu to the menu entered, with an optional direction which will animate all menu objects moving away, and the all the objects on the new menu moving in making a clean slide from one menu to another. The menuback function will move to the previous activemenu and doing the reverse direction of the previous used slide. 
+
 ## Object Positioning
 The screen can be dynamically scaled horizontally and vertically, so objects need to be able to be positioned relative to points on the screen rather than always relative to the top left corner. For example, if you wanted an object to be centered around the middle of the screen, simply giving the x and y of the center will not surfise for stretching the screen in only one direction. PyUI's solution to this is anchor points, essentialling changing the origin point for an object, and then the point on the object this is bound too and lastly the x and y positioning of the anchor point to the objectanchor point.
 
@@ -387,6 +324,70 @@ most variables that edit the image shape are a value between 0 and 1 representin
 - 'star' A 5 pointed star
 - 'on' An on button
 - 'lock' A lock symbol
+
+## Useful Tools
+The main UI object has several functions that can be used for various purposes, some of these functions are seperate from the ui object as just independant functions.
+
+### Colour Functions
+There are several useful functions for processing rgb values of colour.
+- The first is a basic interpolation function that takes 2 rgb or rgba values and a weight of 0 to 1, interpolating between them.
+    ```py
+    col1 = (255,0,0)
+    col2 = (0,0,255)
+    weight = 0.3
+    newcolour = pyui.colav(col1,col2,weight)
+    ```
+- Second is a more useable collection of this, generating a list of colours that fade through multiple colours. The inputs are a list of colours, which must contain at least 2 rgb colours, and an int for the number of colours generated per 2 colours. e.g. inputting a list of 3 colours, red, green and blue, and the number 10, will return a list of 20 colours, fading through red, green and blue.
+    ```py
+    cols = [(255,0,0),(0,255,0),(0,0,255)]
+    sizeperfade = 10
+    fade = pyui.genfade(cols,sizeperfade)
+    ```
+- Last is a function to make a colour lighter or darker, where a single rgb is input along with an int, where the int is a value -255 to 255. Returned is a new colour that is lighter or darker by thje given value, positive makes it lighter negative makes darker.
+     ```py
+    col = (100,150,100)
+    shift = 40
+    newcol = pyui.shiftcolor(col,shift)
+    ```
+### Collision functions
+These are some functions i designed for (another project)[https://github.com/LazerWolfeGod/Car-Game], that i have put into PyUI as they may be useful.
+####
+- The first function is used to calculate the distance between a rectangle and a given point, the rect input can be either a pygame.Rect, or a tuple in the form (x,y,width,height), and the point is a simple (x,y) tuple. It returns a distance of 0 if the point is colliding with the rectangle.
+   ```py
+   point = (100,20)
+   rect = (20,30,60,100)
+   distance = pyui.distancetorect(point,rect)
+   ```
+- Second is a function to calculate if and where 2 lines cross, the inputs are L1 and L2, which are 2 lines represneted by 2 sets of points. multipled variables are returned, if the lines do not cross False and an int is returned, the int being some info for debugging, if they do cross returned is True, an x and a y. The x and y being the crossing points.
+    ```py
+    L1 = [(10,40),(20,90)]
+    L2 = [(5,20),(40,60)]
+    cross = pyui.linecross(L1,L2)
+    if cross[0]:
+        print('x':cross[1],'y':cross[2])
+    ```
+- Next is a very similar function with a similar purpose, this function takes a circle and a line and returns if they cross and where they cross if they do. L1 is the line, L2 is the circle in the form of a point and a radius. Similar formating for the returned value, only one point is returned.
+    ```py
+    L1 = [(10,40),(20,90)]
+    L2 = [(40,50),40]
+    cross = pyui.linecirclecross(L1,L2)
+    if cross[0]:
+        print('x':cross[1][0],'y':cross[1][1])
+    ```
+- Last is a function to detect if a point is inside a polygon, taking a single point and a list of points. This is done by drawing a line out from the point and counting how many times this point crosses the polygon, if its even the point is outside if its odd the point is inside. A single Boolean True/False is returned
+    ```py
+    point = (50,80)
+    polygon = [(10,20),(50,90),(30,50)]
+    collide = pyui.polycollide(point,polygon)
+    ```
+### UI object functions
+The ui object has multiple utility functions for a range uses.
+#### printtree
+The function printtree is a debugging tool for outputting the object tree, or what objects are bound to each other. The only objects that are not bound to anything are menu objects and windowedmenu objects. The menu objects are automatically created and processed, no user input is required. The only input to the function is not needed, by default the function will print out the ID of every object, however an object ID or object itself can be input, only outputing the tree below that object.
+#### quit
+The quit function exits pygame via queueing a pygame.quit event. Acts as a simple and effective way to exit the entire pygame program.
+#### write
+The write function takes several variables as input, however the primary is a surface, x and y pos, some text and a textsize. Some rendered text is then displayed to the surface, no value is returned as the pygame surface is just edited.
 
 ## Object variables
 All objects have a range of variables that can be changed to edit the object being made, most objects share similar variables and do the same job for each object so can be described in one, rather than a different set for each object.
