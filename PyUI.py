@@ -1789,7 +1789,8 @@ class UI:
             length = Style.defaults['animationspeed']
         if self.queuedmenumove[0]<0 or slide=='none':
             if (self.activemenu in self.windowedmenunames) and (moveto == self.activemenu) and (self.queuedmenumove[0]<0):
-                self.menuback(slide+' flip',length)
+                if slide != 'none': self.menuback(slide+' flip',length)
+                else: self.menuback()
             else:
                 if backchainadd:
                     self.backchain.append([self.activemenu,slide,length])
@@ -1805,7 +1806,7 @@ class UI:
             self.prevmenumove = self.queuedmenumove[1]
     def menuback(self,slide='none',length='default'):
         if len(self.backchain)>0:
-            if slide =='none' and self.backchain[-1][1] != 'none':
+            if slide == 'none' and self.backchain[-1][1] != 'none':
                 if not(self.activemenu in self.windowedmenunames and self.backchain[-1][0] in self.windowedmenunames):
                     slide = self.backchain[-1][1]+' flip'
                 else:
@@ -2361,6 +2362,15 @@ class GUI_ITEM:
         pass
     def child_autoscale(self):
         pass
+    def runcommand(self):
+##        prevmenu = self.ui.activemenu
+        self.command()
+##        if prevmenu!=self.ui.activemenu:
+##            temp = self.ui.mprs,self.ui.mpos
+##            self.ui.mprs = [0,0,0]
+##            self.ui.mpos = [-100000,-100000]
+##            self.render(pygame.Surface((10,10)))
+##            self.ui.mprs,self.ui.mpos = temp
     def getclickedon(self,rect='default',runcom=True,drag=True,smartdrag=True):
         ui = self.ui
         if rect == 'default':
@@ -2381,7 +2391,7 @@ class GUI_ITEM:
                         if self.toggleable:
                             if self.toggle: self.toggle = False
                             else: self.toggle = True
-                        self.command()
+                        self.runcommand()
             else:
                 self.hovering = True
         if ui.mprs[self.clicktype] and self.holding:
@@ -2398,8 +2408,8 @@ class GUI_ITEM:
                 self.centery = self.y+self.height/2
                 for a in self.bounditems:
                     a.resetcords(ui)
-            if self.runcommandat == 1 and runcom:
-                self.command()
+            if self.runcommandat == 1 and runcom:        
+                self.runcommand()
         elif not ui.mprs[self.clicktype]:
             if self.holding:
                 self.clickedon = 2
@@ -2410,7 +2420,7 @@ class GUI_ITEM:
                     if self.toggleable and self.runcommandat!=1:
                         if self.toggle: self.toggle = False
                         else: self.toggle = True
-                    self.command()
+                    self.runcommand()
             self.holding = False
         return False
 
