@@ -1396,7 +1396,7 @@ class UI:
                  border=-1,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=-1,clicktype=-1,textoffsetx=-1,textoffsety=-1,maxwidth=-1,
                  dragable=False,colorkey=-1,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,clickableborder=-1,
-                 backingdraw=-1,borderdraw=-1,animationspeed=-1,linelimit=1000,refreshbind=[]):
+                 backingdraw=-1,borderdraw=-1,animationspeed=-1,linelimit=1000,refreshbind=[],options=[],startoptionindex=0):
         if maxwidth == -1: maxwidth = width
         if backingcol == -1: backingcol = bordercol
         obj = BUTTON(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
@@ -1404,7 +1404,7 @@ class UI:
                      border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                      command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,maxwidth=maxwidth,
                      dragable=dragable,colorkey=colorkey,toggle=toggle,toggleable=toggleable,toggletext=toggletext,toggleimg=toggleimg,togglecol=togglecol,togglehovercol=togglehovercol,bindtoggle=bindtoggle,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,clickableborder=clickableborder,
-                     animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind)
+                     animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind,options=options,startoptionindex=startoptionindex)
         return obj
     def makecheckbox(self,x,y,textsize=-1,command=emptyfunction,menu='main',ID='checkbox',text='{tick}',layer=1,roundedcorners=0,bounditems=[],killtime=-1,width=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
@@ -1656,7 +1656,7 @@ class UI:
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=-1,clicktype=-1,textoffsetx=-1,textoffsety=-1,maxwidth=-1,
                  dragable=False,colorkey=-1,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=1,horizontalspacing=4,clickablerect=-1,clickableborder=-1,
-                 backingdraw=-1,borderdraw=-1,linelimit=1000,refreshbind=[],animationspeed=15,animationtype='compressleft',startoptionindex=0):
+                 backingdraw=-1,borderdraw=-1,linelimit=1000,refreshbind=[],animationspeed=15,animationtype='compressleft',startoptionindex=0,dropsdown=True):
 
         if options == []: options = ['text']
         text = options[startoptionindex]
@@ -1668,38 +1668,51 @@ class UI:
             heightgetter = self.rendertext('Tg',textsize,(255,255,255),font,bold)
             height = upperborder+lowerborder+heightgetter.get_height()
         col = autoshiftcol(col,Style.defaults['col'])
-
-        txt = self.maketext(int(border+horizontalspacing)/2,0,text,textsize,anchor=(0,'h/2'),objanchor=(0,'h/2'),
-                             img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,
-                             enabled=enabled,textcol=textcol,col=autoshiftcol(backingcol,col,20),animationspeed=5,roundedcorners=roundedcorners)
+        if dropsdown:
+            txt = [self.maketext(int(border+horizontalspacing)/2,0,text,textsize,anchor=(0,'h/2'),objanchor=(0,'h/2'),
+                                 img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,
+                                 enabled=enabled,textcol=textcol,col=autoshiftcol(backingcol,col,20),animationspeed=5,roundedcorners=roundedcorners)]
+            text = '{more scale=0.3}'
+            if width == -1:
+                lborder = txt[0].textimage.get_width()+border+horizontalspacing*2
+                wid = -1
+            else:
+                lborder = width-textsize+border
+        else:
+            txt = []
+            lborder = leftborder
+            wid = width
         
-        obj = DROPDOWN(ui=self,x=x,y=y,width=-1,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=[txt]+bounditems,killtime=killtime,
-                       anchor=anchor,objanchor=objanchor,center=center,centery=centery,text='{more scale=0.3}',textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
-                       border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=txt.textimage.get_width()+border+horizontalspacing*2,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
+        obj = DROPDOWN(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=txt+bounditems,killtime=killtime,
+                       anchor=anchor,objanchor=objanchor,center=center,centery=centery,text=text,textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
+                       border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=lborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                        command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,maxwidth=maxwidth,
                        dragable=dragable,colorkey=colorkey,toggle=toggle,toggleable=toggleable,toggletext=toggletext,toggleimg=toggleimg,togglecol=togglecol,togglehovercol=togglehovercol,bindtoggle=bindtoggle,spacing=spacing,
                        verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,clickableborder=clickableborder,
-                       animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind,options=options,startoptionindex=startoptionindex)
+                       animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind,options=options,startoptionindex=startoptionindex,dropsdown=dropsdown)
         tablew = width
         if tablew != -1: tablew-=border*2
-        data = []
-        for i,a in enumerate(options):
-            func = funcer(obj.optionclicked,index=i)
-            data.append([self.makebutton(0,0,a,textsize,font=font,bold=bold,textcol=textcol,col=col,roundedcorners=roundedcorners,command=func.func)])
-         
-        table = self.makescrollertable(border,border,data,pageheight=pageheight,roundedcorners=roundedcorners,textsize=textsize,font=font,bold=bold,border=border,scalesize=scalesize,col=col,textcol=textcol,backingcol=backingcol,width=tablew)
-        window = self.makewindow(0,obj.height,f'ui.IDs["{obj.ID}"].width',f'ui.IDs["{table.ID}"].getheight()+{border}*2',enabled=False,animationspeed=animationspeed,animationtype=animationtype)
-        obj.binditem(window)
-        window.binditem(table)
-        nwidth = (max([a[0].textimage.get_width() for a in table.table])+(obj.width-obj.leftborder-obj.rightborder)+border*5)
-        obj.leftborder+=nwidth-obj.width
-        obj.refresh()
-        table.startwidth = nwidth-border*2
-        table.refresh()
-        window.refresh()
-        obj.table = table
-        obj.window = window
-        obj.titletext = txt
+        
+        if dropsdown:
+            data = []
+            for i,a in enumerate(options):
+                func = funcer(obj.optionclicked,index=i)
+                data.append([self.makebutton(0,0,a,textsize,font=font,bold=bold,textcol=textcol,col=col,roundedcorners=roundedcorners,command=func.func)])
+
+            table = self.makescrollertable(border,border,data,pageheight=pageheight,roundedcorners=roundedcorners,textsize=textsize,font=font,bold=bold,border=border,scalesize=scalesize,col=col,textcol=textcol,backingcol=backingcol,width=tablew)
+            window = self.makewindow(0,obj.height,f'ui.IDs["{obj.ID}"].width',f'ui.IDs["{table.ID}"].getheight()+{border}*2',enabled=False,animationspeed=animationspeed,animationtype=animationtype)
+            obj.binditem(window)
+            window.binditem(table)
+            if width == -1: nwidth = (max([a[0].textimage.get_width() for a in table.table])+(obj.width-obj.leftborder-obj.rightborder)+border*5)
+            else: nwidth = width
+            obj.leftborder+=nwidth-obj.width
+            obj.refresh()
+            table.startwidth = nwidth-border*2
+            table.refresh()
+            window.refresh()
+            obj.table = table
+            obj.window = window
+            obj.titletext = txt[0]
         obj.command = lambda: obj.mainbuttonclicked()
         obj.truecommand = command
         return obj
@@ -1905,7 +1918,7 @@ def filloutargs(args):
                 linelimit=100,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,
                 data='empty',titles=[],boxwidth=-1,boxheight=-1,pageheight=15,scrollcords=(0,0),scrollbind=[],screencompressed=False,
                 sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',behindmenu='main',scroller=0,compress=False,
-                options=[],startoptionindex=0,animationtype='movedown')
+                options=[],startoptionindex=0,animationtype='movedown',dropsdown=True)
     for a in newargs:
         if not(a in args):
             args[a] = newargs[a]
@@ -2067,6 +2080,7 @@ class GUI_ITEM:
 
         self.animationtype = args['animationtype']
         self.options = args['options']
+        self.dropsdown = args['dropsdown']
         if len(self.options)>0: self.active = self.options[args['startoptionindex']]
         
         self.backingdraw = args['backingdraw']
@@ -3291,15 +3305,24 @@ class SCROLLERTABLE(TABLE):
         
 class DROPDOWN(BUTTON):
     def mainbuttonclicked(self):
-        if not self.window.opening:
-            self.window.open('compressup',toggleopen=False)
+        if self.dropsdown:
+            if not self.window.opening:
+                self.window.open('compressup',toggleopen=False)
+            else:
+                self.window.shut('compressup')
         else:
-            self.window.shut('compressup')
+            index = self.options.index(self.active)
+            index = (index+1)%len(self.options)
+            self.optionclicked(index)
     def optionclicked(self,index):
         self.active = self.options[index]
-        self.titletext.settext(self.options[index])
-        self.window.shut('compressup')
+        if self.dropsdown:
+            self.titletext.settext(self.options[index])
+            self.window.shut('compressup')
+        else:
+            self.settext(self.options[index])
         self.truecommand()
+    
     
     
 
