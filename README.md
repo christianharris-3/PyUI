@@ -514,10 +514,11 @@ command=lambda: testfunction('function arguements')
 - **containedslider**-***bool*** = Will auto set the button to be contained inside the slider.
 - **movetoclick**-***bool*** = Sets if clicking anywhere in the slider moves the slider to that point on it.
 
-### Windowed menu specific
-- **behindmenu**-***str*** = The name of the menu that the windowedmenu appears on top of.
-- **isolated**-***bool*** = controls if objects on the behindmenu can be used while the menu is active. if True clicking anywhere other than the windowed menu will shut it, if False clicking on only the button that brought up the menu will shut it.
-- **darken**-***int: >=0,<=255*** = The alpha value from 0 to 255 that darkens the behind menu when the windowedmenu is open.
+### Windowed menu/window specific
+- **behindmenu**-***str*** = The name of the menu that the windowedmenu appears on top of, only required for windowed menus.
+- **isolated**-***bool*** = Controls if objects on the behindmenu can be used while the menu is active, this only works for windowedmenus, while this works for both: If True clicking anywhere other than the windowed menu will shut it, if False clicking on only the button that brought up the menu will shut it.
+- **darken**-***int: >=0,<=255*** = The alpha value from 0 to 255 that darkens the behind menu when the windowedmenu or window is open.
+- **autoshutwindows**-***list[IDs]*** = A list of strings, where each string is the ID of a window object. When this window object is opened, all windows in this list are automatically shut.
 
 
 
