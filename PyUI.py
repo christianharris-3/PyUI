@@ -545,7 +545,7 @@ class UI:
     def styleload_soundium(self): self.styleset(col=(16,163,127),textcol=(255,255,255),wallpapercol=(62,63,75),textsize=24,roundedcorners=5,spacing=5,clickdownsize=2,scalesize=False)
     def styleload_default(self): self.styleset(roundedcorners=0,center=False,textsize=50,font='calibre',bold=False,antialiasing=True,border=3,scalesize=True,glow=0,col=(150,150,150),
                                                clickdownsize=4,clicktype=0,textoffsetx=0,textoffsety=0,clickableborder=0,lines=1,textcenter=False,linesize=2,backingdraw=True,borderdraw=True,
-                                               animationspeed=30,containedslider=False,movetoclick=True,isolated=True,darken=60,textcol=(0,0,0),verticalspacing=2,horizontalspacing=8,
+                                               animationspeed=30,containedslider=False,movetoclick=True,isolated=True,darken=60,window_darken=0,textcol=(0,0,0),verticalspacing=2,horizontalspacing=8,
                                                text_animationspeed=5,text_backingdraw=False,text_borderdraw=False,text_verticalspacing=3,text_horizontalspacing=3,dropdown_animationspeed=15,
                                                textbox_verticalspacing=2,textbox_horizontalspacing=6,table_textcenter=True,button_textcenter=True,guesswidth=100,guessheight=100)
     def styleload_black(self): self.styleset(textcol=(0,0,0),backingcol=(0,0,0),hovercol=(255,255,255),bordercol=(0,0,0),verticalspacing=3,textsize=30,col=(255,255,255),clickdownsize=1)
@@ -1544,15 +1544,15 @@ class UI:
                  behindmenu=behindmenu,isolated=isolated,darken=darken,refreshbind=refreshbind)
         return obj
     def makewindow(self,x,y,width,height,menu='main',col=-1,bounditems=[],colorkey=(255,255,255),
-                   ID='window',layer=10,roundedcorners=-1,anchor=(0,0),objanchor=(0,0),isolated=True,darken=-1,
+                   ID='window',layer=10,roundedcorners=-1,anchor=(0,0),objanchor=(0,0),isolated=False,darken=-1,
                    center=False,centery=-1,enabled=False,glow=-1,glowcol=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,
-                   refreshbind=[],clickablerect=(0,0,'w','h'),animationspeed=-1,animationtype='moveup'):
+                   refreshbind=[],clickablerect=(0,0,'w','h'),animationspeed=-1,animationtype='moveup',autoshutwindows=[]):
 
         if col == -1: col = shiftcolor(Style.objectdefaults[WINDOW]['col'],-35)
         
         obj = WINDOW(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,enabled=enabled,
-                 scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,col=col,colorkey=colorkey,
+                 scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,col=col,colorkey=colorkey,autoshutwindows=autoshutwindows,
                  refreshbind=refreshbind,isolated=isolated,darken=darken,clickablerect=clickablerect,animationspeed=animationspeed,animationtype=animationtype)
         return obj
     
@@ -1918,7 +1918,7 @@ def filloutargs(args):
                 linelimit=100,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,
                 data='empty',titles=[],boxwidth=-1,boxheight=-1,pageheight=15,scrollcords=(0,0),scrollbind=[],screencompressed=False,
                 sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',behindmenu='main',scroller=0,compress=False,
-                options=[],startoptionindex=0,animationtype='movedown',dropsdown=True)
+                options=[],startoptionindex=0,animationtype='movedown',dropsdown=True,autoshutwindows=[])
     for a in newargs:
         if not(a in args):
             args[a] = newargs[a]
@@ -2122,6 +2122,7 @@ class GUI_ITEM:
         
         self.isolated = args['isolated']
         self.darken = args['darken']
+        self.autoshutwindows = args['autoshutwindows']
         for a in self.bounditems:
             self.binditem(a)
         self.reset()
@@ -3007,8 +3008,9 @@ class TABLE(GUI_ITEM):
         obj.scaleby = self.scaleby
         obj.tableobject = True
         if type(self) == SCROLLERTABLE:# and not(y==0 and len(self.titles)!=0):
-            obj.startclickablerect = self.startclickablerect
-            obj.clickablerect = self.clickablerect
+            if y!=0 or len(self.titles)==0:
+                obj.startclickablerect = self.startclickablerect
+                obj.clickablerect = self.clickablerect
         obj.refreshscale()
         obj.resetcords(False)
     def getalltableitems(self):
@@ -3656,6 +3658,8 @@ class WINDOW(GUI_ITEM):
         self.refresh()
         self.clearanimations()
         self.opening = self.enabled
+        self.canclickout = False
+        self.progress = 1
     def clearanimations(self):
         self.animationdata = {'moveleft':{'active':False,'progress':0,'wave':'linear','forward':True},
                               'moveright':{'active':False,'progress':0,'wave':'linear','forward':True},
@@ -3682,6 +3686,10 @@ class WINDOW(GUI_ITEM):
         if animationlength == -1: animationlength = self.animationspeed
         if not self.opening:
             self.enable()
+            for a in self.autoshutwindows:
+                if self.ui.IDs[a] != self:
+                    self.ui.IDs[a].shut()
+            self.canclickout = False
             self.opening = True
             self.makeanimation(animation,animationlength,False)
         elif toggleopen:
@@ -3721,9 +3729,11 @@ class WINDOW(GUI_ITEM):
         objyoff = 0
         widthoff = 0
         heightoff = 0
+        self.progress = 1
         for a in self.animationdata:
             if self.animationdata[a]['active']:
                 prog = self.convertprogress(self.animationdata[a])
+                if prog!=0: self.progress = 1-prog
                 if 'move' in a:
                     if 'left' in a: xoff-=prog*(self.x+self.width)
                     elif 'right' in a: xoff+=prog*(self.ui.screenw/self.scale-self.x)
@@ -3774,6 +3784,14 @@ class WINDOW(GUI_ITEM):
         self.child_autoscale()
         
     def render(self,screen):
+        if self.isolated:
+            if not self.ui.mprs[0]:
+                self.canclickout = True
+            if self.canclickout and self.opening:
+                self.getclickedon()
+                if self.ui.mprs[0] and not self.holding:
+                    self.shut()
+        
         self.moveanimation()
         self.xoff,self.yoff,self.objxoff,self.objyoff,self.widthoff,self.heightoff = self.decodeanimations()
         if self.killtime != -1 and self.killtime<self.ui.time:
@@ -3788,6 +3806,11 @@ class WINDOW(GUI_ITEM):
         self.draw(screen)
     def draw(self,screen):
         if self.enabled:
+            if self.darken!=0:
+                darken = self.darken*self.progress
+                darkening = pygame.Surface((self.ui.screenw,self.ui.screenh),pygame.SRCALPHA)
+                darkening.fill((0,0,0,darken))
+                screen.blit(darkening,(0,0))
             if self.glow!=0:
                 screen.blit(self.glowimage,(self.x*self.dirscale[0]-self.glow*self.scale,self.y*self.dirscale[1]-self.glow*self.scale))
             if self.backingdraw:
