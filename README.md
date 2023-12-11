@@ -466,6 +466,7 @@ command=lambda: testfunction('function arguements')
 - **togglecol**-***(r,g,b)*** = The backingcol for the text for when it is toggled
 - **togglehovercol**-***(r,g,b)*** = The colour when hovering and toggled.
 - **bindtoggle**-***list[str]*** = A list of object IDs that are toggled off when it is toggled on, the object can have its own ID in the list and be unaffected.
+- **presskeys**-***list[pygame.K_key]/pygame.K_key*** = The keys that when pressed will press the button. Works when the object is on the active menu, the key is given as [pygame constants](https://www.pygame.org/docs/ref/key.html) e.g. pygame.K_SPACE or pygame.K_u.
 
 ### Textbox specific
 - **lines**-***int*** = The number of lines of text that can be stored in the textbox, it auto sets the height of the textbox based on textsize.
