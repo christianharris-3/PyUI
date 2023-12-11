@@ -465,6 +465,8 @@ class UI:
         self.selectedtextbox = -1
         self.IDs = {}
         self.items = []
+        self.buttonkeys = {}
+        self.holdingtracker = []
 
         self.images = []
         self.getscreen()
@@ -632,6 +634,15 @@ class UI:
             if self.mprs[a] and not self.mouseheld[a][0]: self.mouseheld[a] = [1,self.buttondowntimer]
             elif self.mprs[a]: self.mouseheld[a][1] -= 1
             if not self.mprs[a]: self.mouseheld[a][0] = 0
+        
+        clearout = []
+        for a in self.holdingtracker:
+            if not self.kprs[a[0]]:
+                clearout.append(a[:])
+        for b in clearout:
+            self.holdingtracker.remove(b)
+            b[1].forceholding = False
+
         events = pygame.event.get()
         repeatchecker = []
         for event in events:
@@ -641,13 +652,19 @@ class UI:
                     if event.key == pygame.K_CAPSLOCK:
                         if self.capslock: self.capslock = False
                         else: self.capslock = True
-                    if event.key == pygame.K_ESCAPE and self.escapeback:
+                    elif event.key == pygame.K_ESCAPE and self.escapeback:
                         self.menuback()
-                    if event.key == pygame.K_F5:
+                    elif event.key == pygame.K_F5:
                         thread = threading.Thread(target=self.refreshall)
                         thread.start()
-                    if event.key == pygame.K_F11 and self.fullscreenable and self.blockf11<0:
+                    elif event.key == pygame.K_F11 and self.fullscreenable and self.blockf11<0:
                         self.togglefullscreen(pygame.display.get_surface())
+                    if event.key in self.buttonkeys:
+                        for i in self.buttonkeys[event.key]:
+                            if self.activemenu in i.menu:
+                                i.press()
+                                i.forceholding = True
+                                self.holdingtracker.append([event.key,i])
                     if self.selectedtextbox!=-1:
                         if not self.textboxes[self.selectedtextbox].selected:
                             self.selectedtextbox = -1
@@ -682,6 +699,8 @@ class UI:
                             a.limitpos()
                             a.command()
                             break
+                
+        
         return repeatchecker
     def togglefullscreen(self,screen):
         if self.fullscreen: self.fullscreen = False
@@ -1348,6 +1367,14 @@ class UI:
                         obj.binditem(a,False,False)
         self.items+=self.automenus
         self.items.sort(key=lambda x: x.layer,reverse=False)
+        self.refreshbuttonkeys()
+    def refreshbuttonkeys(self):
+        self.buttonkeys = {}
+        for a in self.items:
+            for k in a.presskeys:
+                if not k in self.buttonkeys: self.buttonkeys[k] = []
+                self.buttonkeys[k].append(a)
+        
     def refreshnoclickrects(self):
         self.noclickrects = []
         for a in self.items:
@@ -1396,7 +1423,7 @@ class UI:
                  border=-1,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=-1,clicktype=-1,textoffsetx=-1,textoffsety=-1,maxwidth=-1,
                  dragable=False,colorkey=-1,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,clickableborder=-1,
-                 backingdraw=-1,borderdraw=-1,animationspeed=-1,linelimit=1000,refreshbind=[],options=[],startoptionindex=0):
+                 backingdraw=-1,borderdraw=-1,animationspeed=-1,linelimit=1000,refreshbind=[],presskeys=[]):
         if maxwidth == -1: maxwidth = width
         if backingcol == -1: backingcol = bordercol
         obj = BUTTON(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,killtime=killtime,
@@ -1404,14 +1431,14 @@ class UI:
                      border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                      command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,maxwidth=maxwidth,
                      dragable=dragable,colorkey=colorkey,toggle=toggle,toggleable=toggleable,toggletext=toggletext,toggleimg=toggleimg,togglecol=togglecol,togglehovercol=togglehovercol,bindtoggle=bindtoggle,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,clickableborder=clickableborder,
-                     animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind,options=options,startoptionindex=startoptionindex)
+                     animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind,presskeys=presskeys)
         return obj
     def makecheckbox(self,x,y,textsize=-1,command=emptyfunction,menu='main',ID='checkbox',text='{tick}',layer=1,roundedcorners=0,bounditems=[],killtime=-1,width=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,img='none',font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
                  border=4,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,bordercol=-1,hovercol=-1,clickdownsize=-1,clicktype=-1,textoffsetx=-1,textoffsety=-1,maxwidth=-1,
                  dragable=False,colorkey=-1,toggle=True,toggleable=True,toggletext='',toggleimg='none',togglecol=-1,togglehovercol=-1,bindtoggle=[],spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,clickableborder=10,
-                 backingdraw=False,borderdraw=-1,animationspeed=-1,linelimit=1000,refreshbind=[]):
+                 backingdraw=False,borderdraw=-1,animationspeed=-1,linelimit=1000,refreshbind=[],presskeys=[]):
         if textsize == -1: textsize = Style.defaults['textsize']
         if spacing == -1: spacing = -int(textsize/5)
         if width == -1: width = textsize+spacing*2
@@ -1422,7 +1449,7 @@ class UI:
                  command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,maxwidth=maxwidth,
                  dragable=dragable,colorkey=colorkey,toggle=toggle,toggleable=toggleable,toggletext=toggletext,toggleimg=toggleimg,togglecol=togglecol,togglehovercol=togglehovercol,bindtoggle=bindtoggle,
                  spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,clickableborder=clickableborder,
-                 animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind)
+                 animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind,presskeys=presskeys)
         return obj
     def maketextbox(self,x,y,text='',width=200,lines=-1,menu='main',command=emptyfunction,ID='textbox',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,height=-1,
                  anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,img='none',textsize=-1,font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
@@ -1918,7 +1945,7 @@ def filloutargs(args):
                 linelimit=100,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,
                 data='empty',titles=[],boxwidth=-1,boxheight=-1,pageheight=15,scrollcords=(0,0),scrollbind=[],screencompressed=False,
                 sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',behindmenu='main',scroller=0,compress=False,
-                options=[],startoptionindex=0,animationtype='movedown',dropsdown=True,autoshutwindows=[])
+                options=[],startoptionindex=0,animationtype='movedown',dropsdown=True,autoshutwindows=[],presskeys=[])
     for a in newargs:
         if not(a in args):
             args[a] = newargs[a]
@@ -1957,7 +1984,10 @@ class GUI_ITEM:
         if self.center and self.startobjanchor[0] == 0: self.startobjanchor[0]='w/2'
         if self.centery and self.startobjanchor[1] == 0: self.startobjanchor[1]='h/2'
         self.scrollcords = args['scrollcords']
-        self.refreshbind = args['refreshbind'][:]
+        self.refreshbind = list(args['refreshbind'])[:]
+        if type(args['presskeys']) == list: self.presskeys = args['presskeys'][:]
+        else: self.presskeys = [args['presskeys']]
+        
 
         self.startwidth = args['width']
         self.startheight = args['height']
@@ -2046,6 +2076,7 @@ class GUI_ITEM:
         self.clickableborder = args['clickableborder']
         self.clickedon = -1
         self.holding = False
+        self.forceholding = False
         self.hovering = False
         self.animating = False
         self.animationspeed = args['animationspeed']
@@ -2377,15 +2408,21 @@ class GUI_ITEM:
         pass
     def child_autoscale(self):
         pass
-    def runcommand(self):
-##        prevmenu = self.ui.activemenu
+    def press(self):
+        for a in self.bindtoggle:
+            if a!=self.ID:
+                ui.IDs[a].toggle = False
+        if self.toggleable:
+            self.toggle = not self.toggle
         self.command()
+##        prevmenu = self.ui.activemenu
 ##        if prevmenu!=self.ui.activemenu:
 ##            temp = self.ui.mprs,self.ui.mpos
 ##            self.ui.mprs = [0,0,0]
 ##            self.ui.mpos = [-100000,-100000]
 ##            self.render(pygame.Surface((10,10)))
 ##            self.ui.mprs,self.ui.mpos = temp
+    
     def getclickedon(self,rect='default',runcom=True,drag=True,smartdrag=True):
         ui = self.ui
         if rect == 'default':
@@ -2393,6 +2430,11 @@ class GUI_ITEM:
         self.clickedon = -1
         self.hovering = False
         mpos = ui.mpos
+        if self.forceholding:
+            if not self.holding: self.clickedon = 0
+            else: self.clickedon = 1
+            self.holding = True
+            return False
         if rect.collidepoint(mpos) and (self.clickablerect == -1 or self.clickablerect.collidepoint(mpos)) and not(collidepointrects(mpos,self.noclickrectsapplied)):
             if ui.mprs[self.clicktype] and (ui.mouseheld[self.clicktype][1]>0 or self.holding):
                 if ui.mouseheld[self.clicktype][1] == ui.buttondowntimer:
@@ -2400,13 +2442,7 @@ class GUI_ITEM:
                     self.holding = True
                     self.holdingcords = [(mpos[0])-rect.x,(mpos[1])-rect.y]
                     if self.runcommandat<2 and runcom:
-                        for a in self.bindtoggle:
-                            if a!=self.ID:
-                                ui.IDs[a].toggle = False
-                        if self.toggleable:
-                            if self.toggle: self.toggle = False
-                            else: self.toggle = True
-                        self.runcommand()
+                        self.press()
             else:
                 self.hovering = True
         if ui.mprs[self.clicktype] and self.holding:
@@ -2424,18 +2460,12 @@ class GUI_ITEM:
                 for a in self.bounditems:
                     a.resetcords(ui)
             if self.runcommandat == 1 and runcom:        
-                self.runcommand()
+                self.command()
         elif not ui.mprs[self.clicktype]:
             if self.holding:
                 self.clickedon = 2
                 if rect.collidepoint(mpos) and self.runcommandat>0 and runcom:
-                    for a in self.bindtoggle:
-                        if a!=self.ID:
-                            ui.IDs[a].toggle = False
-                    if self.toggleable and self.runcommandat!=1:
-                        if self.toggle: self.toggle = False
-                        else: self.toggle = True
-                    self.runcommand()
+                    self.press()
             self.holding = False
         return False
 
