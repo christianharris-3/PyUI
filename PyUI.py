@@ -2411,7 +2411,7 @@ class GUI_ITEM:
     def press(self):
         for a in self.bindtoggle:
             if a!=self.ID:
-                ui.IDs[a].toggle = False
+                self.ui.IDs[a].toggle = False
         if self.toggleable:
             self.toggle = not self.toggle
         self.command()
