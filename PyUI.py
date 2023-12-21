@@ -1379,6 +1379,7 @@ class UI:
         self.noclickrects = []
         for a in self.items:
             a.noclickrectsapplied = []
+            a.refreshnoclickrect()
             self.noclickrects+=a.noclickrect
         # Rect,IDs,menu,whitelist (true=all objects in list blocked by noclickrect)
         for a in self.noclickrects:
@@ -1556,7 +1557,7 @@ class UI:
     def makewindowedmenu(self,x,y,width,height,menu,behindmenu='main',col=-1,bounditems=[],
                  dragable=False,colorkey=(255,255,255),isolated=True,darken=-1,ID='windowedmenu',layer=1,roundedcorners=-1,
                  anchor=(0,0),objanchor=(0,0),center=False,centery=-1,enabled=True,glow=-1,glowcol=-1,
-                 scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,command=emptyfunction,runcommandat=0,refreshbind=[]):
+                 scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,command=emptyfunction,runcommandat=0,refreshbind=[],presskeys=[]):
 
         if col == -1: col = shiftcolor(Style.objectdefaults[WINDOWEDMENU]['col'],-35)
 
@@ -1568,19 +1569,19 @@ class UI:
                  scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,
                  command=emptyfunction,runcommandat=runcommandat,col=col,
                  dragable=dragable,colorkey=colorkey,border=0,enabled=enabled,
-                 behindmenu=behindmenu,isolated=isolated,darken=darken,refreshbind=refreshbind)
+                 behindmenu=behindmenu,isolated=isolated,darken=darken,refreshbind=refreshbind,presskeys=presskeys)
         return obj
     def makewindow(self,x,y,width,height,menu='main',col=-1,bounditems=[],colorkey=(255,255,255),
                    ID='window',layer=10,roundedcorners=-1,anchor=(0,0),objanchor=(0,0),isolated=False,darken=-1,
                    center=False,centery=-1,enabled=False,glow=-1,glowcol=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,
-                   refreshbind=[],clickablerect=(0,0,'w','h'),animationspeed=-1,animationtype='moveup',autoshutwindows=[]):
+                   refreshbind=[],clickablerect=(0,0,'w','h'),animationspeed=-1,animationtype='moveup',autoshutwindows=[],presskeys=[]):
 
         if col == -1: col = shiftcolor(Style.objectdefaults[WINDOW]['col'],-35)
         
         obj = WINDOW(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,enabled=enabled,
                  scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,col=col,colorkey=colorkey,autoshutwindows=autoshutwindows,
-                 refreshbind=refreshbind,isolated=isolated,darken=darken,clickablerect=clickablerect,animationspeed=animationspeed,animationtype=animationtype)
+                 refreshbind=refreshbind,isolated=isolated,darken=darken,clickablerect=clickablerect,animationspeed=animationspeed,animationtype=animationtype,presskeys=presskeys)
         return obj
     
     def makerect(self,x,y,width,height,command=emptyfunction,menu='main',ID='button',layer=1,roundedcorners=-1,bounditems=[],killtime=-1,
@@ -1721,12 +1722,11 @@ class UI:
         if tablew != -1: tablew-=border*2
         
         if dropsdown:
-            data = []
-            for i,a in enumerate(options):
-                func = funcer(obj.optionclicked,index=i)
-                data.append([self.makebutton(0,0,a,textsize,font=font,bold=bold,textcol=textcol,col=col,roundedcorners=roundedcorners,command=func.func)])
 
-            table = self.makescrollertable(border,border,data,pageheight=pageheight,roundedcorners=roundedcorners,textsize=textsize,font=font,bold=bold,border=border,scalesize=scalesize,col=col,textcol=textcol,backingcol=backingcol,width=tablew)
+            table = self.makescrollertable(border,border,[],pageheight=pageheight,roundedcorners=roundedcorners,textsize=textsize,font=font,bold=bold,border=border,scalesize=scalesize,col=col,textcol=textcol,backingcol=backingcol,width=tablew)
+            obj.table = table
+            obj.refreshoptions()
+            
             window = self.makewindow(0,obj.height,f'ui.IDs["{obj.ID}"].width',f'ui.IDs["{table.ID}"].getheight()+{border}*2',enabled=False,animationspeed=animationspeed,animationtype=animationtype)
             obj.binditem(window)
             window.binditem(table)
@@ -1737,7 +1737,6 @@ class UI:
             table.startwidth = nwidth-border*2
             table.refresh()
             window.refresh()
-            obj.table = table
             obj.window = window
             obj.titletext = txt[0]
         obj.command = lambda: obj.mainbuttonclicked()
@@ -2391,6 +2390,9 @@ class GUI_ITEM:
     def setheight(self,height):
         self.startheight = height
         self.autoscale()
+    def settextcol(self,col):
+        self.textcol = col
+        self.refresh()
     def enable(self):
         self.enabled = True
     def disable(self):
@@ -2407,6 +2409,8 @@ class GUI_ITEM:
     def child_refreshcords(self):
         pass
     def child_autoscale(self):
+        pass
+    def refreshnoclickrect(self):
         pass
     def press(self):
         for a in self.bindtoggle:
@@ -3354,6 +3358,20 @@ class DROPDOWN(BUTTON):
         else:
             self.settext(self.options[index])
         self.truecommand()
+    def refreshoptions(self):
+        data = []
+        for i,a in enumerate(self.options):
+            func = funcer(self.optionclicked,index=i)
+            data.append([self.ui.makebutton(0,0,a,self.textsize,font=self.font,bold=self.bold,textcol=self.textcol,col=self.col,roundedcorners=self.roundedcorners,command=func.func)])
+        self.table.data = data
+        self.table.refresh()
+    def setoptions(self,options):
+        self.options = options
+        self.refreshoptions()
+        self.window.child_autoscale()
+        self.refresh()
+
+        
     
     
     
@@ -3668,11 +3686,12 @@ class MENU(GUI_ITEM):
             bound = obj.bounditems
             
         for a in bound:
-            if type(a) == SCROLLERTABLE:
-                a.smartdraw(screen)
-            else:
-                a.draw(screen)
-                self.drawallmenu(screen,a)
+            if a.enabled:
+                if type(a) == SCROLLERTABLE:
+                    a.smartdraw(screen)
+                else:
+                    a.draw(screen)
+                    self.drawallmenu(screen,a)
         
     def child_render(self,screen):
         pass
@@ -3801,13 +3820,15 @@ class WINDOW(GUI_ITEM):
         else: return progress
         
     def child_autoscale(self):
+        self.refreshnoclickrect()
+        self.ui.refreshnoclickrects()
+        for a in self.bounditems: a.clickablerect = self.clickablerect
+    def refreshnoclickrect(self):
         # Rect,IDs,menu,whitelist (true=all objects in list blocked by noclickrect)
         if self.enabled:
             self.noclickrect = [(pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.getchildIDs(),self.menu,False)]
         else:
             self.noclickrect = []
-        self.ui.refreshnoclickrects()
-        for a in self.bounditems: a.clickablerect = self.clickablerect
     def binditem(self,obj):
         super().binditem(obj)
         obj.resetcords()
@@ -3821,7 +3842,9 @@ class WINDOW(GUI_ITEM):
                 self.getclickedon()
                 if self.ui.mprs[0] and not self.holding:
                     self.shut()
-        
+        if self.forceholding:
+            self.open()
+            self.forceholding = False
         self.moveanimation()
         self.xoff,self.yoff,self.objxoff,self.objyoff,self.widthoff,self.heightoff = self.decodeanimations()
         if self.killtime != -1 and self.killtime<self.ui.time:
