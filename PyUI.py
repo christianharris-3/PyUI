@@ -561,9 +561,10 @@ class UI:
     def __scaleset__(self,scale):
         self.scale = scale
         self.dirscale = [self.screenw/self.basescreensize[0],self.screenh/self.basescreensize[1]]
-        for a in self.automenus+self.windowedmenus:
-            a.refresh()
-            a.resetcords()
+##        for a in self.automenus+self.windowedmenus:
+##            a.refresh()
+##            a.resetcords()
+        self.refreshall()
         for a in self.items:
             checker = (a.width,a.height)
             a.autoscale()
@@ -580,13 +581,14 @@ class UI:
         pygame.event.post(pygame.event.Event(pygame.QUIT))
     def refreshall(self):
         for a in self.automenus+self.windowedmenus:
-            a.enabled = False
             self.refreshbound(a)
     def refreshbound(self,obj):
+        pre = obj.enabled
+        obj.enabled = False
         obj.refresh()
-        obj.enabled = True
+        obj.resetcords()
+        obj.enabled = pre
         for b in obj.bounditems:
-            b.enabled = False
             self.refreshbound(b)
         
     def getscreen(self):
@@ -1573,14 +1575,14 @@ class UI:
         return obj
     def makewindow(self,x,y,width,height,menu='main',col=-1,bounditems=[],colorkey=(255,255,255),
                    ID='window',layer=10,roundedcorners=-1,anchor=(0,0),objanchor=(0,0),isolated=False,darken=-1,
-                   center=False,centery=-1,enabled=False,glow=-1,glowcol=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,
+                   center=False,centery=-1,enabled=False,glow=-1,glowcol=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,backingdraw=-1,
                    refreshbind=[],clickablerect=(0,0,'w','h'),animationspeed=-1,animationtype='moveup',autoshutwindows=[],presskeys=[]):
 
         if col == -1: col = shiftcolor(Style.objectdefaults[WINDOW]['col'],-35)
         
         obj = WINDOW(ui=self,x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems,
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,enabled=enabled,
-                 scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,col=col,colorkey=colorkey,autoshutwindows=autoshutwindows,
+                 scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,col=col,colorkey=colorkey,autoshutwindows=autoshutwindows,backingdraw=backingdraw,
                  refreshbind=refreshbind,isolated=isolated,darken=darken,clickablerect=clickablerect,animationspeed=animationspeed,animationtype=animationtype,presskeys=presskeys)
         return obj
     
@@ -1769,7 +1771,7 @@ class UI:
         obj = self.makecheckbox(x=x,y=y,width=width,height=height,menu=menu,ID=ID,layer=layer,roundedcorners=roundedcorners,bounditems=bounditems+[text],killtime=killtime,
                                 anchor=anchor,objanchor=objanchor,center=center,centery=centery,textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
                                 border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
-                                command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,maxwidth=maxwidth,
+                                command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=bordercol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,maxwidth=maxwidth,
                                 dragable=dragable,colorkey=colorkey,toggle=toggle,toggleable=toggleable,toggleimg=toggleimg,togglecol=togglecol,togglehovercol=togglehovercol,bindtoggle=bindtoggle,
                                 spacing=spacing,clickablerect=clickablerect,clickableborder=clickableborder,
                                 animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind)
@@ -2383,6 +2385,9 @@ class GUI_ITEM:
             return self.master[0].getenabled()
     def settext(self,text):
         self.text = str(text)
+        self.refresh()
+    def settextsize(self,textsize):
+        self.textsize = textsize
         self.refresh()
     def setwidth(self,width):
         self.startwidth = width
