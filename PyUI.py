@@ -2286,8 +2286,8 @@ class GUI_ITEM:
         h = self.getmasterheight()/self.scale
         if self.startclickablerect != -1:
             rx,ry,rw,rh = self.startclickablerect
-            xstart = self.master[0].x
-            ystart = self.master[0].y
+            xstart = self.master[0].x*self.master[0].dirscale[0]
+            ystart = self.master[0].y*self.master[0].dirscale[1]
             ow = self.getmasterwidth()/self.scale
             oh = self.getmasterheight()/self.scale
             if type(self) == SCROLLERTABLE:
