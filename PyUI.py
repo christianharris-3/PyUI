@@ -3965,6 +3965,9 @@ class ANIMATION:
                 return True
         return False
     def move1frame(self):
+        if not self.animateID in self.ui.IDs:
+            self.ui.delete(self.ID)
+            return True
         self.wait-=1
         if self.wait == 0:
             sp,ep = False,False
