@@ -1912,7 +1912,7 @@ class UI:
             if self.IDs[ID].onitem:
                 self.IDs[ID].master[0].bounditems.remove(self.IDs[ID])
             for a in self.IDs[ID].bounditems:
-                self.delete(ID,failmessage)
+                self.delete(a.ID,failmessage)
             if type(self.IDs[ID]) == BUTTON: self.buttons.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == TEXTBOX: self.textboxes.remove(self.IDs[ID])
             elif type(self.IDs[ID]) in [TABLE,SCROLLERTABLE]: self.tables.remove(self.IDs[ID])
