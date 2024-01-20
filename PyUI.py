@@ -1459,7 +1459,7 @@ class UI:
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=-1,textoffsety=-1,
                  colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,
-                 linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=-1,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,
+                 linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=-1,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,allowedcharacters='',
                  backingdraw=-1,borderdraw=-1,refreshbind=[]):
         
         if col == -1: col = Style.objectdefaults[TEXTBOX]['col']
@@ -1470,7 +1470,7 @@ class UI:
                  border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                  command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,
                  colorkey=colorkey,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,
-                 lines=lines,linelimit=linelimit,selectcol=selectcol,selectbordersize=selectbordersize,selectshrinksize=selectshrinksize,cursorsize=cursorsize,textcenter=textcenter,chrlimit=chrlimit,numsonly=numsonly,enterreturns=enterreturns,commandifenter=commandifenter,commandifkey=commandifkey,imgdisplay=imgdisplay,
+                 lines=lines,linelimit=linelimit,selectcol=selectcol,selectbordersize=selectbordersize,selectshrinksize=selectshrinksize,cursorsize=cursorsize,textcenter=textcenter,chrlimit=chrlimit,numsonly=numsonly,enterreturns=enterreturns,commandifenter=commandifenter,commandifkey=commandifkey,imgdisplay=imgdisplay,allowedcharacters=allowedcharacters,
                  backingdraw=backingdraw,borderdraw=borderdraw,refreshbind=refreshbind)
         return obj
             
@@ -1943,7 +1943,7 @@ def filloutargs(args):
     newargs = todict(menu='main',ID='',layer=1,bounditems=[],refreshbind=[],killtime=-1,scaleby=-1,
                 text='',img='none',pregenerated=True,enabled=True,command=emptyfunction,runcommandat=0,
                 dragable=False,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',bindtoggle=[],clickablerect=-1,
-                linelimit=100,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,
+                linelimit=100,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,allowedcharacters='',
                 data='empty',titles=[],boxwidth=-1,boxheight=-1,pageheight=15,scrollcords=(0,0),scrollbind=[],screencompressed=False,
                 sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',behindmenu='main',scroller=0,compress=False,
                 options=[],startoptionindex=0,animationtype='movedown',dropsdown=True,autoshutwindows=[],presskeys=[])
@@ -2093,6 +2093,7 @@ class GUI_ITEM:
         self.cursorsize = args['cursorsize']
         self.chrlimit = args['chrlimit']
         self.numsonly = args['numsonly']
+        self.allowedcharacters = args['allowedcharacters']
         self.enterreturns = args['enterreturns']
         self.commandifenter = args['commandifenter']
         self.commandifkey = args['commandifkey']
@@ -2660,11 +2661,17 @@ class TEXTBOX(GUI_ITEM):
         
         if not(self.textselected[0] and self.textselected[1]!=self.textselected[2]):
             if item != '':
+                if self.allowedcharacters!='':
+                    newitem = ''
+                    for i in item:
+                        if i in self.allowedcharacters:
+                            newitem+=i
+                    item = newitem
                 try:
-                    temp = int(item)
-                    num=True
+                    temp = float(self.text[:self.typingcursor+1]+item+self.text[self.typingcursor+1:])
+                    num = True
                 except:
-                    num=False
+                    num = False
                 if (not(self.numsonly) or num):
                     self.text = self.text[:self.typingcursor+1]+item+self.text[self.typingcursor+1:]
                     self.typingcursor+=len(item)
@@ -3966,7 +3973,6 @@ class ANIMATION:
         return False
     def move1frame(self):
         if not self.animateID in self.ui.IDs:
-            self.ui.delete(self.ID)
             return True
         self.wait-=1
         if self.wait == 0:
