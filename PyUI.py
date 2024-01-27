@@ -38,6 +38,7 @@ class emptyobject:
         self.active = False
     def getenabled(self):
         return True
+    
 class funcer:
     def __init__(self,func,**args):
         self.func = lambda: func(**args)
@@ -1911,8 +1912,9 @@ class UI:
         try:
             if self.IDs[ID].onitem:
                 self.IDs[ID].master[0].bounditems.remove(self.IDs[ID])
-            for a in self.IDs[ID].bounditems:
-                self.delete(a.ID,failmessage)
+            delids = [a.ID for a in self.IDs[ID].bounditems]
+            for a in delids:
+                self.delete(a,failmessage)
             if type(self.IDs[ID]) == BUTTON: self.buttons.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == TEXTBOX: self.textboxes.remove(self.IDs[ID])
             elif type(self.IDs[ID]) in [TABLE,SCROLLERTABLE]: self.tables.remove(self.IDs[ID])
