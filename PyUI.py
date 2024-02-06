@@ -1907,6 +1907,7 @@ class UI:
         self.movemenu(moveto,backchainadd=False)
     def finishmenumove(self):
         self.queuedmenumove[0] = -1
+        self.prevmenumove = []
 
     def delete(self,ID,failmessage=True):
         try:
