@@ -1926,7 +1926,7 @@ class UI:
             elif type(self.IDs[ID]) == RECT: self.rects.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == MENU: self.automenus.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == WINDOW: self.windows.remove(self.IDs[ID])
-            elif type(self.IDs[ID]) == WINDOWEDMENU: self.windowedmenu.remove(self.IDs[ID])
+            elif type(self.IDs[ID]) == WINDOWEDMENU: self.windowedmenus.remove(self.IDs[ID])
             del self.IDs[ID]
             self.refreshitems()
             return True
