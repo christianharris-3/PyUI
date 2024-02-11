@@ -1695,6 +1695,8 @@ class UI:
         
         if upperborder == -1: upperborder = border
         if lowerborder == -1: lowerborder = border
+        if leftborder == -1: leftborder = border
+        if rightborder == -1: rightborder = border
         if height == -1:
             heightgetter = self.rendertext('Tg',textsize,(255,255,255),font,bold)
             height = upperborder+lowerborder+heightgetter.get_height()
@@ -1721,6 +1723,7 @@ class UI:
                        dragable=dragable,colorkey=colorkey,toggle=toggle,toggleable=toggleable,toggletext=toggletext,toggleimg=toggleimg,togglecol=togglecol,togglehovercol=togglehovercol,bindtoggle=bindtoggle,spacing=spacing,
                        verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,clickableborder=clickableborder,
                        animationspeed=animationspeed,backingdraw=backingdraw,borderdraw=borderdraw,linelimit=linelimit,refreshbind=refreshbind,options=options,startoptionindex=startoptionindex,dropsdown=dropsdown)
+        obj.init_height = height
         tablew = width
         if tablew != -1: tablew-=border*2
         
@@ -1737,11 +1740,20 @@ class UI:
             else: nwidth = width
             obj.leftborder+=nwidth-obj.width
             obj.refresh()
+            obj.init_width = obj.width
             table.startwidth = nwidth-border*2
             table.refresh()
             window.refresh()
             obj.window = window
             obj.titletext = txt[0]
+        else:
+            temp_texts = [self.rendertext(t,textsize,font=font,imgin=True) for t in options]
+            if width == -1: nwidth = (max([t.get_width() for t in temp_texts])+leftborder+rightborder+horizontalspacing*2)
+            else: nwidth = width
+            obj.startwidth = nwidth
+            obj.refresh()
+            obj.init_width = nwidth
+            
         obj.command = lambda: obj.mainbuttonclicked()
         obj.truecommand = command
         return obj
@@ -1907,7 +1919,6 @@ class UI:
         self.movemenu(moveto,backchainadd=False)
     def finishmenumove(self):
         self.queuedmenumove[0] = -1
-        self.prevmenumove = []
 
     def delete(self,ID,failmessage=True):
         try:
@@ -1927,7 +1938,6 @@ class UI:
             elif type(self.IDs[ID]) == RECT: self.rects.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == MENU: self.automenus.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == WINDOW: self.windows.remove(self.IDs[ID])
-            elif type(self.IDs[ID]) == WINDOWEDMENU: self.windowedmenus.remove(self.IDs[ID])
             del self.IDs[ID]
             self.refreshitems()
             return True
@@ -3003,7 +3013,7 @@ class TABLE(GUI_ITEM):
         a = index
         for i,b in enumerate(self.preprocessed[a]):
             ref = False
-            if type(b) in [BUTTON,TEXTBOX,TEXT,TABLE,SCROLLERTABLE,SLIDER]:
+            if type(b) in [BUTTON,TEXTBOX,TEXT,TABLE,SCROLLERTABLE,SLIDER,DROPDOWN]:
                 b.enabled = self.enabled
                 ref = True
                 obj = b
@@ -3057,6 +3067,7 @@ class TABLE(GUI_ITEM):
         obj.scalesize = self.scalesize
         obj.scaleby = self.scaleby
         obj.tableobject = True
+        obj.layer = self.rows-y
         if type(self) == SCROLLERTABLE:# and not(y==0 and len(self.titles)!=0):
             if y!=0 or len(self.titles)==0:
                 obj.startclickablerect = self.startclickablerect
@@ -3143,6 +3154,9 @@ class TABLE(GUI_ITEM):
                     elif type(b) in [TABLE,SCROLLERTABLE,SLIDER]:
                         if minn<b.width:
                             minn = b.width*b.scale
+                    elif type(b) in [DROPDOWN]:
+                        if minn<b.init_width*b.scale:
+                            minn = b.init_width*b.scale
                 self.boxwidthsinc.append(sum(self.boxwidths))
                 self.boxwidths.append(minn/self.scale)
             else:
@@ -3165,6 +3179,9 @@ class TABLE(GUI_ITEM):
                     elif type(b) in [TABLE,SCROLLERTABLE,SLIDER]:
                         if minn<b.height:
                             minn = b.height*b.scale
+                    elif type(b) in [DROPDOWN]:
+                        if minn<b.init_height*b.scale:
+                            minn = b.init_height*b.scale
                 self.boxheightsinc.append(sum(self.boxheights))
                 self.boxheights.append(minn/self.scale)
             else:
@@ -3387,6 +3404,13 @@ class DROPDOWN(BUTTON):
         self.window.child_autoscale()
         self.refresh()
 
+    def child_refreshcords(self):
+        if hasattr(self,"window"):
+            self.window.width = self.width
+            self.window.starty = self.height
+            self.window.refreshcords()
+            self.table.startwidth = self.width-self.table.border*2
+            self.table.refresh()
         
     
     
@@ -3643,7 +3667,7 @@ class SLIDER(GUI_ITEM):
                     w = (self.width-self.leftborder-self.rightborder)-2*(self.roundedcorners-abs(int(min([self.roundedcorners,h/2]))))
                     draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,w*self.scale,h*self.scale),border_radius=int(self.roundedcorners*self.scale))
                 else:
-                    w = ((self.width-self.leftborder-self.rightborder-self.button.width*self.containedslider)*((self.slider-self.minp)/(self.maxp-self.minp))+self.button.width*self.containedslider)
+                    w = ((self.width-self.leftborderself.rightborder-self.button.width*self.containedslider)*((self.slider-self.minp)/(self.maxp-self.minp))+self.button.width*self.containedslider)
                     h = (self.height-self.upperborder-self.lowerborder)-2*(self.roundedcorners-abs(int(min([self.roundedcorners,w/2]))))
                     draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.height-h)/2*self.scale,w*self.scale,h*self.scale),border_radius=int(self.roundedcorners*self.scale))
 
