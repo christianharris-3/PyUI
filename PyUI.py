@@ -2596,7 +2596,9 @@ class TEXTBOX(GUI_ITEM):
     def child_autoscale(self):
         heightgetter = self.ui.rendertext('Tg',self.textsize,self.textcol,self.font,self.bold)
         if self.height == -1:
-            self.height = self.upperborder+self.lowerborder+heightgetter.get_height()*self.lines+self.verticalspacing*2
+            self.startheight = self.upperborder+self.lowerborder+heightgetter.get_height()*self.lines+self.verticalspacing*2
+            self.init_height = self.startheight
+            self.height = self.startheight
         if self.cursorsize == -1:
             self.cursorsize = self.ui.gettextsize('Tg',self.font,self.textsize,self.bold)[1]-2
     def select(self):
@@ -3053,8 +3055,6 @@ class TABLE(GUI_ITEM):
                     if self.cellreferencemap[y][x-1] != self.cellreferencemap[y][x]:
                         raise Exception(f"Invalid Table, ID:{self.ID}, Segment Rectangles Overlap")
 
-        for a in self.cellreferencemap:
-            print(a)
         
 
                 
@@ -3267,7 +3267,7 @@ class TABLE(GUI_ITEM):
                     elif type(b) in [TABLE,SCROLLERTABLE,SLIDER]:
                         if minn<factor_tileheight(b.height*b.scale,b):
                             minn = factor_tileheight(b.height*b.scale,b)
-                    elif type(b) in [DROPDOWN]:
+                    elif type(b) in [TEXTBOX,DROPDOWN]:
                         if minn<factor_tileheight(b.init_height*b.scale,b):
                             minn = factor_tileheight(b.init_height*b.scale,b)
                 self.boxheightsinc.append(sum(self.boxheights))
