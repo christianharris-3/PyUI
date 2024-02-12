@@ -2980,6 +2980,15 @@ class TABLE(GUI_ITEM):
             for a in self.table:
                 for b in a:
                     b.enabled = True
+    def setwidth(self,width):
+        self.startwidth = width
+        self.refresh()
+        self.resetcords()
+    def setheight(self,height):
+        self.startheight = height
+        self.refresh()
+        self.resetcords()
+        
     def preprocess(self):
         self.preprocessed = []
         for a in self.data:
@@ -3055,12 +3064,15 @@ class TABLE(GUI_ITEM):
             obj.startwidth = self.boxwidths[x]
             obj.startheight = self.boxheights[y]
         elif type(obj) in [TABLE,SCROLLERTABLE]:
-            if obj.width<self.boxwidths[x]:
+            if obj.width!=self.boxwidths[x]:
                 obj.width = self.boxwidths[x]
-                obj.startwidth = self.boxwidths[x]
-            elif obj.height<self.boxheights[x]:
+                if obj.startwidth != -1 or obj.width<self.boxwidths[x]:
+                    obj.startwidth = self.boxwidths[x]
+                
+            elif obj.height!=self.boxheights[x]:
                 obj.height = self.boxheights[y]
-                obj.startheight = self.boxheights[y]
+                if obj.startheight != -1 or obj.height<self.boxheights[x]:
+                    obj.startheight = self.boxheights[y]
         obj.backingdraw = self.backingdraw
         obj.scalex = self.scalesize
         obj.scaley = self.scalesize
@@ -3068,7 +3080,7 @@ class TABLE(GUI_ITEM):
         obj.scaleby = self.scaleby
         obj.tableobject = True
         obj.layer = self.rows-y
-        if type(self) == SCROLLERTABLE:# and not(y==0 and len(self.titles)!=0):
+        if type(self) == SCROLLERTABLE:
             if y!=0 or len(self.titles)==0:
                 obj.startclickablerect = self.startclickablerect
                 obj.clickablerect = self.clickablerect
