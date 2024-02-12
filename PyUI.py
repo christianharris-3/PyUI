@@ -2991,6 +2991,21 @@ class TABLE(GUI_ITEM):
         
     def preprocess(self):
         self.preprocessed = []
+        self.splitcellchar = ''
+        def seperate(lis,targetlen,insert=''):
+            if len(lis) == 0: return [copy.deepcopy(insert) for a in range(targetlen)]
+            width_per = targetlen/len(lis)
+            pos = 0
+            section = width_per
+            for i in range(targetlen-len(lis)):
+                pos+=1
+                section-=1
+                while section<1:
+                    section+=width_per-1
+                    pos+=1
+                lis.insert(pos,copy.deepcopy(insert))
+            return lis
+        
         for a in self.data:
             self.preprocessed.append(list(a))
         if len(self.titles)!=0:
@@ -3001,9 +3016,47 @@ class TABLE(GUI_ITEM):
             self.columns = max([len(a) for a in self.preprocessed])
             if type(self.startboxwidth) == list:
                 self.columns = max(self.columns,len(self.startboxwidth))
-        for a in range(len(self.preprocessed)):
-            while len(self.preprocessed[a])<self.columns:
-                self.preprocessed[a].append('')
+
+        self.preprocessed = seperate(self.preprocessed,self.rows,[])
+        for a in range(self.rows):
+            self.preprocessed[a] = seperate(self.preprocessed[a],self.columns,self.splitcellchar)
+
+
+        try:
+            grabber = self.preprocessed[0][0]
+            pos = [0,0]
+            while grabber == self.splitcellchar:
+                pos[0] = (pos[0]+1)
+                pos[1] += pos[0]//len(self.preprocessed[0])
+                pos[0]%len(self.preprocessed[0])
+                grabber = self.preprocessed[pos[1]][pos[0]]
+            self.preprocessed[pos[1]][pos[0]] = self.splitcellchar
+            self.preprocessed[0][0] = grabber
+        except: return
+
+        self.cellreferencemap = [[-1 if self.preprocessed[y][x] == self.splitcellchar else (x,y) for x in range(self.columns)] for y in range(self.rows)]
+        
+        for y in range(self.rows):
+            current = self.cellreferencemap[y][0]
+            pull_left = current != -1
+           
+            for x in range(self.columns):
+                if self.cellreferencemap[y][x] == -1:
+                    if pull_left:
+                        self.cellreferencemap[y][x] = current
+                    elif y!=0:
+                        self.cellreferencemap[y][x] = self.cellreferencemap[y-1][x]
+                else:
+                    pull_left = True
+                    current = self.cellreferencemap[y][x]
+                if y!=0 and x!=0 and self.cellreferencemap[y][x-1] == self.cellreferencemap[y-1][x]:
+                    if self.cellreferencemap[y][x-1] != self.cellreferencemap[y][x]:
+                        raise Exception(f"Invalid Table, ID:{self.ID}, Segment Rectangles Overlap")
+
+        for a in self.cellreferencemap:
+            print(a)
+        
+
                 
     def gentext(self):
         self.enabled = True
@@ -3021,31 +3074,39 @@ class TABLE(GUI_ITEM):
         row = []
         a = index
         for i,b in enumerate(self.preprocessed[a]):
-            ref = False
-            if type(b) in [BUTTON,TEXTBOX,TEXT,TABLE,SCROLLERTABLE,SLIDER,DROPDOWN]:
-                b.enabled = self.enabled
-                ref = True
-                obj = b
-            elif type(b) == pygame.Surface:
-                self.ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+'-'+str(i),False)
-                obj = self.ui.maketext(0,0,'',self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+'-'+str(i),self.layer+0.01,self.roundedcorners,textcenter=self.textcenter,img=b,maxwidth=self.boxwidth[i],
-                                       scalesize=self.scalesize,scaleby=self.scaleby,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,colorkey=self.colorkey,enabled=False)
+            refrence = self.cellreferencemap[a][i]
+            if refrence != (i,a):
+                if refrence[1] != a: row.append(self.table[refrence[1]][refrence[0]])
+                else: row.append(row[refrence[0]])
             else:
-                b = str(b)
-                self.ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+'-'+str(i),False)
-                obj = self.ui.maketext(0,0,b,self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+str(i),self.layer,self.roundedcorners,textcenter=self.textcenter,textcol=self.textcol,
-                                       font=self.font,bold=self.bold,antialiasing=self.antialiasing,pregenerated=self.pregenerated,maxwidth=max([self.boxwidth[i]-self.horizontalspacing*2,-1]),
-                                       scalesize=self.scalesize,scaleby=self.scaleby,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,backingcol=self.col,enabled=False)
-            row.append(obj)
-            self.itemintotable(obj,i,a)
-            if ref:
-                obj.refresh()
+                ref = False
+                if type(b) in [BUTTON,TEXTBOX,TEXT,TABLE,SCROLLERTABLE,SLIDER,DROPDOWN]:
+                    b.enabled = self.enabled
+                    ref = True
+                    obj = b
+                elif type(b) == pygame.Surface:
+                    self.ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+'-'+str(i),False)
+                    obj = self.ui.maketext(0,0,'',self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+'-'+str(i),self.layer+0.01,self.roundedcorners,textcenter=self.textcenter,img=b,maxwidth=self.boxwidth[i],
+                                           scalesize=self.scalesize,scaleby=self.scaleby,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,colorkey=self.colorkey,enabled=False)
+                else:
+                    b = str(b)
+                    self.ui.delete('tabletext'+self.tableitemID+self.ID+str(a)+'-'+str(i),False)
+                    obj = self.ui.maketext(0,0,b,self.textsize,self.menu,'tabletext'+self.tableitemID+self.ID+str(a)+'-'+str(i),self.layer,self.roundedcorners,textcenter=self.textcenter,textcol=self.textcol,
+                                           font=self.font,bold=self.bold,antialiasing=self.antialiasing,pregenerated=self.pregenerated,maxwidth=max([self.boxwidth[i]-self.horizontalspacing*2,-1]),
+                                           scalesize=self.scalesize,scaleby=self.scaleby,horizontalspacing=self.horizontalspacing,verticalspacing=self.verticalspacing,backingcol=self.col,enabled=False)
+                row.append(obj)
+                self.itemintotable(obj,i,a)
+                if ref:
+                    obj.refresh()
         return row
     def child_refreshcords(self):
         if self.table!=0:
+            repeats = []
             for a in range(len(self.table)):
                 for i,b in enumerate(self.table[a]):
-                    self.itemrefreshcords(b,i,a)
+                    if not self.cellreferencemap[a][i] in repeats:
+                        self.itemrefreshcords(b,i,a)
+                        repeats.append(self.cellreferencemap[a][i])
             alltable = self.getalltableitems()
             for a in self.bounditems:
                 if not a.ID in alltable:
@@ -3058,21 +3119,32 @@ class TABLE(GUI_ITEM):
     def itemrefreshcords(self,obj,x,y):
         obj.startx = (self.linesize*(x+1)+self.boxwidthsinc[x])
         obj.starty = (self.linesize*(y+1)+self.boxheightsinc[y])
+
+        bwidth = self.boxwidths[x]
+        rectsize = x+1
+        while rectsize<len(self.boxwidths) and self.cellreferencemap[y][rectsize] == (x,y):
+            bwidth+=self.linesize+self.boxwidths[rectsize]
+            rectsize+=1
+        obj.ontable_tilewidth = rectsize-x
+        bheight = self.boxheights[y]
+        rectsize = y+1
+        while rectsize<len(self.boxheights) and self.cellreferencemap[rectsize][x] == (x,y):
+            bheight+=self.linesize+self.boxheights[rectsize]
+            rectsize+=1
+        obj.ontable_tileheight = rectsize-y
+        
         if not(type(obj) in [SLIDER,TABLE,SCROLLERTABLE]):
-            obj.width = self.boxwidths[x]
-            obj.height = self.boxheights[y]
-            obj.startwidth = self.boxwidths[x]
-            obj.startheight = self.boxheights[y]
+            obj.width = bwidth
+            obj.height = bheight
+            obj.startwidth = bwidth
+            obj.startheight = bheight
         elif type(obj) in [TABLE,SCROLLERTABLE]:
-            if obj.width!=self.boxwidths[x]:
-                obj.width = self.boxwidths[x]
-                if obj.startwidth != -1 or obj.width<self.boxwidths[x]:
-                    obj.startwidth = self.boxwidths[x]
-                
-            elif obj.height!=self.boxheights[x]:
-                obj.height = self.boxheights[y]
-                if obj.startheight != -1 or obj.height<self.boxheights[x]:
-                    obj.startheight = self.boxheights[y]
+            if obj.width<bwidth:
+                obj.width = bwidth
+                obj.startwidth = bwidth
+            elif obj.height<bheight:
+                obj.height = bheight
+                obj.startheight = bheight
         obj.backingdraw = self.backingdraw
         obj.scalex = self.scalesize
         obj.scaley = self.scalesize
@@ -3156,19 +3228,21 @@ class TABLE(GUI_ITEM):
     def gettablewidths(self):
         self.boxwidthsinc = []
         self.boxwidths = []
+        def factor_tilewidth(w,obj):
+            return (w-(obj.ontable_tilewidth-1)*self.linesize)/obj.ontable_tilewidth
         for a in range(len(self.boxwidth)):
             if self.boxwidth[a] == -1:
                 minn = 0
                 for b in [self.table[c][a] for c in range(len(self.table))]:
                     if type(b) in [BUTTON,TEXT]:
-                        if minn<b.textimage.get_width()+b.horizontalspacing*2*self.scale:
-                            minn = b.textimage.get_width()+b.horizontalspacing*2*self.scale
+                        if minn<factor_tilewidth(b.textimage.get_width()+b.horizontalspacing*2*self.scale,b):
+                            minn = factor_tilewidth(b.textimage.get_width()+b.horizontalspacing*2*self.scale,b)
                     elif type(b) in [TABLE,SCROLLERTABLE,SLIDER]:
-                        if minn<b.width:
-                            minn = b.width*b.scale
+                        if minn<factor_tilewidth(b.width*b.scale,b):
+                            minn = factor_tilewidth(b.width*b.scale,b)
                     elif type(b) in [DROPDOWN]:
-                        if minn<b.init_width*b.scale:
-                            minn = b.init_width*b.scale
+                        if minn<factor_tilewidth(b.init_width*b.scale,b):
+                            minn = factor_tilewidth(b.init_width*b.scale,b)
                 self.boxwidthsinc.append(sum(self.boxwidths))
                 self.boxwidths.append(minn/self.scale)
             else:
@@ -3181,19 +3255,21 @@ class TABLE(GUI_ITEM):
     def gettableheights(self):
         self.boxheightsinc = [] 
         self.boxheights = []
+        def factor_tileheight(w,obj):
+            return (w-(obj.ontable_tileheight-1)*self.linesize)/obj.ontable_tileheight
         for a in range(len(self.boxheight)):
             if self.boxheight[a] == -1:
                 minn = 0
                 for b in [self.table[a][c] for c in range(len(self.table[0]))]:
                     if type(b) in [BUTTON,TEXT]:
-                        if minn<b.textimage.get_height()+b.verticalspacing*2*self.scale:
-                            minn = b.textimage.get_height()+b.verticalspacing*2*self.scale
+                        if minn<factor_tileheight(b.textimage.get_height()+b.verticalspacing*2*self.scale,b):
+                            minn = factor_tileheight(b.textimage.get_height()+b.verticalspacing*2*self.scale,b)
                     elif type(b) in [TABLE,SCROLLERTABLE,SLIDER]:
-                        if minn<b.height:
-                            minn = b.height*b.scale
+                        if minn<factor_tileheight(b.height*b.scale,b):
+                            minn = factor_tileheight(b.height*b.scale,b)
                     elif type(b) in [DROPDOWN]:
-                        if minn<b.init_height*b.scale:
-                            minn = b.init_height*b.scale
+                        if minn<factor_tileheight(b.init_height*b.scale,b):
+                            minn = factor_tileheight(b.init_height*b.scale,b)
                 self.boxheightsinc.append(sum(self.boxheights))
                 self.boxheights.append(minn/self.scale)
             else:
