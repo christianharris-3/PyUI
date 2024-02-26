@@ -355,7 +355,7 @@ class draw:
                     prev = (round(a[0]),round(a[1]))
             return final
         return curvepoints
-    def roundedline(surf,col,point1,point2,width):
+    def roundedline(surf,col,point1,point2,width,circles=True):
         if point1[0]-point2[0] != 0:
             grad = (point1[1]-point2[1])/(point1[0]-point2[0])
             if grad != 0: invgrad = -1/grad
@@ -368,8 +368,9 @@ class draw:
                   (point2[0]+math.cos(ang)*width,point2[1]+math.sin(ang)*width)]
         pygame.gfxdraw.aapolygon(surf,points,col)
         pygame.gfxdraw.filled_polygon(surf,points,col)
-        draw.circle(surf,col,point1,width)
-        draw.circle(surf,col,point2,width)
+        if circles:
+            draw.circle(surf,col,point1,width)
+            draw.circle(surf,col,point2,width)
     def rect(surf,col,rect,width=0,border_radius=0):
         x,y,w,h = rect
         radius = abs(int(min([border_radius,rect[2]/2,rect[3]/2])))
@@ -383,10 +384,15 @@ class draw:
                 ## catches error with integer overflow when drawn at large coordinates
                 pass
         pygame.draw.rect(surf,col,roundrect(x,y,w,h),int(width),int(border_radius))
-    def circle(surf,col,center,radius):
+    def circle(surf,col,center,radius,width=0):
         try:
             pygame.gfxdraw.aacircle(surf,int(center[0]),int(center[1]),int(radius),col)
-            pygame.gfxdraw.filled_circle(surf,int(center[0]),int(center[1]),int(radius),col)
+            if width == 0:
+                pygame.gfxdraw.filled_circle(surf,int(center[0]),int(center[1]),int(radius),col)
+            else:
+                pygame.draw.circle(surf,col,center,radius,width)
+                pygame.gfxdraw.aacircle(surf,int(center[0]),int(center[1]),int(radius-width),col)
+                
         except:
             ## catches error with integer overflow when drawn at large coordinates
             pass
@@ -397,16 +403,26 @@ class draw:
         if distances!=0:
             if type(distances) == int: distances = [distances for a in range(4)]
             if roundedcorners == -1: roundedcorners=max(distances)
-            if detail == -1: detail=int(max(distances))
             colorkey = (255,255,255)
             if col == colorkey: colorkey = (0,0,0)
-            if len(col) == 3: col = [col[0],col[1],col[2],shade/detail]
+            
+            if len(col) == 3: col = [col[0],col[1],col[2],1]
             else: shade = col[3]
-            for a in range(detail,0,-1):
+
+            if detail == -1:
+                detail = int(shade)
+                col[3] = 1
+            count = detail
+##            for a in range(detail,0,-1):
+            a = detail
+            for r in range(shade):
+                while a>(1-r/shade)*detail:
+                    a-=1
                 w = rect.width+(a/detail)*(distances[1]+distances[3])
                 h = rect.height+(a/detail)*(distances[0]+distances[2])
                 rec = pygame.Surface((w,h),pygame.SRCALPHA)
                 pygame.draw.rect(rec,col,pygame.Rect(0,0,w,h),0,int(roundedcorners-(1-a/detail)*distances[0]))
+##                print(rec,(rect.x-(a/detail)*distances[3],rect.y-(a/detail)*distances[0]))
                 surf.blit(rec,(rect.x-(a/detail)*distances[3],rect.y-(a/detail)*distances[0]))
     def pichart(surf,center,radius,col,ang1,ang2=0,innercol=-1,border=2):
         draw.circle(surf,col,[center[0],center[1]],radius)
@@ -2224,7 +2240,7 @@ class GUI_ITEM:
     def refreshglow(self):
         if self.glow!=0:
             self.glowimage = pygame.Surface(((self.glow*2+self.width)*self.scale,(self.glow*2+self.height)*self.scale),pygame.SRCALPHA)
-            draw.glow(self.glowimage,roundrect(self.glow*self.scale,self.glow*self.scale,self.width*self.scale,self.height*self.scale),self.glow,self.glowcol)
+            draw.glow(self.glowimage,roundrect(self.glow*self.scale,self.glow*self.scale,self.width*self.scale,self.height*self.scale),int(self.glow*self.scale),self.glowcol)
     def refreshbound(self):
         for a in self.refreshbind:
             if a in self.ui.IDs:
