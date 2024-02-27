@@ -36,6 +36,7 @@ class emptyobject:
         self.dirscale = [1,1]
         self.empty = True
         self.active = False
+        self.scroll = 0
     def getenabled(self):
         return True
     
@@ -696,12 +697,9 @@ class UI:
                 elif event.type == pygame.MOUSEWHEEL:
                     moved = False
                     for a in self.textboxes:
-                        if a.scrolleron and a.selected and self.activemenu == a.getmenu():
-                            if a.pageheight<(a.maxp-a.minp):
-                                a.scroller.scroll-=(event.y*min((a.scroller.maxp-a.scroller.minp)/20,self.scrolllimit))
-                                a.scroller.limitpos()
-                                a.scroller.command()
-                                moved = True
+                        if a.selected and self.activemenu == a.getmenu():
+                            if a.scroll_input(event.y):
+                                moved = True 
                     if not moved:
                         scrollable = []
                         for a in self.scrollers:
@@ -1475,8 +1473,8 @@ class UI:
                  anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,img='none',textsize=-1,font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,rightborder=-1,leftborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=-1,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,backingcol=-1,hovercol=-1,clickdownsize=4,clicktype=0,textoffsetx=-1,textoffsety=-1,
-                 colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,
-                 linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=-1,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,allowedcharacters='',
+                 colorkey=-1,spacing=-1,verticalspacing=-1,horizontalspacing=-1,clickablerect=-1,attachscroller=True,intscroller=False,minint=-math.inf,maxint=math.inf,intwraparound=False,
+                 linelimit=-1,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=-1,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,allowedcharacters='',
                  backingdraw=-1,borderdraw=-1,refreshbind=[]):
         
         if col == -1: col = Style.objectdefaults[TEXTBOX]['col']
@@ -1486,7 +1484,7 @@ class UI:
                  anchor=anchor,objanchor=objanchor,center=center,centery=centery,text=text,textsize=textsize,img=img,font=font,bold=bold,antialiasing=antialiasing,pregenerated=pregenerated,enabled=enabled,
                  border=border,upperborder=upperborder,lowerborder=lowerborder,rightborder=rightborder,leftborder=leftborder,scalesize=scalesize,scalex=scalex,scaley=scaley,scaleby=scaleby,glow=glow,glowcol=glowcol,
                  command=command,runcommandat=runcommandat,col=col,textcol=textcol,backingcol=backingcol,hovercol=hovercol,clickdownsize=clickdownsize,clicktype=clicktype,textoffsetx=textoffsetx,textoffsety=textoffsety,
-                 colorkey=colorkey,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,
+                 colorkey=colorkey,spacing=spacing,verticalspacing=verticalspacing,horizontalspacing=horizontalspacing,clickablerect=clickablerect,attachscroller=attachscroller,intscroller=intscroller,minp=minint,maxp=maxint,intwraparound=intwraparound,
                  lines=lines,linelimit=linelimit,selectcol=selectcol,selectbordersize=selectbordersize,selectshrinksize=selectshrinksize,cursorsize=cursorsize,textcenter=textcenter,chrlimit=chrlimit,numsonly=numsonly,enterreturns=enterreturns,commandifenter=commandifenter,commandifkey=commandifkey,imgdisplay=imgdisplay,allowedcharacters=allowedcharacters,
                  backingdraw=backingdraw,borderdraw=borderdraw,refreshbind=refreshbind)
         return obj
@@ -1973,7 +1971,7 @@ def filloutargs(args):
     newargs = todict(menu='main',ID='',layer=1,bounditems=[],refreshbind=[],killtime=-1,scaleby=-1,
                 text='',img='none',pregenerated=True,enabled=True,command=emptyfunction,runcommandat=0,
                 dragable=False,toggle=True,toggleable=False,toggletext=-1,toggleimg='none',bindtoggle=[],clickablerect=-1,
-                linelimit=100,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,allowedcharacters='',
+                linelimit=-1,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=False,allowedcharacters='',attachscroller=True,intscroller=False,intwraparound=False,
                 data='empty',titles=[],boxwidth=-1,boxheight=-1,pageheight=15,scrollcords=(0,0),scrollbind=[],screencompressed=False,
                 sliderroundedcorners=-1,minp=0,maxp=100,startp=0,direction='horizontal',behindmenu='main',scroller=0,compress=False,
                 options=[],startoptionindex=0,animationtype='movedown',dropsdown=True,autoshutwindows=[],presskeys=[],splitcellchar='M')
@@ -2118,6 +2116,12 @@ class GUI_ITEM:
 
         self.lines = args['lines']
         self.linelimit = args['linelimit']
+        self.attachscroller = args['attachscroller']
+        if self.linelimit == -1:
+            if self.attachscroller: self.linelimit = 100
+            else: self.linelimit = self.lines
+        self.intscroller = args['intscroller']
+        self.intwraparound = args['intwraparound']
         self.selectbordersize = args['selectbordersize']
         self.selectshrinksize = args['selectshrinksize']
         self.cursorsize = args['cursorsize']
@@ -2610,6 +2614,8 @@ class TEXTBOX(GUI_ITEM):
         self.typeline=0
         self.scrolleron=False
         self.slider = -1
+        self.previntscrollerhoff = 0
+        self.undochain = [(self.text,self.typingcursor)]
     def child_autoscale(self):
         heightgetter = self.ui.rendertext('Tg',self.textsize,self.textcol,self.font,self.bold)
         if self.height == -1:
@@ -2623,6 +2629,42 @@ class TEXTBOX(GUI_ITEM):
             a.selected = False
         self.ui.selectedtextbox = self.ui.textboxes.index(self)
         self.selected = True
+    def undo(self,refresh=True):
+        while self.undochain[-1][0] == self.text:
+            del self.undochain[-1]
+        self.text = self.undochain[-1][0]
+        self.typingcursor = self.undochain[-1][1]
+        if refresh:
+            self.refresh()
+    def scroll_input(self,scroll_size):
+        if self.scrolleron and self.attachscroller:
+            if self.pageheight<(self.maxp-self.minp):
+                self.scroller.scroll-=(scroll_size*min((self.scroller.maxp-self.scroller.minp)/20,self.ui.scrolllimit))
+                self.scroller.limitpos()
+                self.scroller.command()
+                return True
+        elif self.intscroller:
+            return self.change_textnum(scroll_size)
+        return False
+    def change_textnum(self,change):
+        try:
+            if '.' in self.text:
+                val = float(self.text)
+            else:
+                val = int(self.text)
+        except Exception as e:
+            return False
+        val+=change
+        if self.intwraparound:
+            val = (val-self.minp)%(self.maxp-self.minp+1)+self.minp
+        else:
+            if val<self.minp: val = self.minp
+            elif val>self.maxp: val = self.maxp
+        
+        self.text = str(round(val,14))
+        self.refresh()
+        return True
+    
     def settext(self,text=''):
         self.text = text
         self.refresh()
@@ -2648,6 +2690,12 @@ class TEXTBOX(GUI_ITEM):
             if ctrl:
                 if chr(event.key) == 'a':
                     self.textselected = [True,0,len(self.chrcorddata)]
+                elif chr(event.key) == 'x':
+                    delete = True
+                elif chr(event.key) == 'z':
+                    if len(self.undochain)>1:
+                        self.undo(False)
+                        del self.undochain[-1]
                 elif chr(event.key) == 'c':
                     pygame.scrap.put('text/plain;charset=utf-8',self.text.encode())
                 elif chr(event.key) == 'v':
@@ -2735,16 +2783,20 @@ class TEXTBOX(GUI_ITEM):
             self.updateslider()
         else:
             self.refreshcursor()
+        self.undochain.append((self.text,self.typingcursor))
    
     def resetscroller(self):
         self.scroll = 0
-        if self.scroller != 0:
-            self.bounditems.remove(self.scroller)
-            ui.delete(self.scroller.ID,False)
-            
-        self.scroller = self.ui.makescroller(-self.rightborder-15+self.border/2,self.upperborder,self.height-self.upperborder-self.lowerborder,emptyfunction,15,0,self.height-self.upperborder-self.lowerborder,self.height,anchor=('w',0),
-                                             menu=self.menu,roundedcorners=self.roundedcorners,col=self.col,scalesize=self.scalesize,scaley=self.scalesize,scalex=self.scalesize,scaleby=self.scaleby)
-        self.binditem(self.scroller)
+        if self.attachscroller:
+            if self.scroller != 0:
+                self.bounditems.remove(self.scroller)
+                ui.delete(self.scroller.ID,False)
+                
+            self.scroller = self.ui.makescroller(-self.rightborder-15+self.border/2,self.upperborder,self.height-self.upperborder-self.lowerborder,emptyfunction,15,0,self.height-self.upperborder-self.lowerborder,self.height,anchor=('w',0),
+                                                 menu=self.menu,roundedcorners=self.roundedcorners,col=self.col,scalesize=self.scalesize,scaley=self.scalesize,scalex=self.scalesize,scaleby=self.scaleby)
+            self.binditem(self.scroller)
+        else:
+            self.scroller = emptyobject(0,0,0,0)
     def updateslider(self):
         if self.slider != -1:
             try:
@@ -2757,23 +2809,25 @@ class TEXTBOX(GUI_ITEM):
         self.refreshscale()
         self.gentext()
         self.refreshcursor()
-        self.refreshscroller()
         
-        self.scroller.setmaxp((self.textimage.get_height())/self.scale+self.verticalspacing*2-1)
-        self.scroller.setheight(self.height-self.upperborder-self.lowerborder)
-        self.scroller.setpageheight(self.height-self.upperborder-self.lowerborder)
-        self.scroller.menu = self.menu
-        self.scroller.scalesize = self.scalesize
-        self.scroller.scalex = self.scalesize
-        self.scroller.scaley = self.scalesize
-        self.scroller.refresh()
-        if (self.scroller.maxp-self.scroller.minp)>self.scroller.pageheight:
-            self.scrolleron = True
-            if self.scroller.scroll>self.scroller.maxp-self.scroller.pageheight:
-                self.scroller.scroll = self.scroller.maxp-self.scroller.pageheight
-        else:
-            self.scrolleron = False
-        self.scroller.refresh()
+        if self.attachscroller:
+            self.refreshscroller()
+            self.scroller.setmaxp((self.textimage.get_height())/self.scale+self.verticalspacing*2-1)
+            self.scroller.setheight(self.height-self.upperborder-self.lowerborder)
+            self.scroller.setpageheight(self.height-self.upperborder-self.lowerborder)
+            self.scroller.menu = self.menu
+            self.scroller.scalesize = self.scalesize
+            self.scroller.scalex = self.scalesize
+            self.scroller.scaley = self.scalesize
+            self.scroller.refresh()
+            if (self.scroller.maxp-self.scroller.minp)>self.scroller.pageheight:
+                self.scrolleron = True
+                if self.scroller.scroll>self.scroller.maxp-self.scroller.pageheight:
+                    self.scroller.scroll = self.scroller.maxp-self.scroller.pageheight
+            else:
+                self.scrolleron = False
+            self.scroller.refresh()
+            
         self.resetcords()
         self.refreshglow()
         self.refreshbound()
@@ -2791,6 +2845,9 @@ class TEXTBOX(GUI_ITEM):
         self.textimagerect.width/=self.ui.scale
         self.textimagerect.height/=self.ui.scale
         if refcurse: self.refreshcursor()
+
+        if len(self.chrcorddata)<len(self.text):
+            self.undo()
       
     def refreshcursor(self):
         if self.typingcursor>len(self.chrcorddata)-1: self.typingcursor=len(self.chrcorddata)-1
@@ -2805,26 +2862,27 @@ class TEXTBOX(GUI_ITEM):
         if self.textselected[2]>len(self.chrcorddata): self.textselected[2]=len(self.chrcorddata)
         elif self.textselected[2]<0: self.textselected[2] = 0
     def refreshscroller(self):
-        self.scroller.setheight(self.height-self.upperborder-self.lowerborder)
-        self.scroller.setpageheight(self.height-self.upperborder-self.lowerborder)
-        self.scroller.refresh()
-        inc = 0
-        if self.linecenter[1]-self.scroller.scroll>self.scroller.height:
-            inc = self.textsize
-        if self.linecenter[1]-self.scroller.scroll<0:
-            inc = -self.textsize
-        count = 0
-        while inc!=0:
-            self.scroller.scroll+=inc
-            count+=1
-            if not(self.linecenter[1]-self.scroller.scroll<0 or self.linecenter[1]-self.scroller.scroll>self.height-self.upperborder-self.lowerborder):
-                inc = 0
-            if count>20:
-                break
-        if self.scrolleron:
-            self.scroller.limitpos()
-        else:
-            self.scroller.scroll = self.scroller.minp
+        if self.attachscroller:
+            self.scroller.setheight(self.height-self.upperborder-self.lowerborder)
+            self.scroller.setpageheight(self.height-self.upperborder-self.lowerborder)
+            self.scroller.refresh()
+            inc = 0
+            if self.linecenter[1]-self.scroller.scroll>self.scroller.height:
+                inc = self.textsize
+            if self.linecenter[1]-self.scroller.scroll<0:
+                inc = -self.textsize
+            count = 0
+            while inc!=0:
+                self.scroller.scroll+=inc
+                count+=1
+                if not(self.linecenter[1]-self.scroller.scroll<0 or self.linecenter[1]-self.scroller.scroll>self.height-self.upperborder-self.lowerborder):
+                    inc = 0
+                if count>20:
+                    break
+            if self.scrolleron:
+                self.scroller.limitpos()
+            else:
+                self.scroller.scroll = self.scroller.minp
     def child_refreshcords(self):
         if self.scroller != 0:
             self.refreshscroller()
@@ -2864,13 +2922,22 @@ class TEXTBOX(GUI_ITEM):
 
         if self.ui.mprs[self.clicktype] and self.ui.mouseheld[self.clicktype][1] != self.ui.buttondowntimer and self.clickstartedinbound:
             self.textselected[2] = min([max([self.findclickloc(mpos)+1,0]),len(self.chrcorddata)])
-            if self.scrolleron:
-                if mpos[1]<self.y*self.dirscale[1]+self.upperborder*self.scale:
-                    self.scroller.scroll+=(mpos[1]-(self.y*self.dirscale[1]+self.upperborder*self.scale))/10
+            hoff = 0
+            if mpos[1]<self.y*self.dirscale[1]+self.upperborder*self.scale:
+                hoff = (mpos[1]-(self.y*self.dirscale[1]+self.upperborder*self.scale))
+            elif mpos[1]>self.y*self.dirscale[1]+(self.height-self.lowerborder)*self.scale:
+                hoff = (mpos[1]-(self.y*self.dirscale[1]+(self.height-self.lowerborder)*self.scale))
+            if hoff!=0:
+                if self.scrolleron:
+                    self.scroller.scroll+=hoff/10
                     self.scroller.limitpos()
-                elif mpos[1]>self.y*self.dirscale[1]+(self.height-self.lowerborder)*self.scale:
-                    self.scroller.scroll+=(mpos[1]-(self.y*self.dirscale[1]+(self.height-self.lowerborder)*self.scale))/10
-                    self.scroller.limitpos()
+            
+            hoff = int((self.ui.mpos[1]-self.selectrect.y-self.holdingcords[1])/10)
+            if self.intscroller:
+                self.change_textnum(self.previntscrollerhoff-hoff)
+            self.previntscrollerhoff = hoff
+        else:
+            self.previntscrollerhoff = 0
         if not self.ui.mprs[self.clicktype]:
             self.clickstartedinbound = False
         return False
@@ -3771,7 +3838,7 @@ class SLIDER(GUI_ITEM):
                     w = (self.width-self.leftborder-self.rightborder)-2*(self.roundedcorners-abs(int(min([self.roundedcorners,h/2]))))
                     draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+self.upperborder*self.scale,w*self.scale,h*self.scale),border_radius=int(self.roundedcorners*self.scale))
                 else:
-                    w = ((self.width-self.leftborderself.rightborder-self.button.width*self.containedslider)*((self.slider-self.minp)/(self.maxp-self.minp))+self.button.width*self.containedslider)
+                    w = ((self.width-self.leftborder-self.rightborder-self.button.width*self.containedslider)*((self.slider-self.minp)/(self.maxp-self.minp))+self.button.width*self.containedslider)
                     h = (self.height-self.upperborder-self.lowerborder)-2*(self.roundedcorners-abs(int(min([self.roundedcorners,w/2]))))
                     draw.rect(screen,self.col,roundrect(self.x*self.dirscale[0]+self.leftborder*self.scale,self.y*self.dirscale[1]+(self.height-h)/2*self.scale,w*self.scale,h*self.scale),border_radius=int(self.roundedcorners*self.scale))
 
