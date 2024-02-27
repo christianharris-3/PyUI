@@ -477,11 +477,16 @@ command=lambda: testfunction('function arguements')
 - **cursorsize**-***int*** = Size in pixels of the cursor, defaults to textsize.
 - **textcenter**-***bool*** = Dictates if the text is centered on each line.
 - **chrlimit**-***int*** = The charcter limit in the text.
-- **numsonly**-***bool*** = Blocks all characters except numbers.
+- **numsonly**-***bool*** = Only allows numbers to be typed, filter works by attempting to turn the text into a float meaning any string that can be passed to the float() function is allowed.
 - **enterreturns**-***bool*** = Controls if enter starts a new line (quite broken dont use).
 - **commandifenter**-***bool*** = Controls if the enter key runs the command.
 - **commandifkey**-***bool*** = Controls if any key input runs the command.
-- **imgdisplay**-***bool*** = Controls if the [in build image system](#In-built-images) runs inside of the textbox(can be quite laggy if too much text+in built images when editing text). 
+- **imgdisplay**-***bool*** = Controls if the [in build image system](#In-built-images) runs inside of the textbox (can be quite laggy if too much text+in built images when editing text).
+- **attachscroller**-***bool*** = If False the automaticly added scroller is removed entirely, defaults to True.
+- **intscroller**-***bool*** = If the number is float or int (can be enforced with numsonly variable) and the scroller on the textbox is inactive, the scrollwheel can be used to increase/decrease the value. As well as this if the textbox is clicked and the mouse moved up/down the value will also increase/decrease.
+- **minint**-***int/float*** = Sets a minimum value that the texts number value can be. Default is negative infinity, meaning no minimum value.
+- **maxint**-***int/float*** = Sets a maximum value that the texts number value can be. Default is infinity, meaning no maximum value.
+- **intwraparound**-***bool*** = Toggles if when using intscroller if the number gets larger than maxint/smaller than minint it wraps round to be minint/maxint.
 
 ### Table specific
 - **data**-***list[list[int/str/button/textbox/text/table/slider/pygame.Surface]]*** = A 2D list containing all of the info the body of the table, each item can be a variety of data types. The format is each inner list is a row in the table.
