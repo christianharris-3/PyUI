@@ -1822,7 +1822,7 @@ class UI:
                 delete.append(a.ID)
         for a in delete:
             self.delete(a)
-    def makeanimation(self,animateID,startpos,endpos,movetype='linear',length='default',command=emptyfunction,runcommandat=-1,queued=True,menu=False,relativemove=False,skiptoscreen=False,acceleration=1,permamove=False,ID='default'):
+    def makeanimation(self,animateID,startpos,endpos,movetype='linear',length='default',command=emptyfunction,runcommandat=-1,queued=True,menu=False,relativemove=False,skiptoscreen=False,acceleration=1,permamove=True,ID='default'):
         if length == 'default':
             length = Style.defaults['animationspeed']
         if menu:
@@ -2646,7 +2646,7 @@ class TEXTBOX(GUI_ITEM):
         elif self.intscroller:
             return self.change_textnum(scroll_size)
         return False
-    def change_textnum(self,change):
+    def change_textnum(self,change,refresh=True,wraparound=True):
         try:
             if '.' in self.text:
                 val = float(self.text)
@@ -2655,14 +2655,14 @@ class TEXTBOX(GUI_ITEM):
         except Exception as e:
             return False
         val+=change
-        if self.intwraparound:
+        if self.intwraparound and wraparound:
             val = (val-self.minp)%(self.maxp-self.minp+1)+self.minp
         else:
             if val<self.minp: val = self.minp
             elif val>self.maxp: val = self.maxp
         
         self.text = str(round(val,14))
-        self.refresh()
+        if refresh: self.refresh()
         return True
     
     def settext(self,text=''):
@@ -2756,6 +2756,7 @@ class TEXTBOX(GUI_ITEM):
                 if (not(self.numsonly) or num):
                     self.text = self.text[:self.typingcursor+1]+item+self.text[self.typingcursor+1:]
                     self.typingcursor+=len(item)
+                    self.change_textnum(0,False,False)
             if backspace:
                 if self.typingcursor>-1:
                     self.typingcursor-=1
@@ -3878,10 +3879,12 @@ class WINDOWEDMENU(GUI_ITEM):
 
 class MENU(GUI_ITEM):
     def reset(self):
+        self.refreshscale()
+        self.resetcords()
         self.scalesize = False
     def refresh(self):
         self.refreshscale()
-        self.refreshcords()
+        self.resetcords()
         self.startwidth = self.ui.screenw
         self.startheight = self.ui.screenh
         self.width = self.ui.screenw
@@ -4166,15 +4169,18 @@ class ANIMATION:
             self.timetracker+=1
         self.timetracker+=self.ui.deltatime
         new = round(self.timetracker)
-        for a in range(prev,new):
-            if self.move1frame():
+        diff = new-prev
+        if diff>0:
+            if self.moveframes(diff):
                 return True
         return False
-    def move1frame(self):
+    def moveframes(self,frames=1):
         if not self.animateID in self.ui.IDs:
             return True
-        self.wait-=1
-        if self.wait == 0:
+        
+        self.wait-=frames
+        
+        if self.wait == 0 or (self.wait<0 and self.wait+frames>0):
             sp,ep = False,False
             if self.startpos == 'current':
                 sp = True
@@ -4189,7 +4195,8 @@ class ANIMATION:
                     self.startpos = ((self.startpos[0]+self.endpos[0]),(self.startpos[1]+self.endpos[1]))
             self.trueendpos = self.endpos[:]
             self.gencordlist()
-        if self.wait<1:
+            
+        if self.wait<=0:
             if self.progress<self.length:
                 self.ui.IDs[self.animateID].smartcords(self.cordlist[self.progress][0],self.cordlist[self.progress][1],self.permamove)
                 if type(self.ui.IDs[self.animateID]) in [TABLE,TEXTBOX,TEXT,SCROLLER,SLIDER,WINDOWEDMENU,MENU]:
@@ -4200,8 +4207,9 @@ class ANIMATION:
 
             if self.progress == self.runcommandat or (type(self.runcommandat)==list and self.progress in self.runcommandat):
                 self.command()
-            self.progress+=1
+            self.progress+=frames
             if self.progress >= self.length:
+                self.progress = self.length
                 self.finish()
                 return True
         return False
