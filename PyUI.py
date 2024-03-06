@@ -409,12 +409,14 @@ class draw:
             
             if len(col) == 3: col = [col[0],col[1],col[2],1]
             else: shade = col[3]
+            shade = round(shade)
 
             if detail == -1:
                 detail = int(shade)
+                col = list(col)
                 col[3] = 1
             count = detail
-##            for a in range(detail,0,-1):
+            
             a = detail
             for r in range(shade):
                 while a>(1-r/shade)*detail:
@@ -560,6 +562,12 @@ class UI:
         for a in marked:
             if a.split('_')[0] in UI.objectkey:
                 Style.objectdefaults[UI.objectkey[a.split('_')[0]]][a.split('_',1)[1]] = args[a]
+    def styleget(self,var):
+        split = var.split('_')
+        if split[0] in UI.objectkey:
+            return Style.objectdefaults[UI.objectkey[split[0]]][split[1]]
+        else:
+            return Style.defaults[split[0]]
         
                     
     def styleload_soundium(self): self.styleset(col=(16,163,127),textcol=(255,255,255),wallpapercol=(62,63,75),textsize=24,roundedcorners=5,spacing=5,clickdownsize=2,scalesize=False)
@@ -2684,7 +2692,7 @@ class TEXTBOX(GUI_ITEM):
         delete = False
         esc = False
         enter = False
-        unicodechrs = '''#',-./0123456789;=[\]`'''
+        unicodechrs = '''#',-./0123456789;=[\\]`'''
         shiftunicodechrs = '''~@<_>?)!"£$%^&*(:+{|}¬'''
         if event.key>32 and event.key<127:
             if ctrl:
@@ -3108,17 +3116,23 @@ class TABLE(GUI_ITEM):
             self.preprocessed[a] = seperate(self.preprocessed[a],self.columns,self.splitcellchar)
 
 
-        try:
+        if len(self.preprocessed)>0 and len(self.preprocessed[0])>0:
             grabber = self.preprocessed[0][0]
             pos = [0,0]
             while grabber == self.splitcellchar:
+                prev = pos[:]
                 pos[0] = (pos[0]+1)
                 pos[1] += pos[0]//len(self.preprocessed[0])
-                pos[0]%len(self.preprocessed[0])
-                grabber = self.preprocessed[pos[1]][pos[0]]
+                pos[0]%=len(self.preprocessed[0])
+                if pos[1]<len(self.preprocessed) and pos[0]<len(self.preprocessed[pos[1]]):
+                    grabber = self.preprocessed[pos[1]][pos[0]]
+                else:
+                    grabber = ''
+                    pos = prev[:]
             self.preprocessed[pos[1]][pos[0]] = self.splitcellchar
             self.preprocessed[0][0] = grabber
-        except: return
+##        except Exception as e:
+##            return
 
         self.cellreferencemap = [[-1 if self.preprocessed[y][x] == self.splitcellchar else (x,y) for x in range(self.columns)] for y in range(self.rows)]
         
@@ -3763,7 +3777,9 @@ class SLIDER(GUI_ITEM):
         
     def getslidercenter(self):
         offset = 0
-        if self.containedslider: offset = self.button.width/2
+        if self.containedslider:
+            if type(self.data) == BUTTON: offset = self.data.width/2
+            else: offset = self.slidersize/2
         if self.maxp-self.minp != 0: pos = (self.slider-self.minp)/(self.maxp-self.minp)
         else: pos = 0
             
