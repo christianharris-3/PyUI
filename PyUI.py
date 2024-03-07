@@ -4056,7 +4056,7 @@ class WINDOW(GUI_ITEM):
     def refreshnoclickrect(self):
         # Rect,IDs,menu,whitelist (true=all objects in list blocked by noclickrect)
         if self.enabled:
-            self.noclickrect = [(pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.getchildIDs(),self.menu,False)]
+            self.noclickrect = [(pygame.Rect(self.x*self.dirscale[0],self.y*self.dirscale[1],self.width*self.scale,self.height*self.scale),self.getchildIDs(),self.getmenu(),False)]
         else:
             self.noclickrect = []
     def binditem(self,obj):
