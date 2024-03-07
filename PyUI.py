@@ -1755,7 +1755,7 @@ class UI:
             obj.table = table
             obj.refreshoptions()
             
-            window = self.makewindow(0,obj.height,f'ui.IDs["{obj.ID}"].width',f'ui.IDs["{table.ID}"].getheight()+{border}*2',enabled=False,animationspeed=animationspeed,animationtype=animationtype)
+            window = self.makewindow(0,obj.height,f'ui.IDs["{obj.ID}"].width',f'ui.IDs["{table.ID}"].getheight()+{border}*2',menu=menu,enabled=False,animationspeed=animationspeed,animationtype=animationtype)
             obj.binditem(window)
             window.binditem(table)
             if width == -1: nwidth = (max([a[0].textimage.get_width() for a in table.table])+(obj.width-obj.leftborder-obj.rightborder)+border*5)
@@ -1960,6 +1960,7 @@ class UI:
             elif type(self.IDs[ID]) == RECT: self.rects.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == MENU: self.automenus.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == WINDOW: self.windows.remove(self.IDs[ID])
+            elif type(self.IDs[ID]) == WINDOWEDMENU: self.windowedmenus.remove(self.IDs[ID])
             del self.IDs[ID]
             self.refreshitems()
             return True
