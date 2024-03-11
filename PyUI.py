@@ -2771,7 +2771,7 @@ class TEXTBOX(GUI_ITEM):
                     self.typingcursor-=1
                 if self.text[self.typingcursor:self.typingcursor+2] == '\n':
                     self.text = self.text[:self.typingcursor]+self.text[self.typingcursor+2:]
-                    self.typingcursor-=1
+                    self.typingcursor-=1 
                 else: self.text = self.text[:self.typingcursor+1]+self.text[self.typingcursor+2:]
             elif delete:
                 if self.text[self.typingcursor:self.typingcursor+2] == '\n':
@@ -3570,25 +3570,34 @@ class DROPDOWN(BUTTON):
             index = self.options.index(self.active)
             index = (index+1)%len(self.options)
             self.optionclicked(index)
-    def optionclicked(self,index):
+    def optionclicked(self,index,command=True):
         self.active = self.options[index]
         if self.dropsdown:
             self.titletext.settext(self.options[index])
             self.window.shut('compressup')
         else:
             self.settext(self.options[index])
-        self.truecommand()
+        if command:
+            self.truecommand()
     def refreshoptions(self):
-        data = []
-        for i,a in enumerate(self.options):
-            func = funcer(self.optionclicked,index=i)
-            data.append([self.ui.makebutton(0,0,a,self.textsize,font=self.font,bold=self.bold,textcol=self.textcol,col=self.col,roundedcorners=self.roundedcorners,command=func.func)])
-        self.table.data = data
-        self.table.refresh()
+        if self.dropsdown:
+            data = []
+            for i,a in enumerate(self.options):
+                func = funcer(self.optionclicked,index=i)
+                data.append([self.ui.makebutton(0,0,a,self.textsize,font=self.font,bold=self.bold,textcol=self.textcol,col=self.col,roundedcorners=self.roundedcorners,command=func.func)])
+            self.table.data = data
+            self.table.refresh()
+            
+        
     def setoptions(self,options):
         self.options = options
         self.refreshoptions()
-        self.window.child_autoscale()
+        if not self.active in options:
+            self.optionclicked(0,False)
+        else:
+            self.optionclicked(options.index(self.active),False)
+        if self.dropsdown:
+            self.window.child_autoscale()
         self.refresh()
 
     def child_refreshcords(self):
