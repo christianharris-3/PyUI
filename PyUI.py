@@ -1952,7 +1952,15 @@ class UI:
             for a in delids:
                 self.delete(a,failmessage)
             if type(self.IDs[ID]) == BUTTON: self.buttons.remove(self.IDs[ID])
-            elif type(self.IDs[ID]) == TEXTBOX: self.textboxes.remove(self.IDs[ID])
+            elif type(self.IDs[ID]) == TEXTBOX:
+                selected = -1
+                if self.selectedtextbox != -1:
+                    selected = self.textboxes[self.selectedtextbox]
+                self.textboxes.remove(self.IDs[ID])
+                if selected in self.textboxes:
+                    self.selectedtextbox = self.textboxes.index(selected)
+                else:
+                    self.selectedtextbox = -1
             elif type(self.IDs[ID]) in [TABLE,SCROLLERTABLE]: self.tables.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == DROPDOWN: self.dropdowns.remove(self.IDs[ID])
             elif type(self.IDs[ID]) == TEXT: self.texts.remove(self.IDs[ID])
