@@ -3522,7 +3522,10 @@ class SCROLLERTABLE(TABLE):
             reduce = 0
             if len(self.titles) != 0:
                 reduce = (self.linesize+self.boxheights[0])
-            self.ui.drawtosurf(screen,alltable,self.backingcol,self.x*self.dirscale[0]+self.linesize*self.scale,self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,(self.x*self.dirscale[0]+self.linesize*self.scale,self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,(self.width-self.linesize*2)*self.scale,min(self.height-self.linesize*2-reduce,self.scroller.pageheight-self.linesize*2-reduce)*self.scale),'render',self.roundedcorners)
+            self.ui.drawtosurf(screen,alltable,self.backingcol,self.x*self.dirscale[0]+self.linesize*self.scale,self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,
+                               (self.x*self.dirscale[0]+self.linesize*self.scale,self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,
+                                (self.width-self.linesize*2)*self.scale,min(self.height-self.linesize*2-reduce,self.scroller.pageheight-self.linesize*2-reduce)*self.scale),
+                               'render',self.roundedcorners)
     def smartdraw(self,screen):
         self.child_render(screen)
             
@@ -3535,7 +3538,10 @@ class SCROLLERTABLE(TABLE):
         reduce = 0
         if len(self.titles) != 0:
             reduce = (self.linesize+self.boxheights[0])
-            self.ui.drawtosurf(screen,alltable,self.backingcol,self.x*self.dirscale[0]+self.linesize*self.scale,self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,(self.x*self.dirscale[0]+self.linesize*self.scale,self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,(self.width-self.linesize*2)*self.scale,min(self.height-self.linesize*2-reduce,self.scroller.pageheight-self.linesize*2-reduce)*self.scale),'draw',self.roundedcorners)
+            self.ui.drawtosurf(screen,alltable,self.backingcol,self.x*self.dirscale[0]+self.linesize*self.scale,self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,
+                               (self.x*self.dirscale[0]+self.linesize*self.scale,self.y*self.dirscale[1]+(self.linesize+reduce)*self.scale,
+                                (self.width-self.linesize*2)*self.scale,min(self.height-self.linesize*2-reduce,self.scroller.pageheight-self.linesize*2-reduce)*self.scale),
+                               'draw',self.roundedcorners)
 
     def scrollerblocks(self,scroller):
         scroller.limitpos()
@@ -3543,6 +3549,9 @@ class SCROLLERTABLE(TABLE):
         for a in alltable:
             self.ui.IDs[a].scrollcords = (0,scroller.scroll)
             self.ui.IDs[a].resetcords()
+    def setscroll(self,scroll):
+        self.scroller.setscroll(scroll)
+        self.scrollerblocks(self.scroller)
     def getheight(self):
         return min(self.height,self.pageheight)
     def refresh(self):
