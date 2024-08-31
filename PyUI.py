@@ -1636,8 +1636,8 @@ class UI:
                  anchor=(0,0),objanchor=(0,0),center=-1,centery=-1,img='none',textsize=-1,font=-1,bold=-1,antialiasing=-1,pregenerated=True,enabled=True,
                  border=3,upperborder=-1,lowerborder=-1,scalesize=-1,scalex=-1,scaley=-1,scaleby=-1,glow=0,glowcol=-1,
                  runcommandat=0,col=-1,textcol=-1,titletextcol=-1,backingcol=-1,hovercol=-1,clickdownsize=-1,clicktype=0,textoffsetx=-1,textoffsety=-1,
-                 colorkey=-1,spacing=-1,verticalspacing=1,horizontalspacing=4,clickablerect=-1,
-                 linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=-1,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=-1,
+                 colorkey=-1,spacing=-1,verticalspacing=2,horizontalspacing=4,clickablerect=-1,attachscroller=True,intscroller=False,minint=-math.inf,maxint=math.inf,intwraparound=False,
+                 linelimit=100,selectcol=-1,selectbordersize=2,selectshrinksize=0,cursorsize=-1,textcenter=-1,chrlimit=10000,numsonly=False,enterreturns=False,commandifenter=True,commandifkey=False,imgdisplay=-1,allowedcharacters='',
                  backingdraw=-1,borderdraw=-1,refreshbind=[]):
 
         if titletextcol == -1: titletextcol = textcol
@@ -1664,8 +1664,8 @@ class UI:
                  anchor,objanchor,center,centery,img,textsize,font,bold,antialiasing,pregenerated,enabled,
                  border,upperborder,lowerborder,bsize*2+border*3,txt.textimage.get_width()+border+horizontalspacing*2,scalesize,scalex,scaley,scaleby,glow,glowcol,
                  runcommandat,col,textcol,backingcol,hovercol,clickdownsize,clicktype,textoffsetx,textoffsety,
-                 colorkey,spacing,verticalspacing,horizontalspacing,clickablerect,
-                 linelimit,selectcol,selectbordersize,selectshrinksize,cursorsize,textcenter,chrlimit,numsonly,enterreturns,commandifenter,commandifkey,imgdisplay,
+                 colorkey,spacing,verticalspacing,horizontalspacing,clickablerect,attachscroller,intscroller,minint,maxint,intwraparound,
+                 linelimit,selectcol,selectbordersize,selectshrinksize,cursorsize,textcenter,chrlimit,numsonly,enterreturns,commandifenter,commandifkey,imgdisplay,allowedcharacters,
                  backingdraw,borderdraw,refreshbind)
 
         cross.command = lambda: obj.settext('')
@@ -2006,7 +2006,6 @@ def filloutargs(args):
                  
 class GUI_ITEM:
     def __init__(self,**args):
-        execs = []
         defaulttype = type(self)
         if 'defaulttype' in args: defaulttype = args['defaulttype']
         for var in Style.objectdefaults[defaulttype]:
@@ -2014,7 +2013,7 @@ class GUI_ITEM:
                 args[var] = Style.objectdefaults[type(self)][var]
             elif args[var] == Style.universaldefaults[var]:
                 args[var] = Style.objectdefaults[type(self)][var]
-            
+       
                 
         args = filloutargs(args)
         ui = args.pop('ui')
@@ -2476,7 +2475,7 @@ class GUI_ITEM:
     def press(self):
         for a in self.bindtoggle:
             if a!=self.ID:
-                self.ui.IDs[a].toggle = False
+                self.ui.IDs[a].toggle = True
         if self.toggleable:
             self.toggle = not self.toggle
         self.command()
