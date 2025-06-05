@@ -2475,7 +2475,7 @@ class GUI_ITEM:
     def press(self):
         for a in self.bindtoggle:
             if a!=self.ID:
-                self.ui.IDs[a].toggle = True
+                self.ui.IDs[a].toggle = False
         if self.toggleable:
             self.toggle = not self.toggle
         self.command()
@@ -2514,7 +2514,7 @@ class GUI_ITEM:
                 self.clickedon = 1
             if self.dragable and drag:
                 if type(self) == SCROLLER: account = [0,-self.border]
-                else: account = [-rect.x+self.x,-rect.y+self.y]
+                else: account = [-rect.x + self.x * self.dirscale[0], -rect.y + self.y * self.dirscale[1]]
                 if smartdrag: self.smartcords((mpos[0]-self.holdingcords[0]+account[0])/self.dirscale[0],(mpos[1]-self.holdingcords[1]+account[1])/self.dirscale[1])
                 else:
                     self.x = (mpos[0]-self.holdingcords[0]+account[0])/self.dirscale[0]
