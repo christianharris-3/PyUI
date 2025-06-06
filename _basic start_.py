@@ -1,4 +1,4 @@
-import pygame,math,random,sys,os
+import pygame
 from UIpygame import PyUI as pyui
 pygame.init()
 screenw = 1200
