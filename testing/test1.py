@@ -1,5 +1,7 @@
 import pygame
-import src.PyUI as pyui
+import src as pyui
+
+print(pyui.ColEdit.shiftcolor((100,120,130),10))
 
 pygame.init()
 screenw = 1200
