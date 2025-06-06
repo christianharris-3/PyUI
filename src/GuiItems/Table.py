@@ -1,4 +1,12 @@
-class TABLE(GUI_ITEM):
+from src.GuiItems.GuiItem import GuiItem
+from src.Utils.Utils import Utils
+from src.Utils.Draw import Draw
+import random
+import threading
+import copy
+import pygame
+
+class Table(GuiItem):
     def reset(self):
         self.startboxwidth = self.boxwidth
         self.startboxheight = self.boxheight
@@ -165,7 +173,7 @@ class TABLE(GUI_ITEM):
                     row.append(row[refrence[0]])
             else:
                 ref = False
-                if type(b) in [BUTTON, TEXTBOX, TEXT, TABLE, SCROLLERTABLE, SLIDER, DROPDOWN]:
+                if type(b) in [Button, Textbox, Text, Table, ScrollerTable, Slider, DropDown]:
                     b.enabled = self.enabled
                     ref = True
                     obj = b
@@ -231,12 +239,12 @@ class TABLE(GUI_ITEM):
             rectsize += 1
         obj.ontable_tileheight = rectsize - y
 
-        if not (type(obj) in [SLIDER, TABLE, SCROLLERTABLE]):
+        if not (type(obj) in [Slider, Table, ScrollerTable]):
             obj.width = bwidth
             obj.height = bheight
             obj.startwidth = bwidth
             obj.startheight = bheight
-        elif type(obj) in [TABLE, SCROLLERTABLE]:
+        elif type(obj) in [Table, ScrollerTable]:
             if obj.width < bwidth:
                 obj.width = bwidth
                 obj.startwidth = bwidth
@@ -250,7 +258,7 @@ class TABLE(GUI_ITEM):
         obj.scaleby = self.scaleby
         obj.tableobject = True
         obj.layer = self.rows - y
-        if type(self) == SCROLLERTABLE:
+        if type(self) == ScrollerTable:
             if y != 0 or len(self.titles) == 0:
                 obj.startclickablerect = self.startclickablerect
                 obj.clickablerect = self.clickablerect
@@ -292,13 +300,13 @@ class TABLE(GUI_ITEM):
                 elif type(a) == int:
                     splitwidth -= a
                 elif type(a) == str:
-                    splitwidth -= relativetoval(a, w, h, self.ui)
+                    splitwidth -= Utils.relativetoval(a, w, h, self.ui)
             for i, a in enumerate(tempboxwidth):
                 if a == -1: tempboxwidth[i] = splitwidth / count
 
         if not (not self.compress and type(self.compress) == bool):
             if type(self.compress) == bool:
-                compress = normalizelist([1 for a in tempboxwidth])
+                compress = Utils.normalizelist([1 for a in tempboxwidth])
                 for i in range(len(compress)):
                     if tempboxwidth[i] == -1:
                         compress[i] = 0
@@ -306,7 +314,7 @@ class TABLE(GUI_ITEM):
                 compress = [0 for a in tempboxwidth]
                 compress[self.compress] = 1
             else:
-                compress = normalizelist(self.compress[:])
+                compress = Utils.normalizelist(self.compress[:])
                 if len(compress) != len(tempboxwidth):
                     raise Exception(f'Wrong length of variable "compress" in object {self.ID}')
             for i in range(len(tempboxwidth)):
@@ -315,7 +323,7 @@ class TABLE(GUI_ITEM):
                                               i]) + f'-(ui.IDs["{self.ID}"].scroller.width+ui.IDs["{self.ID}"].border)*ui.IDs["{self.ID}"].scroller.active*{compress[i]}'
         self.boxwidth = []
         for a in tempboxwidth:
-            self.boxwidth.append(max(relativetoval(a, w, h, self.ui), -1))
+            self.boxwidth.append(max(Utils.relativetoval(a, w, h, self.ui), -1))
         ##
         if self.startboxheight == -1 and self.startheight != -1:
             tempboxheight = [(self.height - self.linesize * (self.rows + 1)) / self.rows for a in range(self.rows)]
@@ -332,7 +340,7 @@ class TABLE(GUI_ITEM):
                 del tempboxheight[-1]
         self.boxheight = []
         for a in tempboxheight:
-            self.boxheight.append(relativetoval(a, w, h, self.ui))
+            self.boxheight.append(Utils.relativetoval(a, w, h, self.ui))
 
     def gettablewidths(self):
         self.boxwidthsinc = []
@@ -345,13 +353,13 @@ class TABLE(GUI_ITEM):
             if self.boxwidth[a] == -1:
                 minn = 0
                 for b in [self.table[c][a] for c in range(len(self.table))]:
-                    if type(b) in [BUTTON, TEXT]:
+                    if type(b) in [Button, Text]:
                         if minn < factor_tilewidth(b.textimage.get_width() + b.horizontalspacing * 2 * self.scale, b):
                             minn = factor_tilewidth(b.textimage.get_width() + b.horizontalspacing * 2 * self.scale, b)
-                    elif type(b) in [TABLE, SCROLLERTABLE, SLIDER]:
+                    elif type(b) in [Table, ScrollerTable, Slider]:
                         if minn < factor_tilewidth(b.width * b.scale, b):
                             minn = factor_tilewidth(b.width * b.scale, b)
-                    elif type(b) in [DROPDOWN]:
+                    elif type(b) in [DropDown]:
                         if minn < factor_tilewidth(b.init_width * b.scale, b):
                             minn = factor_tilewidth(b.init_width * b.scale, b)
                 self.boxwidthsinc.append(sum(self.boxwidths))
@@ -373,13 +381,13 @@ class TABLE(GUI_ITEM):
             if self.boxheight[a] == -1:
                 minn = 0
                 for b in [self.table[a][c] for c in range(len(self.table[0]))]:
-                    if type(b) in [BUTTON, TEXT]:
+                    if type(b) in [Button, Text]:
                         if minn < factor_tileheight(b.textimage.get_height() + b.verticalspacing * 2 * self.scale, b):
                             minn = factor_tileheight(b.textimage.get_height() + b.verticalspacing * 2 * self.scale, b)
-                    elif type(b) in [TABLE, SCROLLERTABLE, SLIDER]:
+                    elif type(b) in [Table, ScrollerTable, Slider]:
                         if minn < factor_tileheight(b.height * b.scale, b):
                             minn = factor_tileheight(b.height * b.scale, b)
-                    elif type(b) in [TEXTBOX, DROPDOWN]:
+                    elif type(b) in [Textbox, DropDown]:
                         if minn < factor_tileheight(b.init_height * b.scale, b):
                             minn = factor_tileheight(b.init_height * b.scale, b)
                 self.boxheightsinc.append(sum(self.boxheights))
@@ -426,12 +434,12 @@ class TABLE(GUI_ITEM):
                 screen.blit(self.glowimage, (
                 self.x * self.dirscale[0] - self.glow * self.scale, self.y * self.dirscale[1] - self.glow * self.scale))
             if self.borderdraw:
-                if type(self) == SCROLLERTABLE:
+                if type(self) == ScrollerTable:
                     h = min(self.height, self.scroller.pageheight)
                 else:
                     h = self.height
-                draw.rect(screen, self.bordercol,
-                          roundrect(self.x * self.dirscale[0], self.y * self.dirscale[1], self.width * self.scale,
+                Draw.rect(screen, self.bordercol,
+                          Utils.roundrect(self.x * self.dirscale[0], self.y * self.dirscale[1], self.width * self.scale,
                                     (h) * self.scale), border_radius=int(self.roundedcorners * self.scale))
 
     def getat(self, row, column):

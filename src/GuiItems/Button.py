@@ -1,4 +1,9 @@
-class BUTTON(GUI_ITEM):
+from src.GuiItems.GuiItem import GuiItem
+import pygame
+from src.Utils.Draw import Draw
+from src.Utils.Utils import Utils
+
+class Button(GuiItem):
     def child_gentext(self):
         if (self.img != self.toggleimg) or (self.text != self.toggletext):
             if type(self.img) != list:
@@ -64,7 +69,7 @@ class BUTTON(GUI_ITEM):
             self.animatetext()
             col = self.col
             if not self.toggle: col = self.togglecol
-            innerrect = roundrect(
+            innerrect = Utils.roundrect(
                 self.x * self.dirscale[0] + (self.leftborder + self.clickdownsize * self.holding) * self.scale,
                 self.y * self.dirscale[1] + (self.upperborder + self.clickdownsize * self.holding) * self.scale,
                 (self.width - self.leftborder - self.rightborder - self.clickdownsize * self.holding * 2) * self.scale,
@@ -80,16 +85,16 @@ class BUTTON(GUI_ITEM):
                 self.x * self.dirscale[0] - self.glow * self.scale, self.y * self.dirscale[1] - self.glow * self.scale))
             if self.borderdraw:
                 if self.backingdraw:
-                    draw.rect(screen, self.backingcol,
-                              roundrect(self.x * self.dirscale[0], self.y * self.dirscale[1], self.width * self.scale,
+                    Draw.rect(screen, self.backingcol,
+                              Utils.roundrect(self.x * self.dirscale[0], self.y * self.dirscale[1], self.width * self.scale,
                                         self.height * self.scale), border_radius=int(self.roundedcorners * self.scale))
                 else:
-                    draw.rect(screen, self.backingcol,
-                              roundrect(self.x * self.dirscale[0], self.y * self.dirscale[1], self.width * self.scale,
+                    Draw.rect(screen, self.backingcol,
+                              Utils.roundrect(self.x * self.dirscale[0], self.y * self.dirscale[1], self.width * self.scale,
                                         self.height * self.scale),
                               int((self.border + self.clickdownsize * self.holding) * self.scale),
                               border_radius=int(self.roundedcorners * self.scale))
-            if self.backingdraw: draw.rect(screen, col, innerrect,
+            if self.backingdraw: Draw.rect(screen, col, innerrect,
                                            border_radius=int((self.roundedcorners - self.border) * self.scale))
             if self.toggle:
                 screen.blit(self.textimage, (self.x * self.dirscale[0] + ((self.width - self.leftborder - self.rightborder) / 2 + self.leftborder + self.textoffsetx) * self.scale - self.textimage.get_width() / 2,

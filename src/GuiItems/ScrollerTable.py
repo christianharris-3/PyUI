@@ -1,4 +1,6 @@
-class SCROLLERTABLE(TABLE):
+from src.GuiItems.Table import Table
+
+class ScrollerTable(Table):
     def render(self, screen):
         if self.killtime != -1 and self.killtime < self.ui.time:
             self.ui.delete(self.ID)
@@ -33,7 +35,6 @@ class SCROLLERTABLE(TABLE):
             if a in self.ui.IDs and not (a in alltable):
                 self.ui.IDs[a].draw(screen)
 
-        reduce = 0
         if len(self.titles) != 0:
             reduce = (self.linesize + self.boxheights[0])
             self.ui.drawtosurf(screen, alltable, self.backingcol,

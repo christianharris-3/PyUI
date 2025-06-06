@@ -1,4 +1,10 @@
-class SLIDER(GUI_ITEM):
+from src.GuiItems.GuiItem import GuiItem
+from src.GuiItems.Button import Button
+from src.Utils.Draw import Draw
+from src.Utils.Utils import Utils
+from src.Utils.ColEdit import ColEdit
+
+class Slider(GuiItem):
     def reset(self):
         self.slider = self.startp
         self.holding = False
@@ -28,14 +34,14 @@ class SLIDER(GUI_ITEM):
             self.ui.delete(self.button.ID, False)
         except:
             pass
-        if type(self.data) == BUTTON:
+        if type(self.data) == Button:
             self.button = self.data
         else:
-            self.button = self.ui.makebutton(0, 0, self.text, self.textsize, emptyfunction, self.menu,
+            self.button = self.ui.makebutton(0, 0, self.text, self.textsize, Utils.emptyFunction, self.menu,
                                              self.ID + 'button', self.layer + 0.01, self.roundedcorners,
                                              width=self.slidersize, height=self.slidersize, img=self.img,
                                              dragable=self.dragable,
-                                             clickdownsize=int(self.slidersize / 15), col=shiftcolor(self.col, -30),
+                                             clickdownsize=int(self.slidersize / 15), col=ColEdit.shiftcolor(self.col, -30),
                                              scaleby=self.scaleby)
 
         if self.direction == 'vertical':
@@ -48,7 +54,7 @@ class SLIDER(GUI_ITEM):
     def getslidercenter(self):
         offset = 0
         if self.containedslider:
-            if type(self.data) == BUTTON:
+            if type(self.data) == Button:
                 offset = self.data.width / 2
             else:
                 offset = self.slidersize / 2
@@ -89,7 +95,7 @@ class SLIDER(GUI_ITEM):
         if self.movetoclick: self.movebuttontoclick()
 
     def movebuttontoclick(self):
-        self.getclickedon(roundrect(self.x * self.dirscale[0], self.y * self.dirscale[1], self.width * self.scale,
+        self.getclickedon(Utils.roundrect(self.x * self.dirscale[0], self.y * self.dirscale[1], self.width * self.scale,
                                     self.height * self.scale), False, False)
         if self.clickedon == 0:
             self.button.holding = True
@@ -117,9 +123,9 @@ class SLIDER(GUI_ITEM):
         self.refreshbuttoncords()
 
     def child_autoscale(self):
-        self.maxp = relativetoval(self.startmaxp, self.getmasterwidth() / self.scale,
+        self.maxp = Utils.relativetoval(self.startmaxp, self.getmasterwidth() / self.scale,
                                   self.getmasterheight() / self.scale, self.ui)
-        self.minp = relativetoval(self.startminp, self.getmasterwidth() / self.scale,
+        self.minp = Utils.relativetoval(self.startminp, self.getmasterwidth() / self.scale,
                                   self.getmasterheight() / self.scale, self.ui)
 
     def setslider(self, slider, relative=False):
@@ -142,8 +148,8 @@ class SLIDER(GUI_ITEM):
             if self.glow != 0:
                 screen.blit(self.glowimage, (
                 self.x * self.dirscale[0] - self.glow * self.scale, self.y * self.dirscale[1] - self.glow * self.scale))
-            draw.rect(screen, self.bordercol,
-                      roundrect(self.x * self.dirscale[0], self.y * self.dirscale[1], self.width * self.scale,
+            Draw.rect(screen, self.bordercol,
+                      Utils.roundrect(self.x * self.dirscale[0], self.y * self.dirscale[1], self.width * self.scale,
                                 self.height * self.scale), border_radius=int(self.roundedcorners * self.scale))
             if self.slider != self.minp:
                 if self.direction == 'vertical':
@@ -153,7 +159,7 @@ class SLIDER(GUI_ITEM):
                                          self.maxp - self.minp)) + self.button.height * self.containedslider)
                     w = (self.width - self.leftborder - self.rightborder) - 2 * (
                                 self.roundedcorners - abs(int(min([self.roundedcorners, h / 2]))))
-                    draw.rect(screen, self.col, roundrect(self.x * self.dirscale[0] + self.leftborder * self.scale,
+                    Draw.rect(screen, self.col, Utils.roundrect(self.x * self.dirscale[0] + self.leftborder * self.scale,
                                                           self.y * self.dirscale[1] + self.upperborder * self.scale,
                                                           w * self.scale, h * self.scale),
                               border_radius=int(self.roundedcorners * self.scale))
@@ -164,7 +170,7 @@ class SLIDER(GUI_ITEM):
                                          self.maxp - self.minp)) + self.button.width * self.containedslider)
                     h = (self.height - self.upperborder - self.lowerborder) - 2 * (
                                 self.roundedcorners - abs(int(min([self.roundedcorners, w / 2]))))
-                    draw.rect(screen, self.col, roundrect(self.x * self.dirscale[0] + self.leftborder * self.scale,
+                    Draw.rect(screen, self.col, Utils.roundrect(self.x * self.dirscale[0] + self.leftborder * self.scale,
                                                           self.y * self.dirscale[1] + (
                                                                       self.height - h) / 2 * self.scale, w * self.scale,
                                                           h * self.scale),

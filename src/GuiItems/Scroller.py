@@ -1,4 +1,9 @@
-class SCROLLER(GUI_ITEM):
+from src.GuiItems.GuiItem import GuiItem
+import pygame
+from src.Utils.Utils import Utils
+from src.Utils.Draw import Draw
+
+class Scroller(GuiItem):
     def reset(self):
         self.autoscale()
         self.scroll = self.startp
@@ -37,11 +42,11 @@ class SCROLLER(GUI_ITEM):
                                        self.height * self.scale)
         self.height *= compress
         self.scheight = self.height - self.border * 2
-        self.maxp = relativetoval(self.startmaxp, self.getmasterwidth() / self.scale,
+        self.maxp = Utils.relativetoval(self.startmaxp, self.getmasterwidth() / self.scale,
                                   self.getmasterheight() / self.scale, self.ui)
-        self.minp = relativetoval(self.startminp, self.getmasterwidth() / self.scale,
+        self.minp = Utils.relativetoval(self.startminp, self.getmasterwidth() / self.scale,
                                   self.getmasterheight() / self.scale, self.ui)
-        self.pageheight = relativetoval(self.startpageheight, self.getmasterwidth() / self.scale,
+        self.pageheight = Utils.relativetoval(self.startpageheight, self.getmasterwidth() / self.scale,
                                         self.getmasterheight() / self.scale, self.ui) * compress
 
     def limitpos(self):
@@ -100,10 +105,10 @@ class SCROLLER(GUI_ITEM):
             if self.glow != 0:
                 screen.blit(self.glowimage, (
                 self.x * self.dirscale[0] - self.glow * self.scale, self.y * self.dirscale[1] - self.glow * self.scale))
-            draw.rect(screen, self.col,
-                      roundrect(self.x * self.dirscale[0], self.y * self.dirscale[1], self.width * self.scale,
+            Draw.rect(screen, self.col,
+                      Utils.roundrect(self.x * self.dirscale[0], self.y * self.dirscale[1], self.width * self.scale,
                                 self.height * self.scale), border_radius=int(self.roundedcorners * self.scale))
-            draw.rect(screen, self.scrollercol, roundrect(self.x * self.dirscale[0] + self.leftborder * self.scale,
+            Draw.rect(screen, self.scrollercol, Utils.roundrect(self.x * self.dirscale[0] + self.leftborder * self.scale,
                                                           self.y * self.dirscale[1] + (self.border + self.scroll * (
                                                                       self.scheight / (
                                                                           self.maxp - self.minp))) * self.scale, (

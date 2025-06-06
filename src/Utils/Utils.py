@@ -83,7 +83,7 @@ class Utils:
         return splitted
 
     @staticmethod
-    def emptyfunction():
+    def emptyFunction():
         pass
 
     class EmptyObject:

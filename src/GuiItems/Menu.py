@@ -1,4 +1,7 @@
-class MENU(GUI_ITEM):
+from src.GuiItems.GuiItem import GuiItem
+from src.GuiItems.ScrollerTable import ScrollerTable
+
+class Menu(GuiItem):
     def reset(self):
         self.refreshscale()
         self.resetcords()
@@ -25,7 +28,7 @@ class MENU(GUI_ITEM):
 
         for a in bound:
             if a.enabled:
-                if type(a) == SCROLLERTABLE:
+                if type(a) == ScrollerTable:
                     a.smartdraw(screen)
                 else:
                     a.draw(screen)

@@ -1,3 +1,5 @@
+import copy
+
 class Style:
     universaldefaults = {'roundedcorners': 0, 'anchor': (0, 0), 'objanchor': (0, 0), 'center': False, 'centery': -1,
                          'textsize': 50, 'font': 'calibre', 'bold': True,
@@ -29,10 +31,10 @@ class Style:
 
     wallpapercol = (255, 255, 255)
 
-    UI.objectkey = {'button': BUTTON, 'text': TEXT, 'textbox': TEXTBOX, 'table': TABLE, 'scrollertable': SCROLLERTABLE,
-                    'dropdown': DROPDOWN, 'slider': SLIDER, 'scroller': SCROLLER, 'menu': MENU,
-                    'windowedmenu': WINDOWEDMENU, 'window': WINDOW, 'rect': RECT}
+    # UI.objectkey = {'button': Button, 'text': Text, 'textbox': Textbox, 'table': Table, 'scrollertable': ScrollerTable,
+    #                 'dropdown': DropDown, 'slider': Slider, 'scroller': Scroller, 'menu': MENU,
+    #                 'windowedmenu': WindowedMenu, 'window': Window, 'rect': Rectangle}
 
     objectdefaults = {}
-    for a in [UI.objectkey[o] for o in UI.objectkey]:
-        objectdefaults[a] = copy.deepcopy(defaults)
+    # for a in [UI.objectkey[o] for o in UI.objectkey]:
+    #     objectdefaults[a] = copy.deepcopy(defaults)

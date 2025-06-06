@@ -1,5 +1,10 @@
+import pygame
+from src.GuiItems.GuiItem import GuiItem
+from src.Utils.Utils import Utils
+from src.Utils.Draw import Draw
 
-class TEXTBOX(GUI_ITEM):
+
+class Textbox(GuiItem):
     def reset(self):
         self.setvars()
         self.autoscale()
@@ -12,50 +17,55 @@ class TEXTBOX(GUI_ITEM):
         self.refreshcords()
         self.refreshglow()
         self.resetcords()
+
     def setvars(self):
-        self.scrolle r =0
+        self.scroller = 0
         self.selected = False
-        self.textselected = [False ,0 ,0]
+        self.textselected = [False, 0, 0]
         self.clickstartedinbound = False
-        self.typingcurso r =0
-        self.typelin e =0
-        self.scrollero n =False
+        self.typingcursor = 0
+        self.typeline = 0
+        self.scrolleron = False
         self.slider = -1
         self.previntscrollerhoff = 0
-        self.undochain = [(self.text ,self.typingcursor)]
+        self.undochain = [(self.text, self.typingcursor)]
+
     def child_autoscale(self):
-        heightgetter = self.ui.rendertext('Tg' ,self.textsize ,self.textcol ,self.font ,self.bold)
+        heightgetter = self.ui.rendertext('Tg', self.textsize, self.textcol, self.font, self.bold)
         if self.height == -1:
-            self.startheight = self.upperborde r +self.lowerborde r +heightgetter.get_height( ) *self.line s +self.verticalspacin g *2
+            self.startheight = self.upperborder + self.lowerborder + heightgetter.get_height() * self.lines + self.verticalspacing * 2
             self.init_height = self.startheight
             self.height = self.startheight
         if self.cursorsize == -1:
-            self.cursorsize = self.ui.gettextsize('Tg' ,self.font ,self.textsize ,self.bold)[1 ] -2
+            self.cursorsize = self.ui.gettextsize('Tg', self.font, self.textsize, self.bold)[1] - 2
+
     def select(self):
         for a in self.ui.textboxes:
             a.selected = False
         self.ui.selectedtextbox = self.ui.textboxes.index(self)
         self.selected = True
 
-    def undo(self ,refresh=True):
+    def undo(self, refresh=True):
         while self.undochain[-1][0] == self.text:
             del self.undochain[-1]
         self.text = self.undochain[-1][0]
         self.typingcursor = self.undochain[-1][1]
         if refresh:
             self.refresh()
-    def scroll_input(self ,scroll_size):
+
+    def scroll_input(self, scroll_size):
         if self.scrolleron and self.attachscroller:
-            if self.pageheigh t <(self.max p -self.minp):
-                self.scroller.scrol l- = \
-                            (scroll_siz e *min((self.scroller.max p -self.scroller.minp ) /20 ,self.ui.scrolllimit))
+            if self.pageheight < (self.maxp - self.minp):
+                self.scroller.scroll -= (
+                            scroll_size * min((self.scroller.maxp - self.scroller.minp) / 20, self.ui.scrolllimit))
                 self.scroller.limitpos()
                 self.scroller.command()
                 return True
         elif self.intscroller:
             return self.change_textnum(scroll_size)
         return False
-    def change_textnum(self ,change ,refresh=True ,wraparound=True):
+
+    def change_textnum(self, change, refresh=True, wraparound=True):
         try:
             if '.' in self.text:
                 val = float(self.text)
@@ -63,28 +73,35 @@ class TEXTBOX(GUI_ITEM):
                 val = int(self.text)
         except Exception as e:
             return False
-        va l+ =change
+        val += change
         if self.intwraparound and wraparound:
-            val = (va l -self.minp ) %(self.max p -self.min p +1 ) +self.minp
+            val = (val - self.minp) % (self.maxp - self.minp + 1) + self.minp
         else:
-            if va l <self.minp: val = self.minp
-            elif va l >self.maxp: val = self.maxp
+            if val < self.minp:
+                val = self.minp
+            elif val > self.maxp:
+                val = self.maxp
 
-        self.text = str(round(val ,14))
+        self.text = str(round(val, 14))
         if refresh: self.refresh()
         return True
 
-    def settext(self ,text=''):
+    def settext(self, text=''):
         self.text = text
         self.refresh()
-    def inputkey(self ,caps ,event ,kprs):
+
+    def inputkey(self, caps, event, kprs):
         starttext = self.text
         if kprs[pygame.K_LSHIFT] or kprs[pygame.K_RSHIFT]:
-            if caps: caps = False
-            else: caps = True
-        if kprs[pygame.K_LCTRL] or kprs[pygame.K_RCTRL]: ctrl = True
-        else: ctrl = False
-        if self.textselected[1 ] >self.textselected[2]:
+            if caps:
+                caps = False
+            else:
+                caps = True
+        if kprs[pygame.K_LCTRL] or kprs[pygame.K_RCTRL]:
+            ctrl = True
+        else:
+            ctrl = False
+        if self.textselected[1] > self.textselected[2]:
             temp = self.textselected[1]
             self.textselected[1] = self.textselected[2]
             self.textselected[2] = temp
@@ -95,18 +112,18 @@ class TEXTBOX(GUI_ITEM):
         enter = False
         unicodechrs = '''#',-./0123456789;=[\\]`'''
         shiftunicodechrs = '''~@<_>?)!"£$%^&*(:+{|}¬'''
-        if event.ke y >32 and event.ke y <127:
+        if event.key > 32 and event.key < 127:
             if ctrl:
                 if chr(event.key) == 'a':
-                    self.textselected = [True ,0 ,len(self.chrcorddata)]
+                    self.textselected = [True, 0, len(self.chrcorddata)]
                 elif chr(event.key) == 'x':
                     delete = True
                 elif chr(event.key) == 'z':
-                    if len(self.undochain ) >1:
+                    if len(self.undochain) > 1:
                         self.undo(False)
                         del self.undochain[-1]
                 elif chr(event.key) == 'c':
-                    pygame.scrap.put('text/plain;charset=utf-8' ,self.text.encode())
+                    pygame.scrap.put('text/plain;charset=utf-8', self.text.encode())
                 elif chr(event.key) == 'v':
                     clipboard = pygame.scrap.get(pygame.SCRAP_TEXT)
                     if clipboard == None:
@@ -114,106 +131,121 @@ class TEXTBOX(GUI_ITEM):
                     clipboard = clipboard.decode().strip('\x00')
                     item = clipboard
             else:
-                if (event.ke y >96 and event.ke y <123):
-                    if caps: item = chr(event.ke y -32)
-                    else: item = chr(event.key)
+                if (event.key > 96 and event.key < 123):
+                    if caps:
+                        item = chr(event.key - 32)
+                    else:
+                        item = chr(event.key)
                 elif chr(event.key) in unicodechrs:
-                    if not (kprs[pygame.K_LSHIFT] or kprs[pygame.K_RSHIFT]): item = chr(event.key)
-                    else: item = shiftunicodechrs[list(unicodechrs).index(chr(event.key))]
-        elif event.key == pygame.K_BACKSPACE: backspace = True
-        elif event.key == pygame.K_DELETE: delete = True
-        elif event.key == pygame.K_ESCAPE: self.selected = False
+                    if not (kprs[pygame.K_LSHIFT] or kprs[pygame.K_RSHIFT]):
+                        item = chr(event.key)
+                    else:
+                        item = shiftunicodechrs[list(unicodechrs).index(chr(event.key))]
+        elif event.key == pygame.K_BACKSPACE:
+            backspace = True
+        elif event.key == pygame.K_DELETE:
+            delete = True
+        elif event.key == pygame.K_ESCAPE:
+            self.selected = False
         elif event.key == pygame.K_RETURN:
             if self.enterreturns: item = '\n'
             if self.commandifenter: self.command()
-        elif event.key == pygame.K_SPACE: item = ' '
+        elif event.key == pygame.K_SPACE:
+            item = ' '
         elif event.key == pygame.K_LEFT:
-            if self.typingcurso r >-1:
+            if self.typingcursor > -1:
                 prev = self.chrcorddata[self.typingcursor][1]
-                while self.chrcorddata[self.typingcursor][1 ]= =prev:
-                    if self.typingcurso r >-1: self.typingcurso r- =1
-                    else: break
+                while self.chrcorddata[self.typingcursor][1] == prev:
+                    if self.typingcursor > -1:
+                        self.typingcursor -= 1
+                    else:
+                        break
         elif event.key == pygame.K_RIGHT:
-            if len(self.chrcorddata ) >0:
-                if self.typingcursor < len(self.chrcorddata ) -1:
-                    prev = self.chrcorddata[self.typingcurso r +1][1]
+            if len(self.chrcorddata) > 0:
+                if self.typingcursor < len(self.chrcorddata) - 1:
+                    prev = self.chrcorddata[self.typingcursor + 1][1]
                     start = self.typingcursor
-                    while self.chrcorddata[self.typingcurso r +1][1 ]= =prev:
-                        if self.typingcurso r <len(self.chrcorddata ) -1: self.typingcurso r+ =1
-                        else: break
-                        if self.typingcursor > len(self.chrcorddata ) -3:
+                    while self.chrcorddata[self.typingcursor + 1][1] == prev:
+                        if self.typingcursor < len(self.chrcorddata) - 1:
+                            self.typingcursor += 1
+                        else:
                             break
-                    if self.typingcurso r -star t >1: self.typingcurso r+ =1
+                        if self.typingcursor > len(self.chrcorddata) - 3:
+                            break
+                    if self.typingcursor - start > 1: self.typingcursor += 1
         elif event.key == pygame.K_UP:
-            self.typingcursor = self.findclickloc \
-                (relativempos=[self.linecenter[0] ,self.linecenter[1 ] -self.cursorsize])
+            self.typingcursor = self.findclickloc(
+                relativempos=[self.linecenter[0], self.linecenter[1] - self.cursorsize])
         elif event.key == pygame.K_DOWN:
-            self.typingcursor = self.findclickloc \
-                (relativempos=[self.linecenter[0] ,self.linecenter[1 ] +self.cursorsize])
+            self.typingcursor = self.findclickloc(
+                relativempos=[self.linecenter[0], self.linecenter[1] + self.cursorsize])
 
-        if no t(self.textselected[0] and self.textselected[1 ]! =self.textselected[2]):
+        if not (self.textselected[0] and self.textselected[1] != self.textselected[2]):
             if item != '':
-                if self.allowedcharacter s! ='':
+                if self.allowedcharacters != '':
                     newitem = ''
                     for i in item:
                         if i in self.allowedcharacters:
-                            newite m+ =i
+                            newitem += i
                     item = newitem
                 try:
-                    temp = float(self.text[:self.typingcurso r +1 ] +ite m +self.text[self.typingcurso r +1:])
+                    temp = float(self.text[:self.typingcursor + 1] + item + self.text[self.typingcursor + 1:])
                     num = True
                 except:
                     num = False
-                if (no t(self.numsonly) or num):
-                    self.text = self.text[:self.typingcurso r +1 ] +ite m +self.text[self.typingcurso r +1:]
-                    self.typingcurso r+ =len(item)
-                    self.change_textnum(0 ,False ,False)
+                if (not (self.numsonly) or num):
+                    self.text = self.text[:self.typingcursor + 1] + item + self.text[self.typingcursor + 1:]
+                    self.typingcursor += len(item)
+                    self.change_textnum(0, False, False)
             if backspace:
-                if self.typingcurso r >-1:
-                    self.typingcurso r- =1
-                if self.text[self.typingcursor:self.typingcurso r +2] == '\n':
-                    self.text = self.text[:self.typingcursor ] +self.text[self.typingcurso r +2:]
-                    self.typingcurso r- =1
-                else: self.text = self.text[:self.typingcurso r +1 ] +self.text[self.typingcurso r +2:]
+                if self.typingcursor > -1:
+                    self.typingcursor -= 1
+                if self.text[self.typingcursor:self.typingcursor + 2] == '\n':
+                    self.text = self.text[:self.typingcursor] + self.text[self.typingcursor + 2:]
+                    self.typingcursor -= 1
+                else:
+                    self.text = self.text[:self.typingcursor + 1] + self.text[self.typingcursor + 2:]
             elif delete:
-                if self.text[self.typingcursor:self.typingcurso r +2] == '\n':
-                    self.text = self.text[:self.typingcursor ] +self.text[self.typingcurso r +2:]
-                else: self.text = self.text[:self.typingcurso r +1 ] +self.text[self.typingcurso r +2:]
+                if self.text[self.typingcursor:self.typingcursor + 2] == '\n':
+                    self.text = self.text[:self.typingcursor] + self.text[self.typingcursor + 2:]
+                else:
+                    self.text = self.text[:self.typingcursor + 1] + self.text[self.typingcursor + 2:]
             if self.commandifkey and (item != '' or backspace or delete):
                 self.command()
         else:
             if backspace or delete or item != '':
-                self.text = self.text[:self.textselected[1] ] +ite m +self.text[self.textselected[2]:]
-                self.typingcursor = self.textselected[1 ] - 1 +len(item)
-                self.textselected = [False ,0 ,0]
-        if self.text[self.chrlimi t -1:self.chrlimi t +1] == '\n':
-            self.text = self.text[:self.chrlimi t -1]
+                self.text = self.text[:self.textselected[1]] + item + self.text[self.textselected[2]:]
+                self.typingcursor = self.textselected[1] - 1 + len(item)
+                self.textselected = [False, 0, 0]
+        if self.text[self.chrlimit - 1:self.chrlimit + 1] == '\n':
+            self.text = self.text[:self.chrlimit - 1]
         else:
             self.text = self.text[:self.chrlimit]
-        if self.tex t! =starttext:
+        if self.text != starttext:
             self.refresh()
             self.updateslider()
         else:
             self.refreshcursor()
-        self.undochain.append((self.text ,self.typingcursor))
+        self.undochain.append((self.text, self.typingcursor))
 
     def resetscroller(self):
         self.scroll = 0
         if self.attachscroller:
             if self.scroller != 0:
                 self.bounditems.remove(self.scroller)
-                ui.delete(self.scroller.ID ,False)
+                self.ui.delete(self.scroller.ID, False)
 
-            self.scroller = self.ui.makescroller(-self.rightborde r -1 5 +self.borde r /2 ,self.upperborder
-                                                 ,self.heigh t -self.upperborde r -self.lowerborder ,emptyfunction ,15
-                                                 ,0 ,self.heigh t -self.upperborde r -self.lowerborder ,self.height
-                                                 ,anchor=('w' ,0),
-                                                 menu=self.menu ,roundedcorners=self.roundedcorners ,col=self.col
-                                                 ,scalesize=self.scalesize ,scaley=self.scalesize ,scalex=self.scalesize
-                                                 ,scaleby=self.scaleby)
+            self.scroller = self.ui.makescroller(-self.rightborder - 15 + self.border / 2, self.upperborder,
+                                                 self.height - self.upperborder - self.lowerborder, Utils.emptyFunction, 15,
+                                                 0, self.height - self.upperborder - self.lowerborder, self.height,
+                                                 anchor=('w', 0),
+                                                 menu=self.menu, roundedcorners=self.roundedcorners, col=self.col,
+                                                 scalesize=self.scalesize, scaley=self.scalesize, scalex=self.scalesize,
+                                                 scaleby=self.scaleby)
             self.binditem(self.scroller)
         else:
-            self.scroller = emptyobject(0 ,0 ,0 ,0)
+            self.scroller = Utils.EmptyObject(0, 0, 0, 0)
+
     def updateslider(self):
         if self.slider != -1:
             try:
@@ -222,6 +254,7 @@ class TEXTBOX(GUI_ITEM):
                 self.slider.updatetext()
             except:
                 pass
+
     def refresh(self):
         self.refreshscale()
         self.gentext()
@@ -229,18 +262,18 @@ class TEXTBOX(GUI_ITEM):
 
         if self.attachscroller:
             self.refreshscroller()
-            self.scroller.setmaxp((self.textimage.get_height() ) /self.scal e +self.verticalspacin g * 2 -1)
-            self.scroller.setheight(self.heigh t -self.upperborde r -self.lowerborder)
-            self.scroller.setpageheight(self.heigh t -self.upperborde r -self.lowerborder)
+            self.scroller.setmaxp((self.textimage.get_height()) / self.scale + self.verticalspacing * 2 - 1)
+            self.scroller.setheight(self.height - self.upperborder - self.lowerborder)
+            self.scroller.setpageheight(self.height - self.upperborder - self.lowerborder)
             self.scroller.menu = self.menu
             self.scroller.scalesize = self.scalesize
             self.scroller.scalex = self.scalesize
             self.scroller.scaley = self.scalesize
             self.scroller.refresh()
-            if (self.scroller.max p -self.scroller.minp ) >self.scroller.pageheight:
+            if (self.scroller.maxp - self.scroller.minp) > self.scroller.pageheight:
                 self.scrolleron = True
-                if self.scroller.scrol l >self.scroller.max p -self.scroller.pageheight:
-                    self.scroller.scroll = self.scroller.max p -self.scroller.pageheight
+                if self.scroller.scroll > self.scroller.maxp - self.scroller.pageheight:
+                    self.scroller.scroll = self.scroller.maxp - self.scroller.pageheight
             else:
                 self.scrolleron = False
             self.scroller.refresh()
@@ -249,35 +282,39 @@ class TEXTBOX(GUI_ITEM):
         self.refreshglow()
         self.refreshbound()
 
-    def gentext(self ,refcurse=True):
-        self.textimage ,self.chrcorddatalined = self.ui.rendertextlined(self.text ,self.textsize ,self.textcol
-                                                                        ,self.col ,self.font
-                                                                        ,self.widt h -self.horizontalspacin g * 2 -self.leftborde r -self.rightborde r -self.scrollero n *self.scroller.width
-                                                                        ,self.bold ,center=self.textcenter
-                                                                        ,scale=self.scale ,linelimit=self.linelimit
-                                                                        ,getcords=True ,imgin=self.imgdisplay)
+    def gentext(self, refcurse=True):
+        self.textimage, self.chrcorddatalined = self.ui.rendertextlined(self.text, self.textsize, self.textcol,
+                                                                        self.col, self.font,
+                                                                        self.width - self.horizontalspacing * 2 - self.leftborder - self.rightborder - self.scrolleron * self.scroller.width,
+                                                                        self.bold, center=self.textcenter,
+                                                                        scale=self.scale, linelimit=self.linelimit,
+                                                                        getcords=True, imgin=self.imgdisplay)
         for l in self.chrcorddatalined:
             for a in l:
-                a[1] = (a[1][0 ] /self.scale ,a[1][1 ] /self.scale)
-                a[2] = (a[2][0 ] /self.scale ,a[2][1 ] /self.scale)
+                a[1] = (a[1][0] / self.scale, a[1][1] / self.scale)
+                a[2] = (a[2][0] / self.scale, a[2][1] / self.scale)
         self.chrcorddata = []
         for a in self.chrcorddatalined:
-            self.chrcorddat a+ =a
+            self.chrcorddata += a
         self.textimagerect = self.textimage.get_rect()
-        self.textimagerect.widt h/ =self.ui.scale
-        self.textimagerect.heigh t/ =self.ui.scale
+        self.textimagerect.width /= self.ui.scale
+        self.textimagerect.height /= self.ui.scale
         if refcurse: self.refreshcursor()
 
-        if len(self.chrcorddata ) <len(self.text):
+        if len(self.chrcorddata) < len(self.text):
             self.undo()
 
     def refreshcursor(self):
-        if self.typingcurso r >len(self.chrcorddata ) -1: self.typingcurso r =len(self.chrcorddata ) -1
-        elif self.typingcurso r <-1: self.typingcursor = -1
-        if self.typingcursor != -1: self.linecenter = [self.chrcorddata[self.typingcursor][1][0 ] +self.chrcorddata[self.typingcursor][2]
-                [0 ] / 2 +self.horizontalspacing ,self.chrcorddata[self.typingcursor][1][1]]
-        elif len(self.chrcorddata ) >0: self.linecenter = \
-                [self.chrcorddata[self.typingcursor + 1][1][0] - self.chrcorddata[self.typingcursor + 1][2][
+        if self.typingcursor > len(self.chrcorddata) - 1:
+            self.typingcursor = len(self.chrcorddata) - 1
+        elif self.typingcursor < -1:
+            self.typingcursor = -1
+        if self.typingcursor != -1:
+            self.linecenter = [self.chrcorddata[self.typingcursor][1][0] + self.chrcorddata[self.typingcursor][2][
+                0] / 2 + self.horizontalspacing, self.chrcorddata[self.typingcursor][1][1]]
+        elif len(self.chrcorddata) > 0:
+            self.linecenter = [
+                self.chrcorddata[self.typingcursor + 1][1][0] - self.chrcorddata[self.typingcursor + 1][2][
                     0] / 2 + self.horizontalspacing, self.chrcorddata[self.typingcursor + 1][1][1]]
         else:
             if self.textcenter:
@@ -320,8 +357,8 @@ class TEXTBOX(GUI_ITEM):
     def child_refreshcords(self):
         if self.scroller != 0:
             self.refreshscroller()
-            self.rect = roundrect(self.x, self.y, self.width, self.height)
-            self.innerrect = roundrect(self.x + self.leftborder, self.y + self.upperborder,
+            self.rect = Utils.roundrect(self.x, self.y, self.width, self.height)
+            self.innerrect = Utils.roundrect(self.x + self.leftborder, self.y + self.upperborder,
                                        self.width - self.rightborder - self.leftborder - self.scrolleron * self.scroller.width,
                                        self.height - self.upperborder - self.lowerborder)
             self.textimagerect = self.textimage.get_rect()
@@ -335,7 +372,7 @@ class TEXTBOX(GUI_ITEM):
 
     def child_render(self, screen):
         self.typeline += 1
-        self.selectrect = roundrect(self.x * self.dirscale[0] + (self.leftborder - self.selectbordersize) * self.scale,
+        self.selectrect = Utils.roundrect(self.x * self.dirscale[0] + (self.leftborder - self.selectbordersize) * self.scale,
                                     self.y * self.dirscale[1] + (self.upperborder - self.selectbordersize) * self.scale,
                                     (self.width - (
                                                 self.leftborder + self.rightborder) + self.selectbordersize * 2 - self.scrolleron * self.scroller.width) * self.scale,
@@ -422,11 +459,11 @@ class TEXTBOX(GUI_ITEM):
                 screen.blit(self.glowimage, (
                 self.x * self.dirscale[0] - self.glow * self.scale, self.y * self.dirscale[1] - self.glow * self.scale))
             if self.borderdraw:
-                draw.rect(screen, self.backingcol,
-                          roundrect(self.x * self.dirscale[0], self.y * self.dirscale[1], self.width * self.scale,
+                Draw.rect(screen, self.backingcol,
+                          Utils.roundrect(self.x * self.dirscale[0], self.y * self.dirscale[1], self.width * self.scale,
                                     self.height * self.scale), border_radius=int(self.roundedcorners * self.scale))
             if self.selected and self.selectbordersize != 0:
-                draw.rect(screen, self.selectcol,
+                Draw.rect(screen, self.selectcol,
                           pygame.Rect(self.selectrect.x + self.holding * self.selectshrinksize * self.scale,
                                       self.selectrect.y + self.holding * self.selectshrinksize * self.scale,
                                       self.selectrect.width - self.holding * self.selectshrinksize * self.scale * 2,
@@ -437,7 +474,7 @@ class TEXTBOX(GUI_ITEM):
                                                self.width - self.leftborder - self.rightborder - self.scrolleron * self.scroller.width) * self.scale,
                                    (self.height - self.upperborder - self.lowerborder) * self.scale))
             surf.fill(self.backingcol)
-            if self.backingdraw: draw.rect(surf, self.col, (0, 0, surf.get_width(), surf.get_height()),
+            if self.backingdraw: Draw.rect(surf, self.col, (0, 0, surf.get_width(), surf.get_height()),
                                            border_radius=int(self.roundedcorners * self.scale))
             surf.set_colorkey(self.backingcol)
 

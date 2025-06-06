@@ -1,4 +1,7 @@
-class DROPDOWN(BUTTON):
+from src.GuiItems.Button import Button
+from src.Utils.Utils import Utils
+
+class DropDown(Button):
     def mainbuttonclicked(self):
         if self.dropsdown:
             if not self.window.opening:
@@ -29,7 +32,7 @@ class DROPDOWN(BUTTON):
     def refreshoptions(self):
         data = []
         for i, a in enumerate(self.options):
-            func = funcer(self.optionclicked, index=i)
+            func = Utils.Funcer(self.optionclicked, index=i)
             data.append([self.ui.makebutton(0, 0, a, self.textsize, font=self.font, bold=self.bold,
                                             textcol=self.textcol, col=self.col, roundedcorners=self.roundedcorners,
                                             command=func.func)])

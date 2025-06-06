@@ -1,4 +1,15 @@
 from abc import ABC
+import time
+import pygame
+from src.Utils.Utils import Utils
+from src.Utils.ColEdit import ColEdit
+from src.Utils.Draw import Draw
+from src.Utils.Collision import Collision
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from Scroller import Scroller
+
 
 class GuiItem(ABC):
     def __init__(self, **args):
@@ -10,7 +21,7 @@ class GuiItem(ABC):
             elif args[var] == Style.universaldefaults[var]:
                 args[var] = Style.objectdefaults[type(self)][var]
 
-        args = filloutargs(args)
+        args = Utils.filloutargs(args)
         ui = args.pop('ui')
         self.ui = ui
 
@@ -37,8 +48,8 @@ class GuiItem(ABC):
 
         self.startwidth = args['width']
         self.startheight = args['height']
-        self.width = relativetoval(args['width'], ui.screenw, ui.screenh, ui)
-        self.height = relativetoval(args['height'], ui.screenw, ui.screenh, ui)
+        self.width = Utils.relativetoval(args['width'], ui.screenw, ui.screenh, ui)
+        self.height = Utils.relativetoval(args['height'], ui.screenw, ui.screenh, ui)
         self.roundedcorners = args['roundedcorners']
         self.scalesize = args['scalesize']
         if args['scalex'] == -1:
@@ -96,16 +107,16 @@ class GuiItem(ABC):
 
         self.col = args['col']
         self.textcol = args['textcol']
-        self.backingcol = autoshiftcol(args['backingcol'], self.col, 20)
+        self.backingcol = ColEdit.autoshiftcol(args['backingcol'], self.col, 20)
         self.bordercol = self.backingcol
-        self.glowcol = autoshiftcol(args['glowcol'], self.col, -20)
-        self.hovercol = autoshiftcol(args['hovercol'], self.col, -20)
-        self.togglecol = autoshiftcol(args['togglecol'], self.col, -50)
-        self.togglehovercol = autoshiftcol(args['togglehovercol'], self.togglecol, -20)
-        self.selectcol = autoshiftcol(args['selectcol'], self.col, 20)
-        self.scrollercol = autoshiftcol(args['scrollercol'], self.col, -30)
-        self.slidercol = autoshiftcol(args['slidercol'], self.col, -30)
-        self.sliderbordercol = autoshiftcol(args['sliderbordercol'], self.col, -10)
+        self.glowcol = ColEdit.autoshiftcol(args['glowcol'], self.col, -20)
+        self.hovercol = ColEdit.autoshiftcol(args['hovercol'], self.col, -20)
+        self.togglecol = ColEdit.autoshiftcol(args['togglecol'], self.col, -50)
+        self.togglehovercol = ColEdit.autoshiftcol(args['togglehovercol'], self.togglecol, -20)
+        self.selectcol = ColEdit.autoshiftcol(args['selectcol'], self.col, 20)
+        self.scrollercol = ColEdit.autoshiftcol(args['scrollercol'], self.col, -30)
+        self.slidercol = ColEdit.autoshiftcol(args['slidercol'], self.col, -30)
+        self.sliderbordercol = ColEdit.autoshiftcol(args['sliderbordercol'], self.col, -10)
         self.colorkey = args['colorkey']
 
         self.clickdownsize = args['clickdownsize']
@@ -126,7 +137,7 @@ class GuiItem(ABC):
         else:
             self.toggletext = args['toggletext']
         if args['toggleimg'] == -1:
-            toggleimg = args['img']
+            self.toggleimg = args['img']
         else:
             self.toggleimg = args['toggleimg']
         self.bindtoggle = args['bindtoggle']
@@ -190,12 +201,12 @@ class GuiItem(ABC):
         self.backingdraw = args['backingdraw']
         self.borderdraw = args['borderdraw']
         self.startpageheight = args['pageheight']
-        self.pageheight = relativetoval(args['pageheight'], ui.screenw, ui.screenh, ui)
+        self.pageheight = Utils.relativetoval(args['pageheight'], ui.screenw, ui.screenh, ui)
 
         self.startminp = args['minp']
-        self.minp = relativetoval(args['minp'], ui.screenw, ui.screenh, ui)
+        self.minp = Utils.relativetoval(args['minp'], ui.screenw, ui.screenh, ui)
         self.startmaxp = args['maxp']
-        self.maxp = relativetoval(args['maxp'], ui.screenw, ui.screenh, ui)
+        self.maxp = Utils.relativetoval(args['maxp'], ui.screenw, ui.screenh, ui)
         self.startp = args['startp']
         self.increment = args['increment']
         self.containedslider = args['containedslider']
@@ -218,7 +229,7 @@ class GuiItem(ABC):
         self.screencompressed = args['screencompressed']
 
         self.onitem = False
-        self.master = [emptyobject(0, 0, ui.screenw, ui.screenh)]
+        self.master = [Utils.EmptyObject(0, 0, ui.screenw, ui.screenh)]
         self.bounditems = args['bounditems'][:]
         ui.addid(args['ID'], self)
         for a in self.bounditems:
@@ -249,8 +260,6 @@ class GuiItem(ABC):
         self.refresh()
 
     def refresh(self):
-        ui = self.ui
-        tscale = self.scale
         self.refreshscale()
         self.gentext()
         self.autoscale()
@@ -294,7 +303,7 @@ class GuiItem(ABC):
             self.glowimage = pygame.Surface(
                 ((self.glow * 2 + self.width) * self.scale, (self.glow * 2 + self.height) * self.scale),
                 pygame.SRCALPHA)
-            draw.glow(self.glowimage, roundrect(self.glow * self.scale, self.glow * self.scale, self.width * self.scale,
+            Draw.glow(self.glowimage, Utils.roundrect(self.glow * self.scale, self.glow * self.scale, self.width * self.scale,
                                                 self.height * self.scale), int(self.glow * self.scale), self.glowcol)
 
     def refreshbound(self):
@@ -331,12 +340,12 @@ class GuiItem(ABC):
         w = self.getmasterwidth()
         h = self.getmasterheight()
 
-        self.anchor[0] = relativetoval(self.anchor[0], w, h, ui)
-        self.anchor[1] = relativetoval(self.anchor[1], w, h, ui)
+        self.anchor[0] = Utils.relativetoval(self.anchor[0], w, h, ui)
+        self.anchor[1] = Utils.relativetoval(self.anchor[1], w, h, ui)
 
         self.objanchor = self.startobjanchor[:]
-        self.objanchor[0] = relativetoval(self.objanchor[0], self.width, self.height, ui)
-        self.objanchor[1] = relativetoval(self.objanchor[1], self.width, self.height, ui)
+        self.objanchor[0] = Utils.relativetoval(self.objanchor[0], self.width, self.height, ui)
+        self.objanchor[1] = Utils.relativetoval(self.objanchor[1], self.width, self.height, ui)
 
         self.x = int(master.x * master.dirscale[0] + self.anchor[0] + (
                     self.startx - self.objanchor[0] - self.scrollcords[0]) * self.scale) / self.dirscale[0]
@@ -368,9 +377,9 @@ class GuiItem(ABC):
     def autoscale(self):
         w = self.getmasterwidth() / self.scale
         h = self.getmasterheight() / self.scale
-        if self.startwidth != -1: self.width = relativetoval(self.startwidth, w, h, self.ui)
-        if self.startmaxwidth != -1: self.maxwidth = relativetoval(self.startmaxwidth, w, h, self.ui)
-        if self.startheight != -1: self.height = relativetoval(self.startheight, w, h, self.ui)
+        if self.startwidth != -1: self.width = Utils.relativetoval(self.startwidth, w, h, self.ui)
+        if self.startmaxwidth != -1: self.maxwidth = Utils.relativetoval(self.startmaxwidth, w, h, self.ui)
+        if self.startheight != -1: self.height = Utils.relativetoval(self.startheight, w, h, self.ui)
         self.refreshclickablerect()
         self.child_autoscale()
 
@@ -383,18 +392,18 @@ class GuiItem(ABC):
             ystart = self.master[0].y * self.master[0].dirscale[1]
             ow = self.getmasterwidth() / self.scale
             oh = self.getmasterheight() / self.scale
-            if type(self) == SCROLLERTABLE:
-                self.pageheight = relativetoval(self.startpageheight, w, h, self.ui)
+            if type(self) == ScrollerTable:
+                self.pageheight = Utils.relativetoval(self.startpageheight, w, h, self.ui)
                 oh = self.pageheight
-            if type(self) in [SCROLLERTABLE, TABLE]:
+            if type(self) in [ScrollerTable, Table]:
                 xstart = self.x * self.dirscale[0]
                 ystart = self.y * self.dirscale[1]
                 ow = self.width
                 oh = self.height
-            self.clickablerect = pygame.Rect(xstart + relativetoval(rx, w, h, self.ui),
-                                             ystart + relativetoval(ry, w, h, self.ui),
-                                             relativetoval(rw, ow, oh, self.ui) * self.scale,
-                                             relativetoval(rh, ow, oh, self.ui) * self.scale)
+            self.clickablerect = pygame.Rect(xstart + Utils.relativetoval(rx, w, h, self.ui),
+                                             ystart + Utils.relativetoval(ry, w, h, self.ui),
+                                             Utils.relativetoval(rw, ow, oh, self.ui) * self.scale,
+                                             Utils.relativetoval(rh, ow, oh, self.ui) * self.scale)
         else:
             self.clickablerect = self.startclickablerect
 
@@ -407,16 +416,16 @@ class GuiItem(ABC):
                 if a in self.ui.IDs:
                     self.ui.IDs[a].render(screen)
 
-    def smartcords(self, x='', y='', startset=True, accountscroll=False):
+    def smartcords(self, x=None, y=None, startset=True, accountscroll=False):
         scr = [0, 0]
         if accountscroll:
             scr = self.scrollcords[:]
 
-        if x != '':
+        if x is not None:
             self.x = x
             if startset: self.startx = ((self.x + scr[0]) * self.dirscale[0] + self.objanchor[0] * self.scale -
                                         self.anchor[0]) / self.scale - self.master[0].x
-        if y != '':
+        if y is not None:
             self.y = y
             if startset: self.starty = ((self.y + scr[1]) * self.dirscale[1] + self.objanchor[1] * self.scale -
                                         self.anchor[1]) / self.scale - self.master[0].y
@@ -424,11 +433,11 @@ class GuiItem(ABC):
     def binditem(self, item, replace=True, resetcords=True):
         if item != self:
             for a in item.master:
-                if type(a) == emptyobject:
+                if type(a) == Utils.EmptyObject:
                     item.master.remove(a)
             if item.onitem and replace:
                 for a in item.master:
-                    if type(a) != emptyobject:
+                    if type(a) != Utils.EmptyObject:
                         if item in a.bounditems:
                             a.bounditems.remove(item)
             if not (item in self.bounditems):
@@ -442,13 +451,12 @@ class GuiItem(ABC):
             if resetcords: item.resetcords()
 
     def setmenu(self, menu):
-        old = self.truemenu
         self.menu = menu
         self.truemenu = self.menu
         if type(self.truemenu) == str: self.truemenu = [self.truemenu]
 
         for a in self.master:
-            if type(a) in [WINDOWEDMENU, MENU]:
+            if type(a) in [WindowedMenu, Menu]:
                 a.bounditems.remove(self)
         self.master = []
         for a in self.truemenu:
@@ -458,7 +466,7 @@ class GuiItem(ABC):
         self.resetcords()
 
     def getmenu(self):
-        if type(self.master[0]) in [WINDOWEDMENU, MENU]:
+        if type(self.master[0]) in [WindowedMenu, Menu]:
             return self.master[0].menu
         else:
             return self.master[0].getmenu()
@@ -568,7 +576,7 @@ class GuiItem(ABC):
             self.holding = True
             return False
         if rect.collidepoint(mpos) and (self.clickablerect == -1 or self.clickablerect.collidepoint(mpos)) and not (
-        collidepointrects(mpos, self.noclickrectsapplied)):
+        Collision.collidepointrects(mpos, self.noclickrectsapplied)):
             if ui.mprs[self.clicktype] and (ui.mouseheld[self.clicktype][1] > 0 or self.holding):
                 if ui.mouseheld[self.clicktype][1] == ui.buttondowntimer:
                     self.clickedon = 0
@@ -582,7 +590,7 @@ class GuiItem(ABC):
             if self.clickedon != 0:
                 self.clickedon = 1
             if self.dragable and drag:
-                if type(self) == SCROLLER:
+                if type(self) == Scroller:
                     account = [0, -self.border]
                 else:
                     account = [-rect.x + self.x * self.dirscale[0], -rect.y + self.y * self.dirscale[1]]

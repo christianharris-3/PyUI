@@ -1,4 +1,10 @@
-class WINDOW(GUI_ITEM):
+import pygame
+import math
+from src.GuiItems.GuiItem import GuiItem
+from src.Utils.Draw import Draw
+from src.Utils.Utils import Utils
+
+class Window(GuiItem):
     def reset(self):
         self.refreshscale()
         self.autoscale()
@@ -199,7 +205,7 @@ class WINDOW(GUI_ITEM):
                 screen.blit(self.glowimage, (
                 self.x * self.dirscale[0] - self.glow * self.scale, self.y * self.dirscale[1] - self.glow * self.scale))
             if self.backingdraw:
-                draw.rect(screen, self.col, roundrect(self.x * self.dirscale[0] + self.xoff * self.scale,
+                Draw.rect(screen, self.col, Utils.roundrect(self.x * self.dirscale[0] + self.xoff * self.scale,
                                                       self.y * self.dirscale[1] + self.yoff * self.scale,
                                                       (self.width + self.widthoff) * self.scale,
                                                       (self.height + self.heightoff) * self.scale),
