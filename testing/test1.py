@@ -1,5 +1,6 @@
 import pygame
-import src.PyUI as pyui
+import src as pyui
+
 
 pygame.init()
 screenw = 1200
