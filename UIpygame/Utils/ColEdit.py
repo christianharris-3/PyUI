@@ -61,7 +61,7 @@ class ColEdit:
         return ColEdit.shiftcolor_rgb(col, shift)
 
     @staticmethod
-    def autoshiftcol(col, default=(150, 150, 150), editamount=0):
+    def autoShiftCol(col, default=(150, 150, 150), editamount=0):
         if type(col) == int:
             if col != -1:
                 editamount = col

@@ -1,7 +1,7 @@
 import pygame
 import math
-from src.Utils.Utils import Utils
-from src.Utils.ColEdit import ColEdit
+from UIpygame.Utils.Utils import Utils
+from UIpygame.Utils.ColEdit import ColEdit
 import pygame.gfxdraw
 
 class Draw:
@@ -75,7 +75,7 @@ class Draw:
             except:
                 ## catches error with integer overflow when drawn at large coordinates
                 pass
-        pygame.draw.rect(surf, col, Utils.roundrect(x, y, w, h), int(width), int(border_radius))
+        pygame.draw.rect(surf, col, Utils.roundRect(x, y, w, h), int(width), int(border_radius))
 
     @staticmethod
     def circle(surf, col, center, radius, width=0):
@@ -129,11 +129,11 @@ class Draw:
                 surf.blit(rec, (rect.x - (a / detail) * distances[3], rect.y - (a / detail) * distances[0]))
 
     @staticmethod
-    def pichart(surf, center, radius, col, ang1, ang2=0, innercol=-1, border=2):
+    def pichart(surf, center, radius, col, ang1, ang2=0, innercol=-1, border_size=2):
         Draw.circle(surf, col, [center[0], center[1]], radius)
         if ang1 != ang2:
-            innercol = ColEdit.autoshiftcol(innercol, col, -20)
-            rad = radius - border
+            innercol = ColEdit.autoShiftCol(innercol, col, -20)
+            rad = radius - border_size
             Draw.circle(surf, innercol, [center[0], center[1]], rad)
             temp = ang1
             ang1 = ang2

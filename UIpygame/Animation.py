@@ -1,13 +1,13 @@
 import math
 import pygame
-from src.Utils.Utils import Utils
-from src.GuiItems.Table import Table
-from src.GuiItems.Textbox import Textbox
-from src.GuiItems.Text import Text
-from src.GuiItems.Scroller import Scroller
-from src.GuiItems.Slider import Slider
-from src.GuiItems.Menu import Menu
-from src.GuiItems.WindowedMenu import WindowedMenu
+from UIpygame.Utils.Utils import Utils
+from UIpygame.GuiItems.Table import Table
+from UIpygame.GuiItems.Textbox import Textbox
+from UIpygame.GuiItems.Text import Text
+from UIpygame.GuiItems.Scroller import Scroller
+from UIpygame.GuiItems.Slider import Slider
+from UIpygame.GuiItems.Menu import Menu
+from UIpygame.GuiItems.WindowedMenu import WindowedMenu
 
 
 class Animation:
@@ -36,7 +36,7 @@ class Animation:
         self.fadeout = False
 
         self.onitem = False
-        self.bounditems = []
+        self.bound_items = []
 
     def gencordlist(self, regenerating=False):
         self.speedlist = [1 for a in range(self.length)]
@@ -69,7 +69,7 @@ class Animation:
 
     def findonscreen(self):
         scale = self.ui.IDs[self.animateID].scale
-        dirscale = self.ui.IDs[self.animateID].dirscale
+        dirscale = self.ui.IDs[self.animateID].dir_scale
         scords = self.startpos[:]
         ecords = self.endpos[:]
         start = self.checkonscreen(dirscale, scale, scords)
@@ -142,7 +142,7 @@ class Animation:
                 self.ui.IDs[self.animateID].smartcords(self.cordlist[self.progress][0], self.cordlist[self.progress][1],
                                                        self.permamove)
                 if type(self.ui.IDs[self.animateID]) in [Table, Textbox, Text, Scroller, Slider, WindowedMenu, Menu]:
-                    self.ui.IDs[self.animateID].refreshcords()
+                    self.ui.IDs[self.animateID].refreshCords()
                 if type(self.ui.IDs[self.animateID]) == WindowedMenu:
                     self.ui.IDs[self.animateID].darken = self.ui.IDs[self.animateID].truedarken * (
                                 self.progress / self.length)
@@ -170,7 +170,7 @@ class Animation:
         self.ui.IDs[self.animateID].smartcords(self.trueendpos[0], self.trueendpos[1], self.permamove)
         if (type(self.ui.IDs[self.animateID]) in [Table, Textbox, Text, Scroller, Slider, WindowedMenu,
                                                   Menu]) and self.permamove:
-            self.ui.IDs[self.animateID].resetcords()
+            self.ui.IDs[self.animateID].resetCords()
         if type(self.ui.IDs[self.animateID]) == WindowedMenu:
             self.ui.IDs[self.animateID].darken = self.ui.IDs[self.animateID].truedarken
         if self.progress == self.runcommandat or self.runcommandat == -1 or (

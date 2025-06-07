@@ -152,7 +152,7 @@ A table that works nearly exactly like a normal table, however creates a scrolle
 data = [['Test',ui.maketext(0,0,'Colour',textcol=(255,100,0),backingcol=(50,0,255))],
         [ui.maketextbox(0,0,textsize=25,spacing=3),'{clock}'],
         [ui.makebutton(0,0,'Button',spacing=4),3]]
-# Generate the scroller table, second column will compress
+# Generate the scroller table, second column will compress_table
 table = ui.makescrollertable(240,20,data,['Text','{shuffle}'],boxwidth=200,compress=1,textcenter=True)
 # Add new data to the table, forcing the scroller to become active
 for a in range(5):

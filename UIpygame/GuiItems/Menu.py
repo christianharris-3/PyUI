@@ -1,30 +1,30 @@
-from src.GuiItems.GuiItem import GuiItem
-from src.GuiItems.ScrollerTable import ScrollerTable
+from UIpygame.GuiItems.GuiItem import GuiItem
+from UIpygame.GuiItems.ScrollerTable import ScrollerTable
 
 class Menu(GuiItem):
     def reset(self):
-        self.refreshscale()
-        self.resetcords()
+        self.refreshScale()
+        self.resetCords()
         self.scalesize = False
 
     def refresh(self):
-        self.refreshscale()
-        self.resetcords()
+        self.refreshScale()
+        self.resetCords()
         self.startwidth = self.ui.screenw
         self.startheight = self.ui.screenh
         self.width = self.ui.screenw
         self.height = self.ui.screenh
-        self.refreshbound()
+        self.refreshBound()
 
     def child_refreshcords(self):
-        for a in self.bounditems:
-            a.resetcords()
+        for a in self.bound_items:
+            a.resetCords()
 
     def drawallmenu(self, screen, obj='self'):
         if obj == 'self':
-            bound = self.bounditems
+            bound = self.bound_items
         else:
-            bound = obj.bounditems
+            bound = obj.bound_items
 
         for a in bound:
             if a.enabled:
