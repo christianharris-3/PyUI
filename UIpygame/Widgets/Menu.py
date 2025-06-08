@@ -1,5 +1,5 @@
-from UIpygame.GuiItems.GuiItem import GuiItem
-from UIpygame.GuiItems.ScrollerTable import ScrollerTable
+from UIpygame.Widgets.GuiItem import GuiItem
+from UIpygame.Widgets.ScrollerTable import ScrollerTable
 
 class Menu(GuiItem):
     def reset(self):

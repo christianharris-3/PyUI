@@ -1,9 +1,13 @@
-from UIpygame.GuiItems.GuiItem import GuiItem
+from UIpygame.WidgetProperties.ClickableWidget import ClickableWidget
+from UIpygame.WidgetProperties.PositionalWidget import PositionalWidget
 import pygame
 from UIpygame.Utils.Draw import Draw
 from UIpygame.Utils.Utils import Utils
 
-class Button(GuiItem):
+class Button(ClickableWidget, PositionalWidget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def childGenText(self):
         if (self.img != self.toggle_img) or (self.text != self.toggle_text):
             if type(self.img) != list:
