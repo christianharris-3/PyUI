@@ -20,13 +20,13 @@ class Utils:
     @staticmethod
     def rectscaler(rect, scale, offset=(0, 0)):
         if not type(scale) in [float, int]:
-            return pygame.Rect((rect.x - offset[0]) * scale.dirscale[0], (rect.y - offset[1]) * scale.dirscale[1],
+            return pygame.Rect((rect.x - offset[0]) * scale.dir_scale[0], (rect.y - offset[1]) * scale.dir_scale[1],
                                rect.w * scale.scale, rect.h * scale.scale)
         else:
             return pygame.Rect((rect.x - offset[0]) * scale, (rect.y - offset[1]) * scale, rect.w * scale, rect.h * scale)
 
     @staticmethod
-    def roundrect(x, y, width, height):
+    def roundRect(x, y, width, height):
         return pygame.Rect(round(x), round(y), round(width), round(height))
 
     @staticmethod
@@ -48,7 +48,7 @@ class Utils:
         return False
 
     @staticmethod
-    def relativetoval(st, w, h, ui):
+    def relativeToValue(st, w, h, ui):
         global returnedexecvalue
         if type(st) == str:
             st = Utils.smartreplace(Utils.smartreplace(st, 'w', w), 'h', h)
@@ -98,10 +98,10 @@ class Utils:
             self.active = False
             self.scroll = 0
 
-        def getenabled(self):
+        def getEnabled(self):
             return True
 
-        def getmenu(self):
+        def getMenu(self):
             return 'EMPTY_OBJECT'
 
     class Funcer:

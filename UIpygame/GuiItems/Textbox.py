@@ -1,22 +1,22 @@
 import pygame
-from src.GuiItems.GuiItem import GuiItem
-from src.Utils.Utils import Utils
-from src.Utils.Draw import Draw
+from UIpygame.GuiItems.GuiItem import GuiItem
+from UIpygame.Utils.Utils import Utils
+from UIpygame.Utils.Draw import Draw
 
 
 class Textbox(GuiItem):
     def reset(self):
         self.setvars()
-        self.autoscale()
-        self.resetcords()
+        self.autoScale()
+        self.resetCords()
         self.resetscroller()
-        self.refreshscale()
-        self.gentext(False)
+        self.refreshScale()
+        self.genText(False)
         self.refreshcursor()
         self.refreshscroller()
-        self.refreshcords()
-        self.refreshglow()
-        self.resetcords()
+        self.refreshCords()
+        self.refreshGlow()
+        self.resetCords()
 
     def setvars(self):
         self.scroller = 0
@@ -30,14 +30,14 @@ class Textbox(GuiItem):
         self.previntscrollerhoff = 0
         self.undochain = [(self.text, self.typingcursor)]
 
-    def child_autoscale(self):
-        heightgetter = self.ui.rendertext('Tg', self.textsize, self.textcol, self.font, self.bold)
+    def childAutoScale(self):
+        heightgetter = self.ui.rendertext('Tg', self.text_size, self.text_col, self.font, self.bold)
         if self.height == -1:
-            self.startheight = self.upperborder + self.lowerborder + heightgetter.get_height() * self.lines + self.verticalspacing * 2
+            self.startheight = self.top_border_size + self.bottom_border_size + heightgetter.get_height() * self.lines + self.vertical_spacing * 2
             self.init_height = self.startheight
             self.height = self.startheight
-        if self.cursorsize == -1:
-            self.cursorsize = self.ui.gettextsize('Tg', self.font, self.textsize, self.bold)[1] - 2
+        if self.cursor_size == -1:
+            self.cursorsize = self.ui.gettext_size('Tg', self.font, self.text_size, self.bold)[1] - 2
 
     def select(self):
         for a in self.ui.textboxes:
@@ -54,14 +54,14 @@ class Textbox(GuiItem):
             self.refresh()
 
     def scroll_input(self, scroll_size):
-        if self.scrolleron and self.attachscroller:
-            if self.pageheight < (self.maxp - self.minp):
+        if self.scrolleron and self.attach_scroller:
+            if self.page_height < (self.max_value - self.min_value):
                 self.scroller.scroll -= (
-                            scroll_size * min((self.scroller.maxp - self.scroller.minp) / 20, self.ui.scrolllimit))
+                            scroll_size * min((self.scroller.maxp - self.scroller.minp) / 20, self.ui.scroll_limit))
                 self.scroller.limitpos()
                 self.scroller.command()
                 return True
-        elif self.intscroller:
+        elif self.int_scroller:
             return self.change_textnum(scroll_size)
         return False
 
@@ -74,19 +74,19 @@ class Textbox(GuiItem):
         except Exception as e:
             return False
         val += change
-        if self.intwraparound and wraparound:
-            val = (val - self.minp) % (self.maxp - self.minp + 1) + self.minp
+        if self.int_wrap_around and wraparound:
+            val = (val - self.min_value) % (self.max_value - self.min_value + 1) + self.min_value
         else:
-            if val < self.minp:
-                val = self.minp
-            elif val > self.maxp:
-                val = self.maxp
+            if val < self.min_value:
+                val = self.min_value
+            elif val > self.max_value:
+                val = self.max_value
 
         self.text = str(round(val, 14))
         if refresh: self.refresh()
         return True
 
-    def settext(self, text=''):
+    def setText(self, text=''):
         self.text = text
         self.refresh()
 
@@ -148,8 +148,8 @@ class Textbox(GuiItem):
         elif event.key == pygame.K_ESCAPE:
             self.selected = False
         elif event.key == pygame.K_RETURN:
-            if self.enterreturns: item = '\n'
-            if self.commandifenter: self.command()
+            if self.enter_returns: item = '\n'
+            if self.command_if_enter: self.command()
         elif event.key == pygame.K_SPACE:
             item = ' '
         elif event.key == pygame.K_LEFT:
@@ -182,10 +182,10 @@ class Textbox(GuiItem):
 
         if not (self.textselected[0] and self.textselected[1] != self.textselected[2]):
             if item != '':
-                if self.allowedcharacters != '':
+                if self.allowed_characters != '':
                     newitem = ''
                     for i in item:
-                        if i in self.allowedcharacters:
+                        if i in self.allowed_characters:
                             newitem += i
                     item = newitem
                 try:
@@ -193,7 +193,7 @@ class Textbox(GuiItem):
                     num = True
                 except:
                     num = False
-                if (not (self.numsonly) or num):
+                if (not (self.nums_only) or num):
                     self.text = self.text[:self.typingcursor + 1] + item + self.text[self.typingcursor + 1:]
                     self.typingcursor += len(item)
                     self.change_textnum(0, False, False)
@@ -210,17 +210,17 @@ class Textbox(GuiItem):
                     self.text = self.text[:self.typingcursor] + self.text[self.typingcursor + 2:]
                 else:
                     self.text = self.text[:self.typingcursor + 1] + self.text[self.typingcursor + 2:]
-            if self.commandifkey and (item != '' or backspace or delete):
+            if self.command_if_key and (item != '' or backspace or delete):
                 self.command()
         else:
             if backspace or delete or item != '':
                 self.text = self.text[:self.textselected[1]] + item + self.text[self.textselected[2]:]
                 self.typingcursor = self.textselected[1] - 1 + len(item)
                 self.textselected = [False, 0, 0]
-        if self.text[self.chrlimit - 1:self.chrlimit + 1] == '\n':
-            self.text = self.text[:self.chrlimit - 1]
+        if self.text[self.char_limit - 1:self.char_limit + 1] == '\n':
+            self.text = self.text[:self.char_limit - 1]
         else:
-            self.text = self.text[:self.chrlimit]
+            self.text = self.text[:self.char_limit]
         if self.text != starttext:
             self.refresh()
             self.updateslider()
@@ -230,19 +230,19 @@ class Textbox(GuiItem):
 
     def resetscroller(self):
         self.scroll = 0
-        if self.attachscroller:
+        if self.attach_scroller:
             if self.scroller != 0:
-                self.bounditems.remove(self.scroller)
+                self.bound_items.remove(self.scroller)
                 self.ui.delete(self.scroller.ID, False)
 
-            self.scroller = self.ui.makescroller(-self.rightborder - 15 + self.border / 2, self.upperborder,
-                                                 self.height - self.upperborder - self.lowerborder, Utils.emptyFunction, 15,
-                                                 0, self.height - self.upperborder - self.lowerborder, self.height,
+            self.scroller = self.ui.makescroller(-self.right_border_size - 15 + self.border / 2, self.top_border_size,
+                                                 self.height - self.top_border_size - self.bottom_border_size, Utils.emptyFunction, 15,
+                                                 0, self.height - self.top_border_size - self.bottom_border_size, self.height,
                                                  anchor=('w', 0),
-                                                 menu=self.menu, roundedcorners=self.roundedcorners, col=self.col,
-                                                 scalesize=self.scalesize, scaley=self.scalesize, scalex=self.scalesize,
-                                                 scaleby=self.scaleby)
-            self.binditem(self.scroller)
+                                                 menu=self.menu, rounded_corners=self.rounded_corners, col=self.col,
+                                                 scalesize=self.scale_size, scale_y=self.scale_size, scale_x=self.scale_size,
+                                                 scale_by=self.scale_by)
+            self.bindItem(self.scroller)
         else:
             self.scroller = Utils.EmptyObject(0, 0, 0, 0)
 
@@ -256,19 +256,19 @@ class Textbox(GuiItem):
                 pass
 
     def refresh(self):
-        self.refreshscale()
-        self.gentext()
+        self.refreshScale()
+        self.genText()
         self.refreshcursor()
 
-        if self.attachscroller:
+        if self.attach_scroller:
             self.refreshscroller()
-            self.scroller.setmaxp((self.textimage.get_height()) / self.scale + self.verticalspacing * 2 - 1)
-            self.scroller.setheight(self.height - self.upperborder - self.lowerborder)
-            self.scroller.setpageheight(self.height - self.upperborder - self.lowerborder)
+            self.scroller.setmaxp((self.textimage.get_height()) / self.scale + self.vertical_spacing * 2 - 1)
+            self.scroller.setheight(self.height - self.top_border_size - self.bottom_border_size)
+            self.scroller.setpageheight(self.height - self.top_border_size - self.bottom_border_size)
             self.scroller.menu = self.menu
-            self.scroller.scalesize = self.scalesize
-            self.scroller.scalex = self.scalesize
-            self.scroller.scaley = self.scalesize
+            self.scroller.scalesize = self.scale_size
+            self.scroller.scale_x = self.scale_size
+            self.scroller.scale_y = self.scale_size
             self.scroller.refresh()
             if (self.scroller.maxp - self.scroller.minp) > self.scroller.pageheight:
                 self.scrolleron = True
@@ -278,17 +278,17 @@ class Textbox(GuiItem):
                 self.scrolleron = False
             self.scroller.refresh()
 
-        self.resetcords()
-        self.refreshglow()
-        self.refreshbound()
+        self.resetCords()
+        self.refreshGlow()
+        self.refreshBound()
 
-    def gentext(self, refcurse=True):
-        self.textimage, self.chrcorddatalined = self.ui.rendertextlined(self.text, self.textsize, self.textcol,
+    def genText(self, refcurse=True):
+        self.textimage, self.chrcorddatalined = self.ui.rendertextlined(self.text, self.text_size, self.text_col,
                                                                         self.col, self.font,
-                                                                        self.width - self.horizontalspacing * 2 - self.leftborder - self.rightborder - self.scrolleron * self.scroller.width,
-                                                                        self.bold, center=self.textcenter,
-                                                                        scale=self.scale, linelimit=self.linelimit,
-                                                                        getcords=True, imgin=self.imgdisplay)
+                                                                        self.width - self.horizontal_spacing * 2 - self.left_border_size - self.right_border_size - self.scrolleron * self.scroller.width,
+                                                                        self.bold, center=self.text_center,
+                                                                        scale=self.scale, linelimit=self.line_limit,
+                                                                        getcords=True, imgin=self.img_display)
         for l in self.chrcorddatalined:
             for a in l:
                 a[1] = (a[1][0] / self.scale, a[1][1] / self.scale)
@@ -311,16 +311,16 @@ class Textbox(GuiItem):
             self.typingcursor = -1
         if self.typingcursor != -1:
             self.linecenter = [self.chrcorddata[self.typingcursor][1][0] + self.chrcorddata[self.typingcursor][2][
-                0] / 2 + self.horizontalspacing, self.chrcorddata[self.typingcursor][1][1]]
+                0] / 2 + self.horizontal_spacing, self.chrcorddata[self.typingcursor][1][1]]
         elif len(self.chrcorddata) > 0:
             self.linecenter = [
                 self.chrcorddata[self.typingcursor + 1][1][0] - self.chrcorddata[self.typingcursor + 1][2][
-                    0] / 2 + self.horizontalspacing, self.chrcorddata[self.typingcursor + 1][1][1]]
+                    0] / 2 + self.horizontal_spacing, self.chrcorddata[self.typingcursor + 1][1][1]]
         else:
-            if self.textcenter:
-                self.linecenter = [self.width / 2 - self.leftborder, self.textsize * 0.3]
+            if self.text_center:
+                self.linecenter = [self.width / 2 - self.left_border_size, self.text_size * 0.3]
             else:
-                self.linecenter = [self.horizontalspacing, self.textsize * 0.3]
+                self.linecenter = [self.horizontal_spacing, self.text_size * 0.3]
         if self.textselected[1] > len(self.chrcorddata):
             self.textselected[1] = len(self.chrcorddata)
         elif self.textselected[1] < 0:
@@ -331,21 +331,21 @@ class Textbox(GuiItem):
             self.textselected[2] = 0
 
     def refreshscroller(self):
-        if self.attachscroller:
-            self.scroller.setheight(self.height - self.upperborder - self.lowerborder)
-            self.scroller.setpageheight(self.height - self.upperborder - self.lowerborder)
+        if self.attach_scroller:
+            self.scroller.setheight(self.height - self.top_border_size - self.bottom_border_size)
+            self.scroller.setpageheight(self.height - self.top_border_size - self.bottom_border_size)
             self.scroller.refresh()
             inc = 0
             if self.linecenter[1] - self.scroller.scroll > self.scroller.height:
-                inc = self.textsize
+                inc = self.text_size
             if self.linecenter[1] - self.scroller.scroll < 0:
-                inc = -self.textsize
+                inc = -self.text_size
             count = 0
             while inc != 0:
                 self.scroller.scroll += inc
                 count += 1
                 if not (self.linecenter[1] - self.scroller.scroll < 0 or self.linecenter[
-                    1] - self.scroller.scroll > self.height - self.upperborder - self.lowerborder):
+                    1] - self.scroller.scroll > self.height - self.top_border_size - self.bottom_border_size):
                     inc = 0
                 if count > 20:
                     break
@@ -354,36 +354,36 @@ class Textbox(GuiItem):
             else:
                 self.scroller.scroll = self.scroller.minp
 
-    def child_refreshcords(self):
+    def childRefreshCords(self):
         if self.scroller != 0:
             self.refreshscroller()
-            self.rect = Utils.roundrect(self.x, self.y, self.width, self.height)
-            self.innerrect = Utils.roundrect(self.x + self.leftborder, self.y + self.upperborder,
-                                       self.width - self.rightborder - self.leftborder - self.scrolleron * self.scroller.width,
-                                       self.height - self.upperborder - self.lowerborder)
+            self.rect = Utils.roundRect(self.x, self.y, self.width, self.height)
+            self.innerrect = Utils.roundRect(self.x + self.left_border_size, self.y + self.top_border_size,
+                                             self.width - self.right_border_size - self.left_border_size - self.scrolleron * self.scroller.width,
+                                             self.height - self.top_border_size - self.bottom_border_size)
             self.textimagerect = self.textimage.get_rect()
-            if self.textcenter:
+            if self.text_center:
                 self.textimagerect.x = (
-                                                   self.width - self.horizontalspacing * 2 - self.scrolleron * self.scroller.width - self.leftborder - self.rightborder) / 2 + self.textoffsetx + self.horizontalspacing - self.textimagerect.width / 2 / self.scale
-                self.textimagerect.y = self.verticalspacing + self.textimagerect.height / 2 + self.textoffsety - self.textimagerect.height / 2
+                                               self.width - self.horizontal_spacing * 2 - self.scrolleron * self.scroller.width - self.left_border_size - self.right_border_size) / 2 + self.text_offset_x + self.horizontal_spacing - self.textimagerect.width / 2 / self.scale
+                self.textimagerect.y = self.vertical_spacing + self.textimagerect.height / 2 + self.text_offset_y - self.textimagerect.height / 2
             else:
-                self.textimagerect.x = self.textoffsetx + self.horizontalspacing
-                self.textimagerect.y = self.textoffsety + self.verticalspacing
+                self.textimagerect.x = self.text_offset_x + self.horizontal_spacing
+                self.textimagerect.y = self.text_offset_y + self.vertical_spacing
 
     def child_render(self, screen):
         self.typeline += 1
-        self.selectrect = Utils.roundrect(self.x * self.dirscale[0] + (self.leftborder - self.selectbordersize) * self.scale,
-                                    self.y * self.dirscale[1] + (self.upperborder - self.selectbordersize) * self.scale,
-                                    (self.width - (
-                                                self.leftborder + self.rightborder) + self.selectbordersize * 2 - self.scrolleron * self.scroller.width) * self.scale,
-                                    (self.height - (
-                                                self.upperborder + self.lowerborder) + self.selectbordersize * 2) * self.scale)
+        self.selectrect = Utils.roundRect(self.x * self.dir_scale[0] + (self.left_border_size - self.selected_border_size) * self.scale,
+                                          self.y * self.dir_scale[1] + (self.top_border_size - self.selected_border_size) * self.scale,
+                                          (self.width - (
+                                                self.left_border_size + self.right_border_size) + self.selected_border_size * 2 - self.scrolleron * self.scroller.width) * self.scale,
+                                          (self.height - (
+                                                self.top_border_size + self.bottom_border_size) + self.selected_border_size * 2) * self.scale)
         if self.typeline == 80:
             self.typeline = 0
-        self.getclickedon(self.selectrect, False, False)
+        self.getClickedOn(self.selectrect, False, False)
         self.draw(screen)
         mpos = self.ui.mpos
-        if self.clickedon == 0:
+        if self.clicked_on == 0:
             self.typingcursor = min([max([self.findclickloc(mpos) + 1, 0]), len(self.chrcorddata)]) - 1
             self.textselected[2] = self.typingcursor + 1
             if len(self.chrcorddata) != 0: self.textselected[0] = True
@@ -392,34 +392,34 @@ class Textbox(GuiItem):
             self.select()
             self.clickstartedinbound = True
         elif self.selected:
-            if self.ui.mprs[self.clicktype] and self.ui.mouseheld[self.clicktype][1] == self.ui.buttondowntimer:
+            if self.ui.mprs[self.click_type] and self.ui.mouseheld[self.click_type][1] == self.ui.buttondowntimer:
                 self.clickstartedinbound = False
                 self.selected = False
-            if not self.selectrect.collidepoint(mpos) and self.ui.mprs[self.clicktype] and not self.ui.mouseheld[
-                self.clicktype]:
+            if not self.selectrect.collidepoint(mpos) and self.ui.mprs[self.click_type] and not self.ui.mouseheld[
+                self.click_type]:
                 self.selected = False
                 self.textselected = [False, 0, 0]
 
-        if self.ui.mprs[self.clicktype] and self.ui.mouseheld[self.clicktype][
+        if self.ui.mprs[self.click_type] and self.ui.mouseheld[self.click_type][
             1] != self.ui.buttondowntimer and self.clickstartedinbound:
             self.textselected[2] = min([max([self.findclickloc(mpos) + 1, 0]), len(self.chrcorddata)])
             hoff = 0
-            if mpos[1] < self.y * self.dirscale[1] + self.upperborder * self.scale:
-                hoff = (mpos[1] - (self.y * self.dirscale[1] + self.upperborder * self.scale))
-            elif mpos[1] > self.y * self.dirscale[1] + (self.height - self.lowerborder) * self.scale:
-                hoff = (mpos[1] - (self.y * self.dirscale[1] + (self.height - self.lowerborder) * self.scale))
+            if mpos[1] < self.y * self.dir_scale[1] + self.top_border_size * self.scale:
+                hoff = (mpos[1] - (self.y * self.dir_scale[1] + self.top_border_size * self.scale))
+            elif mpos[1] > self.y * self.dir_scale[1] + (self.height - self.bottom_border_size) * self.scale:
+                hoff = (mpos[1] - (self.y * self.dir_scale[1] + (self.height - self.bottom_border_size) * self.scale))
             if hoff != 0:
                 if self.scrolleron:
                     self.scroller.scroll += hoff / 10
                     self.scroller.limitpos()
 
-            hoff = int((self.ui.mpos[1] - self.selectrect.y - self.holdingcords[1]) / 10)
-            if self.intscroller:
+            hoff = int((self.ui.mpos[1] - self.selectrect.y - self.holding_cords[1]) / 10)
+            if self.int_scroller:
                 self.change_textnum(self.previntscrollerhoff - hoff)
             self.previntscrollerhoff = hoff
         else:
             self.previntscrollerhoff = 0
-        if not self.ui.mprs[self.clicktype]:
+        if not self.ui.mprs[self.click_type]:
             self.clickstartedinbound = False
         return False
 
@@ -428,10 +428,10 @@ class Textbox(GuiItem):
             return -1
         else:
             if relativempos == -1:
-                self.relativempos = ((mpos[0] - (self.x * self.dirscale[0] + (
-                            self.leftborder + self.horizontalspacing) * self.scale)) / self.scale, (mpos[1] - (
-                            self.y * self.dirscale[1] + (
-                                self.upperborder + self.verticalspacing - self.scroller.scroll) * self.scale)) / self.scale)
+                self.relativempos = ((mpos[0] - (self.x * self.dir_scale[0] + (
+                            self.left_border_size + self.horizontal_spacing) * self.scale)) / self.scale, (mpos[1] - (
+                        self.y * self.dir_scale[1] + (
+                        self.top_border_size + self.vertical_spacing - self.scroller.scroll) * self.scale)) / self.scale)
             else:
                 self.relativempos = relativempos
             dis = [0, 10000]
@@ -456,36 +456,36 @@ class Textbox(GuiItem):
         if self.enabled:
             ui = self.ui
             if self.glow != 0:
-                screen.blit(self.glowimage, (
-                self.x * self.dirscale[0] - self.glow * self.scale, self.y * self.dirscale[1] - self.glow * self.scale))
-            if self.borderdraw:
-                Draw.rect(screen, self.backingcol,
-                          Utils.roundrect(self.x * self.dirscale[0], self.y * self.dirscale[1], self.width * self.scale,
-                                    self.height * self.scale), border_radius=int(self.roundedcorners * self.scale))
-            if self.selected and self.selectbordersize != 0:
-                Draw.rect(screen, self.selectcol,
-                          pygame.Rect(self.selectrect.x + self.holding * self.selectshrinksize * self.scale,
-                                      self.selectrect.y + self.holding * self.selectshrinksize * self.scale,
-                                      self.selectrect.width - self.holding * self.selectshrinksize * self.scale * 2,
-                                      self.selectrect.height - self.holding * self.selectshrinksize * self.scale * 2),
-                          int(self.selectbordersize * self.scale),
-                          border_radius=int((self.roundedcorners + self.selectbordersize) * self.scale))
+                screen.blit(self.glow_image, (
+                    self.x * self.dir_scale[0] - self.glow * self.scale, self.y * self.dir_scale[1] - self.glow * self.scale))
+            if self.border_draw:
+                Draw.rect(screen, self.backing_col,
+                          Utils.roundRect(self.x * self.dir_scale[0], self.y * self.dir_scale[1], self.width * self.scale,
+                                          self.height * self.scale), border_radius=int(self.rounded_corners * self.scale))
+            if self.selected and self.selected_border_size != 0:
+                Draw.rect(screen, self.selected_col,
+                          pygame.Rect(self.selectrect.x + self.holding * self.selected_border_shrink_size * self.scale,
+                                      self.selectrect.y + self.holding * self.selected_border_shrink_size * self.scale,
+                                      self.selectrect.width - self.holding * self.selected_border_shrink_size * self.scale * 2,
+                                      self.selectrect.height - self.holding * self.selected_border_shrink_size * self.scale * 2),
+                          int(self.selected_border_size * self.scale),
+                          border_radius=int((self.rounded_corners + self.selected_border_size) * self.scale))
             surf = pygame.Surface(((
-                                               self.width - self.leftborder - self.rightborder - self.scrolleron * self.scroller.width) * self.scale,
-                                   (self.height - self.upperborder - self.lowerborder) * self.scale))
-            surf.fill(self.backingcol)
-            if self.backingdraw: Draw.rect(surf, self.col, (0, 0, surf.get_width(), surf.get_height()),
-                                           border_radius=int(self.roundedcorners * self.scale))
-            surf.set_colorkey(self.backingcol)
+                                               self.width - self.left_border_size - self.right_border_size - self.scrolleron * self.scroller.width) * self.scale,
+                                   (self.height - self.top_border_size - self.bottom_border_size) * self.scale))
+            surf.fill(self.backing_col)
+            if self.backing_draw: Draw.rect(surf, self.col, (0, 0, surf.get_width(), surf.get_height()),
+                                            border_radius=int(self.rounded_corners * self.scale))
+            surf.set_colorkey(self.backing_col)
 
             offset = (0, self.scroller.scroll)
             surf.blit(self.textimage,
                       (self.textimagerect.x * self.scale, (self.textimagerect.y - self.scroller.scroll) * self.scale))
             if self.typeline > 20 and self.selected:
-                pygame.draw.line(surf, self.textcol, ((self.linecenter[0]) * self.scale, (self.linecenter[
-                                                                                              1] - self.cursorsize / 2 + self.verticalspacing - self.scroller.scroll) * self.scale),
+                pygame.draw.line(surf, self.text_col, ((self.linecenter[0]) * self.scale, (self.linecenter[
+                                                                                              1] - self.cursorsize / 2 + self.vertical_spacing - self.scroller.scroll) * self.scale),
                                  ((self.linecenter[0]) * self.scale, (self.linecenter[
-                                                                          1] + self.cursorsize / 2 + self.verticalspacing - self.scroller.scroll) * self.scale),
+                                                                          1] + self.cursorsize / 2 + self.vertical_spacing - self.scroller.scroll) * self.scale),
                                  2)
             if self.textselected[0] and self.textselected[1] != self.textselected[2]:
                 trect = [1000000, 0, 0, 0]
@@ -494,9 +494,9 @@ class Textbox(GuiItem):
                                max([self.textselected[1], self.textselected[2]])):
                     if prev != self.chrcorddata[a][1]:
                         if self.chrcorddata[a][0] != '\n':
-                            trect[0] = (self.horizontalspacing + self.chrcorddata[a][1][0] - self.chrcorddata[a][2][
+                            trect[0] = (self.horizontal_spacing + self.chrcorddata[a][1][0] - self.chrcorddata[a][2][
                                 0] / 2) * self.scale
-                            trect[1] = (self.verticalspacing + self.chrcorddata[a][1][1] - self.chrcorddata[a][2][
+                            trect[1] = (self.vertical_spacing + self.chrcorddata[a][1][1] - self.chrcorddata[a][2][
                                 1] / 2 - self.scroller.scroll) * self.scale
                             trect[2] = self.chrcorddata[a][2][0] * self.scale
                             trect[3] = self.chrcorddata[a][2][1] * self.scale
@@ -507,5 +507,5 @@ class Textbox(GuiItem):
 
                     prev = self.chrcorddata[a][1]
 
-            screen.blit(surf, (self.x * self.dirscale[0] + (self.leftborder) * self.scale,
-                               self.y * self.dirscale[1] + (self.upperborder) * self.scale))
+            screen.blit(surf, (self.x * self.dir_scale[0] + (self.left_border_size) * self.scale,
+                               self.y * self.dir_scale[1] + (self.top_border_size) * self.scale))

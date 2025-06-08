@@ -1,9 +1,9 @@
-from src.GuiItems.Button import Button
-from src.Utils.Utils import Utils
+from UIpygame.GuiItems.Button import Button
+from UIpygame.Utils.Utils import Utils
 
 class DropDown(Button):
     def mainbuttonclicked(self):
-        if self.dropsdown:
+        if self.drops_down:
             if not self.window.opening:
                 self.window.open('compressup', toggleopen=False)
             else:
@@ -21,11 +21,11 @@ class DropDown(Button):
 
     def optionclicked(self, index, command=True):
         self.active = self.options[index]
-        if self.dropsdown:
-            self.titletext.settext(self.options[index])
+        if self.drops_down:
+            self.titletext.setText(self.options[index])
             self.window.shut('compressup')
         else:
-            self.settext(self.options[index])
+            self.setText(self.options[index])
         if command:
             self.truecommand()
 
@@ -33,8 +33,8 @@ class DropDown(Button):
         data = []
         for i, a in enumerate(self.options):
             func = Utils.Funcer(self.optionclicked, index=i)
-            data.append([self.ui.makebutton(0, 0, a, self.textsize, font=self.font, bold=self.bold,
-                                            textcol=self.textcol, col=self.col, roundedcorners=self.roundedcorners,
+            data.append([self.ui.makeButton(0, 0, a, self.text_size, font=self.font, bold=self.bold,
+                                            text_col=self.text_col, col=self.col, rounded_corners=self.rounded_corners,
                                             command=func.func)])
         self.table.data = data
         self.table.refresh()
@@ -42,13 +42,13 @@ class DropDown(Button):
     def setoptions(self, options):
         self.options = options
         self.refreshoptions()
-        self.window.child_autoscale()
+        self.window.childAutoScale()
         self.refresh()
 
-    def child_refreshcords(self):
+    def childRefreshCords(self):
         if hasattr(self, "window"):
             self.window.width = self.width
-            self.window.starty = self.height
-            self.window.refreshcords()
-            self.table.startwidth = self.width - self.table.border * 2
+            self.window.start_y = self.height
+            self.window.refreshCords()
+            self.table.start_width = self.width - self.table.border_size * 2
             self.table.refresh()

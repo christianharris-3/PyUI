@@ -44,7 +44,12 @@ class ColEdit:
         return H, S, V
 
     @staticmethod
-    def shiftcolor_hsva(col, shift):
+    def shiftcolor_hsva(col: pygame.Color | tuple[float, float, float], shift):
+        """
+        :param col: rgb value bla bla
+        :param shift: an int to shift it by
+        :return: a new shifted color
+        """
         col = pygame.color.Color(col)
         col.hsva = (col.hsva[0], col.hsva[1], max([min([100, col.hsva[2] + shift / 2.55]), 0]), col.hsva[3])
         return col
@@ -61,7 +66,7 @@ class ColEdit:
         return ColEdit.shiftcolor_rgb(col, shift)
 
     @staticmethod
-    def autoshiftcol(col, default=(150, 150, 150), editamount=0):
+    def autoShiftCol(col, default=(150, 150, 150), editamount=0):
         if type(col) == int:
             if col != -1:
                 editamount = col
