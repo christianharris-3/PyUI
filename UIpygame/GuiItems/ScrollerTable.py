@@ -58,7 +58,7 @@ class ScrollerTable(Table):
         self.scroller.setScroll(scroll)
         self.scrollerblocks(self.scroller)
 
-    def getheight(self):
+    def getHeight(self):
         return min(self.height, self.page_height)
 
     def refresh(self):

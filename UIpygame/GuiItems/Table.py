@@ -67,12 +67,12 @@ class Table(GuiItem):
                 for b in a:
                     b.enabled = True
 
-    def setwidth(self, width):
+    def setWidth(self, width):
         self.startwidth = width
         self.refresh()
         self.resetCords()
 
-    def setheight(self, height):
+    def setHeight(self, height):
         self.startheight = height
         self.refresh()
         self.resetCords()
@@ -183,7 +183,7 @@ class Table(GuiItem):
                                            'tabletext' + self.tableitemID + self.ID + str(a) + '-' + str(i),
                                            self.layer + 0.01, self.rounded_corners, textcenter=self.text_center, img=b,
                                            maxwidth=self.boxwidth[i],
-                                           scalesize=self.scale_size, scaleby=self.scale_by,
+                                           scalesize=self.scale_size, scale_by=self.scale_by,
                                            horizontalspacing=self.horizontal_spacing,
                                            verticalspacing=self.vertical_spacing, colorkey=self.colorkey, enabled=False)
                 else:
@@ -195,7 +195,7 @@ class Table(GuiItem):
                                            font=self.font, bold=self.bold, antialiasing=self.antialiasing,
                                            pregenerated=self.pre_generate_text,
                                            maxwidth=max([self.boxwidth[i] - self.horizontal_spacing * 2, -1]),
-                                           scalesize=self.scale_size, scaleby=self.scale_by,
+                                           scalesize=self.scale_size, scale_by=self.scale_by,
                                            horizontalspacing=self.horizontal_spacing,
                                            verticalspacing=self.vertical_spacing, backing_col=self.col, enabled=False)
                 row.append(obj)
@@ -204,7 +204,7 @@ class Table(GuiItem):
                     obj.refresh()
         return row
 
-    def child_refreshcords(self):
+    def childRefreshCords(self):
         if self.table != 0:
             repeats = []
             for a in range(len(self.table)):
@@ -218,13 +218,13 @@ class Table(GuiItem):
                     a.resetCords()
 
     def itemintotable(self, obj, x, y):
-        self.binditem(obj)
+        self.bindItem(obj)
         self.itemrefreshcords(obj, x, y)
         obj.enabled = True
 
     def itemrefreshcords(self, obj, x, y):
-        obj.startx = (self.line_size * (x + 1) + self.boxwidthsinc[x])
-        obj.starty = (self.line_size * (y + 1) + self.boxheightsinc[y])
+        obj.start_x = (self.line_size * (x + 1) + self.boxwidthsinc[x])
+        obj.start_y = (self.line_size * (y + 1) + self.boxheightsinc[y])
 
         bwidth = self.boxwidths[x]
         rectsize = x + 1
@@ -495,7 +495,7 @@ class Table(GuiItem):
                 self.gettableheights()
                 for a in range(index, len(self.table)):
                     for i, b in enumerate(self.table[a]):
-                        self.ui.reID('tabletext' + self.tableitemID + self.ID + str(a) + '-' + str(i), b)
+                        self.ui.setObjectID('tabletext' + self.tableitemID + self.ID + str(a) + '-' + str(i), b)
                         self.itemrefreshcords(b, i, a)
             self.small_refresh()
             return True
@@ -511,7 +511,7 @@ class Table(GuiItem):
         self.estimatewidths()
         for a in range(len(self.table) - 1, index - 1, -1):
             for i, b in enumerate(self.table[a]):
-                self.ui.reID('tabletext' + self.tableitemID + self.ID + str(a + 1) + '-' + str(i), b)
+                self.ui.setObjectID('tabletext' + self.tableitemID + self.ID + str(a + 1) + '-' + str(i), b)
         self.table.insert(index, self.row_gentext(index))
         self.gettableheights()
         for a in range(index, len(self.table)):

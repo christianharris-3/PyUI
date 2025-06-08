@@ -36,7 +36,7 @@ class Scroller(GuiItem):
             self.scrollObjects()
             self.draw(screen)
 
-    def child_autoscale(self):
+    def childAutoScale(self):
         compress = 1
         if self.screen_compressed:
             if self.y * self.dir_scale[1] + self.height * self.scale > self.ui.screenh:
@@ -98,7 +98,7 @@ class Scroller(GuiItem):
                 self.ui.IDs[a].scroll_cords = (self.ui.IDs[a].scroll_cords[0], self.value)
                 self.ui.IDs[a].resetCords()
 
-    def child_refreshcords(self):
+    def childRefreshCords(self):
         if self.max_value - self.min_value == 0:
             self.max_value = self.min_value + 0.1
 

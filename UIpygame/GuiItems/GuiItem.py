@@ -13,6 +13,10 @@ if TYPE_CHECKING:
 
 class GuiItem(ABC):
     def __init__(self, **args):
+
+        return
+
+
         defaulttype = type(self)
         if 'defaulttype' in args: defaulttype = args['defaulttype']
         for var in Style.objectdefaults[defaulttype]:
@@ -33,8 +37,8 @@ class GuiItem(ABC):
             self.center_y = args['center_y']
         self.x = args['x']
         self.y = args['y']
-        self.startx = args['x']
-        self.starty = args['y']
+        self.start_x = args['x']
+        self.start_y = args['y']
         self.start_anchor = list(args['anchor'])
         self.start_obj_anchor = list(args['obj_anchor'])
         if self.center and self.start_obj_anchor[0] == 0: self.start_obj_anchor[0] = 'w/2'
@@ -234,14 +238,14 @@ class GuiItem(ABC):
         self.bound_items = args['bound_items'][:]
         ui.addid(args['ID'], self)
         for a in self.bound_items:
-            self.binditem(a)
+            self.bindItem(a)
         self.empty = False
 
         self.isolated = args['isolated']
         self.darken = args['darken']
         self.auto_shut_windows = args['auto_shut_windows']
         for a in self.bound_items:
-            self.binditem(a)
+            self.bindItem(a)
         self.reset()
         pygame.event.pump()
 
@@ -297,7 +301,7 @@ class GuiItem(ABC):
         self.textimage = self.text_images[0]
         if len(self.text_images) != 1:
             self.animating = True
-        self.child_gentext()
+        self.childGenText()
 
     def refreshGlow(self):
         if self.glow != 0:
@@ -312,7 +316,7 @@ class GuiItem(ABC):
             if a in self.ui.IDs:
                 self.ui.IDs[a].refresh()
 
-    def animatetext(self):
+    def animateText(self):
         if self.animating:
             self.animate += 1
             if self.animate % self.animation_speed == 0:
@@ -330,11 +334,11 @@ class GuiItem(ABC):
         if len(self.master) > 1:
             if 'animate' in self.true_menu:
                 for a in self.master:
-                    if ui.activemenu in a.truemenu:
+                    if ui.active_menu in a.truemenu:
                         master = a
             else:
                 for a in self.master:
-                    if not (ui.activemenu in a.truemenu):
+                    if not (ui.active_menu in a.truemenu):
                         master = a
                         break
 
@@ -349,9 +353,9 @@ class GuiItem(ABC):
         self.obj_anchor[1] = Utils.relativeToValue(self.obj_anchor[1], self.width, self.height, ui)
 
         self.x = int(master.x * master.dirscale[0] + self.anchor[0] + (
-                    self.startx - self.obj_anchor[0] - self.scroll_cords[0]) * self.scale) / self.dir_scale[0]
+                self.start_x - self.obj_anchor[0] - self.scroll_cords[0]) * self.scale) / self.dir_scale[0]
         self.y = int(master.y * master.dirscale[1] + self.anchor[1] + (
-                    self.starty - self.obj_anchor[1] - self.scroll_cords[1]) * self.scale) / self.dir_scale[1]
+                self.start_y - self.obj_anchor[1] - self.scroll_cords[1]) * self.scale) / self.dir_scale[1]
 
         self.refreshCords()
         for a in self.bound_items:
@@ -360,7 +364,7 @@ class GuiItem(ABC):
 
     def refreshCords(self):
         self.refreshScale()
-        self.child_refreshcords()
+        self.childRefreshCords()
 
     def refreshScale(self):
         if self.scale_by == -1:
@@ -382,7 +386,7 @@ class GuiItem(ABC):
         if self.start_max_width != -1: self.max_width = Utils.relativeToValue(self.start_max_width, w, h, self.ui)
         if self.start_height != -1: self.height = Utils.relativeToValue(self.start_height, w, h, self.ui)
         self.refreshClickableRect()
-        self.child_autoscale()
+        self.childAutoScale()
 
     def refreshClickableRect(self):
         w = self.getMasterWidth() / self.scale
@@ -417,21 +421,21 @@ class GuiItem(ABC):
                 if a in self.ui.IDs:
                     self.ui.IDs[a].render(screen)
 
-    def smartcords(self, x=None, y=None, startset=True, accountscroll=False):
+    def smartCords(self, x=None, y=None, startset=True, accountscroll=False):
         scr = [0, 0]
         if accountscroll:
             scr = self.scroll_cords[:]
 
         if x is not None:
             self.x = x
-            if startset: self.startx = ((self.x + scr[0]) * self.dir_scale[0] + self.obj_anchor[0] * self.scale -
-                                        self.anchor[0]) / self.scale - self.master[0].x
+            if startset: self.start_x = ((self.x + scr[0]) * self.dir_scale[0] + self.obj_anchor[0] * self.scale -
+                                         self.anchor[0]) / self.scale - self.master[0].x
         if y is not None:
             self.y = y
-            if startset: self.starty = ((self.y + scr[1]) * self.dir_scale[1] + self.obj_anchor[1] * self.scale -
-                                        self.anchor[1]) / self.scale - self.master[0].y
+            if startset: self.start_y = ((self.y + scr[1]) * self.dir_scale[1] + self.obj_anchor[1] * self.scale -
+                                         self.anchor[1]) / self.scale - self.master[0].y
 
-    def binditem(self, item, replace=True, resetcords=True):
+    def bindItem(self, item, replace=True, resetcords=True):
         if item != self:
             for a in item.master:
                 if type(a) == Utils.EmptyObject:
@@ -451,7 +455,7 @@ class GuiItem(ABC):
             self.bound_items.sort(key=lambda x: x.layer, reverse=False)
             if resetcords: item.resetCords()
 
-    def setmenu(self, menu):
+    def setMenu(self, menu):
         self.menu = menu
         self.true_menu = self.menu
         if type(self.true_menu) == str: self.true_menu = [self.true_menu]
@@ -462,15 +466,15 @@ class GuiItem(ABC):
         self.master = []
         for a in self.true_menu:
             if a in self.ui.windowedmenunames:
-                self.ui.windowedmenus[self.ui.windowedmenunames.index(a)].binditem(self, False, False)
-        self.ui.refreshitems()
+                self.ui.windowedmenus[self.ui.windowedmenunames.index(a)].bindItem(self, False, False)
+        self.ui.refreshItems()
         self.resetCords()
 
-    def getmenu(self):
+    def getMenu(self):
         if type(self.master[0]) in [WindowedMenu, Menu]:
             return self.master[0].menu
         else:
-            return self.master[0].getmenu()
+            return self.master[0].getMenu()
 
     def getMasterWidth(self):
         w = self.ui.screenw
@@ -484,34 +488,34 @@ class GuiItem(ABC):
             h = self.master[0].height * self.master[0].scale
         return h
 
-    def getchildIDs(self):
+    def getChildIDs(self):
         lis = [self.ID]
-        lis += sum([a.getchildIDs() for a in self.bound_items], [])
+        lis += sum([a.getChildIDs() for a in self.bound_items], [])
         return lis
 
-    def getenabled(self):
+    def getEnabled(self):
         if not self.enabled:
             return False
         else:
-            return self.master[0].getenabled()
+            return self.master[0].getEnabled()
 
-    def settext(self, text):
+    def setText(self, text):
         self.text = str(text)
         self.refresh()
 
-    def settext_size(self, text_size):
+    def setTextSize(self, text_size):
         self.text_size = text_size
         self.refresh()
 
-    def setwidth(self, width):
+    def setWidth(self, width):
         self.start_width = width
         self.autoScale()
 
-    def setheight(self, height):
+    def setHeight(self, height):
         self.start_height = height
         self.autoScale()
 
-    def settext_col(self, col):
+    def setTextCol(self, col):
         self.text_col = col
         self.refresh()
 
@@ -521,28 +525,28 @@ class GuiItem(ABC):
     def disable(self):
         self.enabled = False
 
-    def enabledtoggle(self):
+    def enabledToggle(self):
         if self.enabled:
             self.disable()
         else:
             self.enable()
 
-    def getwidth(self):
+    def getWidth(self):
         return self.width
 
-    def getheight(self):
+    def getHeight(self):
         return self.height
 
-    def child_gentext(self):
+    def childGenText(self):
         pass
 
-    def child_refreshcords(self):
+    def childRefreshCords(self):
         pass
 
-    def child_autoscale(self):
+    def childAutoScale(self):
         pass
 
-    def refreshnoclickrect(self):
+    def refreshNoClickRect(self):
         pass
 
     def press(self):
@@ -553,8 +557,8 @@ class GuiItem(ABC):
             self.toggle = not self.toggle
         self.command()
 
-    ##        prevmenu = self.ui.activemenu
-    ##        if prevmenu!=self.ui.activemenu:
+    ##        prevmenu = self.ui.active_menu
+    ##        if prevmenu!=self.ui.active_menu:
     ##            temp = self.ui.mprs,self.ui.mpos
     ##            self.ui.mprs = [0,0,0]
     ##            self.ui.mpos = [-100000,-100000]
@@ -596,7 +600,7 @@ class GuiItem(ABC):
                 else:
                     account = [-rect.x + self.x * self.dir_scale[0], -rect.y + self.y * self.dir_scale[1]]
                 if smartdrag:
-                    self.smartcords((mpos[0] - self.holding_cords[0] + account[0]) / self.dir_scale[0],
+                    self.smartCords((mpos[0] - self.holding_cords[0] + account[0]) / self.dir_scale[0],
                                     (mpos[1] - self.holding_cords[1] + account[1]) / self.dir_scale[1])
                 else:
                     self.x = (mpos[0] - self.holding_cords[0] + account[0]) / self.dir_scale[0]

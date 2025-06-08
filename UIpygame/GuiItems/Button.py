@@ -4,7 +4,7 @@ from UIpygame.Utils.Draw import Draw
 from UIpygame.Utils.Utils import Utils
 
 class Button(GuiItem):
-    def child_gentext(self):
+    def childGenText(self):
         if (self.img != self.toggle_img) or (self.text != self.toggle_text):
             if type(self.img) != list:
                 imgs = [self.toggle_img]
@@ -34,7 +34,7 @@ class Button(GuiItem):
             self.toggletextimages = self.text_images
             self.toggletextimage = self.toggletextimages[0]
 
-    def child_autoscale(self):
+    def childAutoScale(self):
         if len(self.text_images) > 0:
             imgsizes = [a.get_size() for a in self.text_images]
             if self.toggleable: imgsizes += [a.get_size() for a in self.toggletextimages]
@@ -66,7 +66,7 @@ class Button(GuiItem):
 
     def draw(self, screen):
         if self.enabled:
-            self.animatetext()
+            self.animateText()
             col = self.col
             if not self.toggle: col = self.toggled_col
             innerrect = Utils.roundRect(

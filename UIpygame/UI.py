@@ -47,7 +47,7 @@ class UI:
         self.rects = []
         self.dropdowns = []
         self.windows = []
-        self.noclickrects = []
+        self.no_click_rects = []
         self.selectedtextbox = -1
         self.IDs = {}
         self.items = []
@@ -55,11 +55,11 @@ class UI:
         self.holdingtracker = []
 
         self.images = []
-        self.getscreen()
-        self.inbuiltimages = {}
+        self.getScreen()
+        self.in_built_images = {}
 
-        self.activemenu = 'main'
-        self.framemenu = 'main'
+        self.active_menu = 'main'
+        self.frame_menu = 'main'
         self.windowedmenus = []
         self.automenus = []
         self.windowedmenunames = []
@@ -74,30 +74,30 @@ class UI:
 
         self.clipboard = pygame.scrap.get('str')
 
-        self.timetracker = time.perf_counter()
+        self.time_tracker = time.perf_counter()
 
-        self.scrolllimit = 100
-        self.escapeback = True
-        self.backquits = True
-        self.scrollwheelscrolls = True
-        self.idmessages = False
-        self.queuemenumove = True
-        self.roundedbezier = True
-        self.rendershapefunctions = {'tick': self.rendershapetick, 'cross': self.rendershapecross,
-                                     'arrow': self.rendershapearrow, 'settings': self.rendershapesettings,
-                                     'play': self.rendershapeplay, 'pause': self.rendershapepause,
-                                     'skip': self.rendershapeskip, 'circle': self.rendershapecircle,
-                                     'rect': self.rendershaperect, 'clock': self.rendershapeclock,
-                                     'loading': self.rendershapeloading, 'dots': self.rendershapedots,
-                                     'logo': self.rendershapelogo}
-        self.renderedshapes = {}
+        self.scroll_limit = 100
+        self.escape_back = True
+        self.back_quits = True
+        self.scroll_wheel_scrolls = True
+        self.id_messages = False
+        self.queue_menu_move = True
+        self.rounded_bezier = True
+        self.render_shape_functions = {'tick': self.rendershapetick, 'cross': self.rendershapecross,
+                                       'arrow': self.rendershapearrow, 'settings': self.rendershapesettings,
+                                       'play': self.rendershapeplay, 'pause': self.rendershapepause,
+                                       'skip': self.rendershapeskip, 'circle': self.rendershapecircle,
+                                       'rect': self.rendershaperect, 'clock': self.rendershapeclock,
+                                       'loading': self.rendershapeloading, 'dots': self.rendershapedots,
+                                       'logo': self.rendershapelogo}
+        self.rendered_shapes = {}
 
         self.resizable = True
         self.fullscreenable = True
-        self.autoscale = 'width'
-        tempscreen = pygame.display.get_surface()
-        self.basescreensize = [tempscreen.get_width(), tempscreen.get_height()]
-        self.checkcaps()
+        self.auto_scale = 'width'
+        temp_screen = pygame.display.get_surface()
+        self.base_screen_size = [temp_screen.get_width(), temp_screen.get_height()]
+        self.checkCaps()
         if self.scale != 1: self.setscale(self.scale)
         self.styleload_default()
 
@@ -109,14 +109,14 @@ class UI:
             pygame.display.set_caption('PyUI Application')
         self.loadtickdata()
 
-    def checkcaps(self):
+    def checkCaps(self):
         try:
             hllDll = ctypes.WinDLL("User32.dll")
             self.capslock = bool(hllDll.GetKeyState(0x14))
         except:
             self.capslock = False
 
-    def styleset(self, **args):
+    def styleSet(self, **args):
         marked = {}
         for a in args:
             if (a in Style.defaults):
@@ -132,7 +132,7 @@ class UI:
             if a.split('_')[0] in UI.objectkey:
                 Style.objectdefaults[UI.objectkey[a.split('_')[0]]][a.split('_', 1)[1]] = args[a]
 
-    def styleget(self, var):
+    def styleGet(self, var):
         split = var.split('_')
         if split[0] in UI.objectkey:
             return Style.objectdefaults[UI.objectkey[split[0]]][split[1]]
@@ -140,11 +140,11 @@ class UI:
             return Style.defaults[split[0]]
 
     def styleload_soundium(self):
-        self.styleset(col=(16, 163, 127), text_col=(255, 255, 255), wallpapercol=(62, 63, 75), text_size=24,
+        self.styleSet(col=(16, 163, 127), text_col=(255, 255, 255), wallpapercol=(62, 63, 75), text_size=24,
                       roundedcorners=5, spacing=5, clickdownsize=2, scalesize=False)
 
     def styleload_default(self):
-        self.styleset(roundedcorners=0, center=False, text_size=50, font='calibri', bold=False, antialiasing=True,
+        self.styleSet(roundedcorners=0, center=False, text_size=50, font='calibri', bold=False, antialiasing=True,
                       border_size=3, scalesize=True, glow=0, col=(150, 150, 150),
                       clickdownsize=4, clicktype=0, textoffsetx=0, textoffsety=0, clickableborder=0, lines=1,
                       textcenter=False, linesize=2, backing_draw=True, borderdraw=True,
@@ -156,36 +156,36 @@ class UI:
                       button_textcenter=True, guesswidth=100, guessheight=100)
 
     def styleload_black(self):
-        self.styleset(text_col=(0, 0, 0), backing_col=(0, 0, 0), hovercol=(255, 255, 255), border_col=(0, 0, 0),
+        self.styleSet(text_col=(0, 0, 0), backing_col=(0, 0, 0), hovercol=(255, 255, 255), border_col=(0, 0, 0),
                       verticalspacing=3, text_size=30, col=(255, 255, 255), clickdownsize=1)
 
     def styleload_blue(self):
-        self.styleset(col=(35, 0, 156), text_col=(230, 246, 219), wallpapercol=(0, 39, 254), text_size=30,
+        self.styleSet(col=(35, 0, 156), text_col=(230, 246, 219), wallpapercol=(0, 39, 254), text_size=30,
                       verticalspacing=2, horizontalspacing=5, clickdownsize=2, roundedcorners=4)
 
     def styleload_green(self):
-        self.styleset(col=(87, 112, 86), text_col=(240, 239, 174), wallpapercol=(59, 80, 61), text_size=30,
+        self.styleSet(col=(87, 112, 86), text_col=(240, 239, 174), wallpapercol=(59, 80, 61), text_size=30,
                       verticalspacing=2, horizontalspacing=5, clickdownsize=2, roundedcorners=4)
 
     def styleload_lightblue(self):
-        self.styleset(col=(82, 121, 214), text_col=(56, 1, 103), wallpapercol=(228, 242, 253), text_size=30,
+        self.styleSet(col=(82, 121, 214), text_col=(56, 1, 103), wallpapercol=(228, 242, 253), text_size=30,
                       verticalspacing=2, horizontalspacing=5, clickdownsize=2, roundedcorners=4)
 
     def styleload_teal(self):
-        self.styleset(col=(109, 123, 152), text_col=(176, 243, 174), wallpapercol=(69, 65, 88), text_size=30,
+        self.styleSet(col=(109, 123, 152), text_col=(176, 243, 174), wallpapercol=(69, 65, 88), text_size=30,
                       verticalspacing=2, horizontalspacing=5, clickdownsize=2, roundedcorners=4)
 
     def styleload_brown(self):
-        self.styleset(col=(39, 75, 91), text_col=(235, 217, 115), wallpapercol=(40, 41, 35), text_size=30,
+        self.styleSet(col=(39, 75, 91), text_col=(235, 217, 115), wallpapercol=(40, 41, 35), text_size=30,
                       verticalspacing=2, horizontalspacing=5, clickdownsize=2, roundedcorners=4)
 
     def styleload_red(self):
-        self.styleset(col=(152, 18, 20), text_col=(234, 230, 133), wallpapercol=(171, 19, 18), spacing=3,
+        self.styleSet(col=(152, 18, 20), text_col=(234, 230, 133), wallpapercol=(171, 19, 18), spacing=3,
                       clickdownsize=2, text_size=40, horizontalspacing=8, roundedcorners=5)
 
     def __scaleset__(self, scale):
         self.scale = scale
-        self.dirscale = [self.screenw / self.basescreensize[0], self.screenh / self.basescreensize[1]]
+        self.dirscale = [self.screenw / self.base_screen_size[0], self.screenh / self.base_screen_size[1]]
         ##        for a in self.automenus+self.windowedmenus:
         ##            a.refresh()
         ##            a.resetcords()
@@ -202,7 +202,7 @@ class UI:
 
     def setscale(self, scale):
         pygame.event.post(
-            pygame.event.Event(pygame.VIDEORESIZE, w=self.basescreensize[0] * scale, h=self.basescreensize[1] * scale))
+            pygame.event.Event(pygame.VIDEORESIZE, w=self.base_screen_size[0] * scale, h=self.base_screen_size[1] * scale))
 
     def quit(self):
         pygame.event.post(pygame.event.Event(pygame.QUIT))
@@ -220,7 +220,7 @@ class UI:
         for b in obj.bound_items:
             self.refreshbound(b)
 
-    def getscreen(self):
+    def getScreen(self):
         sc = pygame.display.get_surface()
         self.screenw = sc.get_width()
         self.screenh = sc.get_height()
@@ -229,12 +229,12 @@ class UI:
         windowedmenubackings = [a.behind_menu for a in self.windowedmenus]
         self.breakrenderloop = False
         self.animate()
-        self.framemenu = self.activemenu
+        self.frame_menu = self.active_menu
         for i, a in enumerate(self.automenus):
-            if self.framemenu in a.true_menu:
+            if self.frame_menu in a.true_menu:
                 a.render(screen)
         for a in self.windowedmenus:
-            if self.framemenu in a.true_menu:
+            if self.frame_menu in a.true_menu:
                 if pygame.Rect(a.x * a.dir_scale[0], a.y * a.dir_scale[1], a.width * a.scale,
                                a.height * a.scale).collidepoint(self.mpos):
                     self.drawmenu(a.behind_menu, screen)
@@ -257,8 +257,8 @@ class UI:
 
     def loadtickdata(self):
         t = time.perf_counter()
-        self.deltatime = 60 * (t - self.timetracker)
-        self.timetracker = t
+        self.deltatime = 60 * (t - self.time_tracker)
+        self.time_tracker = t
         self.blockf11 -= 1
         self.mpos = list(pygame.mouse.get_pos())
         self.mprs = pygame.mouse.get_pressed()
@@ -290,7 +290,7 @@ class UI:
                             self.capslock = False
                         else:
                             self.capslock = True
-                    elif event.key == pygame.K_ESCAPE and self.escapeback:
+                    elif event.key == pygame.K_ESCAPE and self.escape_back:
                         self.menuback()
                     elif event.key == pygame.K_F5:
                         thread = threading.Thread(target=self.refreshall)
@@ -299,7 +299,7 @@ class UI:
                         self.togglefullscreen(pygame.display.get_surface())
                     if event.key in self.buttonkeys:
                         for i in self.buttonkeys[event.key]:
-                            if self.activemenu in i.menu:
+                            if self.active_menu in i.menu:
                                 i.press()
                                 i.force_holding = True
                                 self.holdingtracker.append([event.key, i])
@@ -315,14 +315,14 @@ class UI:
                 elif event.type == pygame.MOUSEWHEEL:
                     moved = False
                     for a in self.textboxes:
-                        if a.selected and self.activemenu == a.getmenu():
+                        if a.selected and self.active_menu == a.getMenu():
                             if a.scroll_input(event.y):
                                 moved = True
                     if not moved:
                         scrollable = []
                         for a in self.scrollers:
-                            if self.activemenu == a.getmenu() and type(a.master[0]) != Textbox:
-                                if a.page_height < (a.max_value - a.min_value) and a.getenabled():
+                            if self.active_menu == a.getMenu() and type(a.master[0]) != Textbox:
+                                if a.page_height < (a.max_value - a.min_value) and a.getEnabled():
                                     scrollable.append(a)
                         for x in scrollable:
                             x.tempdistancetomouse = Collision.distancetorect(
@@ -334,7 +334,7 @@ class UI:
                                     (x.master[0].x, x.master[0].y, x.master[0].width, x.master[0].height))
                         scrollable.sort(key=lambda x: x.tempdistancetomouse)
                         for a in scrollable:
-                            a.value -= (event.y * min((a.max_value - a.min_value) / 20, self.scrolllimit))
+                            a.value -= (event.y * min((a.max_value - a.min_value) / 20, self.scroll_limit))
                             a.limitPos()
                             a.command()
                             break
@@ -349,10 +349,10 @@ class UI:
         self.resetscreen(screen)
 
     def resetscreen(self, screen):
-        if self.autoscale == 'width':
-            self.__scaleset__(self.screenw / self.basescreensize[0])
+        if self.auto_scale == 'width':
+            self.__scaleset__(self.screenw / self.base_screen_size[0])
         else:
-            self.__scaleset__(self.screenh / self.basescreensize[1])
+            self.__scaleset__(self.screenh / self.base_screen_size[1])
         if self.fullscreen:
             screen = pygame.display.set_mode((self.screenw, self.screenh), pygame.FULLSCREEN)
         else:
@@ -454,12 +454,12 @@ class UI:
         if 'scale=' in name:
             size *= float(name.split('scale=')[1].split(' ')[0])
 
-        if str([name, size, col, backcol]) in self.renderedshapes:
-            return self.renderedshapes[str([name, size, col, backcol])]
+        if str([name, size, col, backcol]) in self.rendered_shapes:
+            return self.rendered_shapes[str([name, size, col, backcol])]
         if len(name) > 0 and name[0] == '"':
             surf = self.rendershapetext(name, size, col, backcol)
-        elif name.split(' ')[0] in self.rendershapefunctions:
-            surf = self.rendershapefunctions[name.split(' ')[0]](name, size, col, backcol)
+        elif name.split(' ')[0] in self.render_shape_functions:
+            surf = self.render_shape_functions[name.split(' ')[0]](name, size, col, backcol)
         else:
             surf, worked, backcol = self.rendershapebezier(name, size, col, backcol, failmessage)
             if not worked:
@@ -472,7 +472,7 @@ class UI:
         elif 'down' in keywords:
             surf = pygame.transform.rotate(surf, -90)
         surf.set_colorkey(backcol)
-        self.renderedshapes[str([name, size, col, backcol])] = surf
+        self.rendered_shapes[str([name, size, col, backcol])] = surf
         return surf
 
     def rendershapetick(self, name, size, col, backcol):
@@ -877,9 +877,9 @@ class UI:
             if len(name) > 0 and name.split()[0] == a:
                 splines = data[names.index(a)][1]
         if splines == []:
-            for a in list(self.inbuiltimages):
+            for a in list(self.in_built_images):
                 if len(name) > 0 and name.split()[0] == a:
-                    img = self.inbuiltimages[a]
+                    img = self.in_built_images[a]
                     sc = size / img.get_height()
                     return pygame.transform.scale(img, (img.get_width() * sc, size)), True, img.get_colorkey()
             return 0, False, backcol
@@ -923,12 +923,12 @@ class UI:
                     detail = 200
                 points += Draw.bezierdrawer([(((a[c][0] - minus1[0]) * mul1 - minus[0]) * mul + 1,
                                               ((a[c][1] - minus1[1]) * mul1 - minus[1]) * mul + 1) for c in
-                                             range(len(a))], 0, False, detail=detail, rounded=self.roundedbezier)
+                                             range(len(a))], 0, False, detail=detail, rounded=self.rounded_bezier)
             pygame.draw.polygon(surf, col, points)
         return surf, True, backcol
 
     def addinbuiltimage(self, name, surface):
-        self.inbuiltimages[name] = surface
+        self.in_built_images[name] = surface
 
     def getshapedata(self, name, var, defaults):
         vals = defaults
@@ -1155,7 +1155,7 @@ class UI:
                 ID = ID.removesuffix(str(adder))
                 adder += 1
                 ID += str(adder)
-        if self.idmessages: print('adding:', ID)
+        if self.id_messages: print('adding:', ID)
         self.IDs[ID] = obj
         obj.ID = ID
         if type(obj) == Menu:
@@ -1183,7 +1183,7 @@ class UI:
                 self.animations.append(obj)
             elif type(obj) == Rectangle:
                 self.rects.append(obj)
-            self.refreshitems()
+            self.refreshItems()
         if not type(obj) in [Animation, Menu] and Utils.menuin(obj.true_menu, self.windowedmenunames):
             for b in obj.true_menu:
                 if b in self.windowedmenunames:
@@ -1192,9 +1192,9 @@ class UI:
                         if type(a) in [Button, Textbox, Text, Table, ScrollerTable, Scroller, Slider, Rectangle]:
                             valid = False
                     if valid:
-                        self.windowedmenus[self.windowedmenunames.index(b)].binditem(obj, False, False)
+                        self.windowedmenus[self.windowedmenunames.index(b)].bindItem(obj, False, False)
 
-    def reID(self, ID, obj):
+    def setObjectID(self, ID, obj):
         newid = ID
         if ID in self.IDs:
             adder = 1
@@ -1206,7 +1206,7 @@ class UI:
         self.IDs[newid] = self.IDs.pop(obj.ID)
         obj.ID = newid
 
-    def refreshitems(self):
+    def refreshItems(self):
         self.items = self.buttons + self.textboxes + self.tables + self.texts + self.scrollers + self.sliders + self.windowedmenus + self.rects + self.dropdowns + self.windows
         for a in self.items:
             if len(a.master) < len(a.true_menu) or not a.onitem:
@@ -1217,26 +1217,26 @@ class UI:
                             obj = self.automakemenu(m)
                         else:
                             obj = self.IDs['auto_generate_menu:' + m]
-                        obj.binditem(a, False, False)
+                        obj.bindItem(a, False, False)
         self.items += self.automenus
         self.items.sort(key=lambda x: x.layer, reverse=False)
-        self.refreshbuttonkeys()
+        self.refreshButtonKeys()
 
-    def refreshbuttonkeys(self):
+    def refreshButtonKeys(self):
         self.buttonkeys = {}
         for a in self.items:
             for k in a.press_keys:
                 if not k in self.buttonkeys: self.buttonkeys[k] = []
                 self.buttonkeys[k].append(a)
 
-    def refreshnoclickrects(self):
-        self.noclickrects = []
+    def refreshNoClickRects(self):
+        self.no_click_rects = []
         for a in self.items:
             a.no_click_rects_applied = []
-            a.refreshnoclickrect()
-            self.noclickrects += a.no_click_rect
+            a.refreshNoClickRect()
+            self.no_click_rects += a.no_click_rect
         # Rect,IDs,menu,whitelist (true=all objects in list blocked by no_click_rect)
-        for a in self.noclickrects:
+        for a in self.no_click_rects:
             objs = self.onmenu(a[2])
             if a[3]:
                 for b in objs:
@@ -1247,41 +1247,41 @@ class UI:
                     if not b.ID in a[1]:
                         b.no_click_rects_applied.append(a[0])
 
-    def printtree(self, obj=False):
+    def printTree(self, obj=False):
         if type(obj) == str: obj = self.IDs[obj]
         prefixes = ['<{-=-{=-[=]-=}-=-}>', '#@' * 5, '<=>' * 3, '+=' * 3, '--', '']
         if obj == False:
-            depth = max([self.gettreedepth(a) for a in self.automenus + self.windowedmenus])
+            depth = max([self.getTreeDepth(a) for a in self.automenus + self.windowedmenus])
             prefixes = prefixes[(6 - depth):]
             for a in self.automenus + self.windowedmenus:
-                self.printbound(a, prefixes)
+                self.printBound(a, prefixes)
         else:
-            prefixes = prefixes[(6 - self.gettreedepth(obj)):]
-            self.printbound(obj, prefixes)
+            prefixes = prefixes[(6 - self.getTreeDepth(obj)):]
+            self.printBound(obj, prefixes)
 
-    def printbound(self, obj, prefixes):
+    def printBound(self, obj, prefixes):
         if prefixes[0] == '':
             print(obj.ID)
         else:
             print(prefixes[0], obj.ID)
         for a in obj.bound_items:
-            self.printbound(a, prefixes[1:])
+            self.printBound(a, prefixes[1:])
 
-    def gettreedepth(self, obj, depth=1):
+    def getTreeDepth(self, obj, depth=1):
         ndepths = [depth]
         if len(obj.bound_items) > 0:
             depth += 1
             ndepths = []
             for a in obj.bound_items:
-                ndepths.append(self.gettreedepth(a, depth))
+                ndepths.append(self.getTreeDepth(a, depth))
         return max(ndepths)
 
-    def makebutton(self, x, y, text, text_size=-1, command=Utils.emptyFunction, menu='main', ID='button', layer=1,
-                   roundedcorners=-1, bound_items=[], kill_time=-1, width=-1, height=-1,
+    def makeButton(self, x, y, text, text_size=-1, command=Utils.emptyFunction, menu='main', ID='button', layer=1,
+                   rounded_corners=-1, bound_items=[], kill_time=-1, width=-1, height=-1,
                    anchor=(0, 0), obj_anchor=(0, 0), center=-1, centery=-1, img='none', font=-1, bold=-1,
                    antialiasing=-1, pregenerated=True, enabled=True,
-                   border_size=-1, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1, scalex=-1,
-                   scaley=-1, scaleby=-1, glow=-1, glowcol=-1,
+                   border_size=-1, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scale_size=-1, scale_x=-1,
+                   scale_y=-1, scale_by=-1, glow=-1, glow_col=-1,
                    runcommandat=0, col=-1, text_col=-1, backing_col=-1, border_col=-1, hovercol=-1, clickdownsize=-1,
                    clicktype: ClickType=-1, textoffsetx=-1, textoffsety=-1, maxwidth=-1,
                    dragable=False, colorkey=-1, toggle=True, toggleable=False, toggletext=-1, toggleimg='none',
@@ -1291,13 +1291,13 @@ class UI:
         if maxwidth == -1: maxwidth = width
         if backing_col == -1: backing_col = border_col
         obj = Button(ui=self, x=x, y=y, width=width, height=height, menu=menu, ID=ID, layer=layer,
-                     roundedcorners=roundedcorners, bound_items=bound_items, kill_time=kill_time,
+                     rounded_corners=rounded_corners, bound_items=bound_items, kill_time=kill_time,
                      anchor=anchor, obj_anchor=obj_anchor, center=center, centery=centery, text=str(text),
                      text_size=text_size, img=img, font=font, bold=bold, antialiasing=antialiasing,
                      pregenerated=pregenerated, enabled=enabled,
-                     border=border, top_border_size=top_border_size, bottom_border_size=bottom_border_size, right_border_size=right_border_size,
-                     left_border_size=left_border_size, scalesize=scalesize, scalex=scalex, scaley=scaley, scaleby=scaleby,
-                     glow=glow, glowcol=glowcol,
+                     border_size=border_size, top_border_size=top_border_size, bottom_border_size=bottom_border_size, right_border_size=right_border_size,
+                     left_border_size=left_border_size, scale_size=scale_size, scale_x=scale_x, scale_y=scale_y, scale_by=scale_by,
+                     glow=glow, glow_col=glow_col,
                      command=command, runcommandat=runcommandat, col=col, text_col=text_col, backing_col=backing_col,
                      hovercol=hovercol, clickdownsize=clickdownsize, clicktype=clicktype, textoffsetx=textoffsetx,
                      textoffsety=textoffsety, maxwidth=maxwidth,
@@ -1309,12 +1309,12 @@ class UI:
                      refreshbind=refreshbind, presskeys=presskeys)
         return obj
 
-    def makecheckbox(self, x, y, text_size=-1, command=Utils.emptyFunction, menu='main', ID='checkbox', text='{tick}', layer=1,
+    def makeCheckbox(self, x, y, text_size=-1, command=Utils.emptyFunction, menu='main', ID='checkbox', text='{tick}', layer=1,
                      roundedcorners=0, bound_items=[], kill_time=-1, width=-1, height=-1,
                      anchor=(0, 0), obj_anchor=(0, 0), center=False, centery=-1, img='none', font=-1, bold=-1,
                      antialiasing=-1, pregenerated=True, enabled=True,
-                     border=4, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1, scalex=-1,
-                     scaley=-1, scaleby=-1, glow=-1, glowcol=-1,
+                     border=4, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1, scale_x=-1,
+                     scale_y=-1, scale_by=-1, glow=-1, glow_col=-1,
                      runcommandat=0, col=-1, text_col=-1, backing_col=-1, border_col=-1, hovercol=-1, clickdownsize=-1,
                      clicktype=-1, textoffsetx=-1, textoffsety=-1, maxwidth=-1,
                      dragable=False, colorkey=-1, toggle=True, toggleable=True, toggletext='', toggleimg='none',
@@ -1331,8 +1331,8 @@ class UI:
                      img=img, font=font, bold=bold, antialiasing=antialiasing, pregenerated=pregenerated,
                      enabled=enabled,
                      border=border, top_border_size=top_border_size, bottom_border_size=bottom_border_size, right_border_size=right_border_size,
-                     left_border_size=left_border_size, scalesize=scalesize, scalex=scalex, scaley=scaley, scaleby=scaleby,
-                     glow=glow, glowcol=glowcol,
+                     left_border_size=left_border_size, scalesize=scalesize, scale_x=scale_x, scale_y=scale_y, scale_by=scale_by,
+                     glow=glow, glow_col=glow_col,
                      command=command, runcommandat=runcommandat, col=col, text_col=text_col, backing_col=backing_col,
                      hovercol=hovercol, clickdownsize=clickdownsize, clicktype=clicktype, textoffsetx=textoffsetx,
                      textoffsety=textoffsety, maxwidth=maxwidth,
@@ -1344,12 +1344,12 @@ class UI:
                      refreshbind=refreshbind, presskeys=presskeys)
         return obj
 
-    def maketextbox(self, x, y, text='', width=200, lines=-1, menu='main', command=Utils.emptyFunction, ID='textbox', layer=1,
+    def makeTextbox(self, x, y, text='', width=200, lines=-1, menu='main', command=Utils.emptyFunction, ID='textbox', layer=1,
                     roundedcorners=-1, bound_items=[], kill_time=-1, height=-1,
                     anchor=(0, 0), obj_anchor=(0, 0), center=-1, centery=-1, img='none', text_size=-1, font=-1, bold=-1,
                     antialiasing=-1, pregenerated=True, enabled=True,
-                    border=3, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1, scalex=-1,
-                    scaley=-1, scaleby=-1, glow=-1, glowcol=-1,
+                    border=3, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1, scale_x=-1,
+                    scale_y=-1, scale_by=-1, glow=-1, glow_col=-1,
                     runcommandat=0, col=-1, text_col=-1, backing_col=-1, hovercol=-1, clickdownsize=4, clicktype=0,
                     textoffsetx=-1, textoffsety=-1,
                     colorkey=-1, spacing=-1, verticalspacing=-1, horizontalspacing=-1, clickablerect=-1,
@@ -1368,8 +1368,8 @@ class UI:
                       img=img, font=font, bold=bold, antialiasing=antialiasing, pregenerated=pregenerated,
                       enabled=enabled,
                       border=border, top_border_size=top_border_size, bottom_border_size=bottom_border_size, right_border_size=right_border_size,
-                      left_border_size=left_border_size, scalesize=scalesize, scalex=scalex, scaley=scaley, scaleby=scaleby,
-                      glow=glow, glowcol=glowcol,
+                      left_border_size=left_border_size, scalesize=scalesize, scale_x=scale_x, scale_y=scale_y, scale_by=scale_by,
+                      glow=glow, glow_col=glow_col,
                       command=command, runcommandat=runcommandat, col=col, text_col=text_col, backing_col=backing_col,
                       hovercol=hovercol, clickdownsize=clickdownsize, clicktype=clicktype, textoffsetx=textoffsetx,
                       textoffsety=textoffsety,
@@ -1385,12 +1385,12 @@ class UI:
 
     ##    def maketable(self,x,y,data='empty',titles=[],menu='main',menuexceptions=[],edgebound=(1,0,0,1),rows=5,colomns=3,box_width=-1,box_height=-1,spacing=10,col='default',boxtext_col='default',boxtext_size=40,boxcenter=True,font='default',bold=False,titlefont=-1,titlebold=-1,titleboxcol=-1,titletext_col='default',titletext_size=-1,titlecenter=True,line_size=2,linecol=-1,rounded_corners=0,layer=1,ID='default',returnobj=False):
 
-    def maketable(self, x, y, data=[], titles=[], menu='main', ID='table', layer=1, roundedcorners=-1, bound_items=[],
+    def makeTable(self, x, y, data=[], titles=[], menu='main', ID='table', layer=1, roundedcorners=-1, bound_items=[],
                   kill_time=-1, width=-1, height=-1,
                   anchor=(0, 0), obj_anchor=(0, 0), center=-1, centery=-1, text='', text_size=-1, img='none', font=-1,
                   bold=-1, antialiasing=-1, pregenerated=True, enabled=True,
-                  border=3, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1, scalex=-1,
-                  scaley=-1, scaleby=-1, glow=-1, glowcol=-1,
+                  border=3, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1, scale_x=-1,
+                  scale_y=-1, scale_by=-1, glow=-1, glow_col=-1,
                   command=Utils.emptyFunction, runcommandat=0, col=-1, text_col=-1, backing_col=-1, hovercol=-1,
                   clickdownsize=4, clicktype=0, textoffsetx=-1, textoffsety=-1,
                   dragable=False, colorkey=-1, spacing=-1, verticalspacing=-1, horizontalspacing=-1, clickablerect=-1,
@@ -1408,8 +1408,8 @@ class UI:
                     img=img, font=font, bold=bold, antialiasing=antialiasing, pregenerated=pregenerated,
                     enabled=enabled,
                     border=border, top_border_size=top_border_size, bottom_border_size=bottom_border_size, right_border_size=right_border_size,
-                    left_border_size=left_border_size, scalesize=scalesize, scalex=scalex, scaley=scaley, scaleby=scaleby,
-                    glow=glow, glowcol=glowcol,
+                    left_border_size=left_border_size, scalesize=scalesize, scale_x=scale_x, scale_y=scale_y, scale_by=scale_by,
+                    glow=glow, glow_col=glow_col,
                     command=command, runcommandat=runcommandat, col=col, text_col=text_col, backing_col=backing_col,
                     hovercol=hovercol, clickdownsize=clickdownsize, clicktype=clicktype, textoffsetx=textoffsetx,
                     textoffsety=textoffsety,
@@ -1425,8 +1425,8 @@ class UI:
                  kill_time=-1, width=-1, height=-1,
                  anchor=(0, 0), obj_anchor=(0, 0), center=-1, centery=-1, img='none', font=-1, bold=-1, antialiasing=-1,
                  pregenerated=True, enabled=True,
-                 border=3, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1, scalex=-1,
-                 scaley=-1, scaleby=-1, glow=0, glowcol=-1,
+                 border=3, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1, scale_x=-1,
+                 scale_y=-1, scale_by=-1, glow=0, glow_col=-1,
                  command=Utils.emptyFunction, runcommandat=0, col=-1, text_col=-1, clicktype=0, backing_col=-1, border_col=-1,
                  textoffsetx=-1, textoffsety=-1,
                  dragable=False, colorkey=-1, spacing=-1, verticalspacing=-1, horizontalspacing=-1, maxwidth=-1,
@@ -1442,8 +1442,8 @@ class UI:
                    text_size=text_size, img=img, font=font, bold=bold, antialiasing=antialiasing,
                    pregenerated=pregenerated, enabled=enabled,
                    border=border, top_border_size=top_border_size, bottom_border_size=bottom_border_size, right_border_size=right_border_size,
-                   left_border_size=left_border_size, scalesize=scalesize, scalex=scalex, scaley=scaley, scaleby=scaleby, glow=glow,
-                   glowcol=glowcol,
+                   left_border_size=left_border_size, scalesize=scalesize, scale_x=scale_x, scale_y=scale_y, scale_by=scale_by, glow=glow,
+                   glow_col=glow_col,
                    command=command, runcommandat=runcommandat, col=col, text_col=text_col, backing_col=backing_col,
                    clicktype=clicktype, textoffsetx=textoffsetx, textoffsety=textoffsety, maxwidth=maxwidth,
                    dragable=dragable, colorkey=colorkey, spacing=spacing, verticalspacing=verticalspacing,
@@ -1456,8 +1456,8 @@ class UI:
     def makescroller(self, x, y, height, command=Utils.emptyFunction, width=15, minp=0, maxp=100, pageheight=15, menu='main',
                      ID='scroller', layer=1, roundedcorners=-1, bound_items=[], kill_time=-1,
                      anchor=(0, 0), obj_anchor=(0, 0), center=-1, centery=-1, enabled=True,
-                     border=3, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1, scalex=-1,
-                     scaley=-1, scaleby=-1, glow=-1, glowcol=-1,
+                     border=3, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1, scale_x=-1,
+                     scale_y=-1, scale_by=-1, glow=-1, glow_col=-1,
                      runcommandat=1, col=-1, backing_col=-1, clicktype=0, clickablerect=-1, scrollbind=[],
                      dragable=True, backing_draw=-1, borderdraw=-1, scrollercol=-1, increment=0, startp=0,
                      refreshbind=[], screencompressed=False):
@@ -1468,8 +1468,8 @@ class UI:
                        roundedcorners=roundedcorners, bound_items=bound_items, kill_time=kill_time,
                        anchor=anchor, obj_anchor=obj_anchor, center=center, centery=centery, enabled=enabled,
                        border=border, top_border_size=top_border_size, bottom_border_size=bottom_border_size, right_border_size=right_border_size,
-                       left_border_size=left_border_size, scalesize=scalesize, scalex=scalex, scaley=scaley, scaleby=scaleby,
-                       glow=glow, glowcol=glowcol,
+                       left_border_size=left_border_size, scalesize=scalesize, scale_x=scale_x, scale_y=scale_y, scale_by=scale_by,
+                       glow=glow, glow_col=glow_col,
                        command=command, runcommandat=runcommandat, col=col, backing_col=backing_col, clicktype=clicktype,
                        dragable=dragable, backing_draw=backing_draw, borderdraw=borderdraw, clickablerect=clickablerect,
                        scrollbind=scrollbind,
@@ -1481,8 +1481,8 @@ class UI:
     def makeslider(self, x, y, width, height, maxp=100, menu='main', command=Utils.emptyFunction, ID='slider', layer=1,
                    roundedcorners=-1, bound_items=[], boundtext=-1, kill_time=-1,
                    anchor=(0, 0), obj_anchor=(0, 0), center=-1, centery=-1, enabled=True,
-                   border=3, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1, scalex=-1,
-                   scaley=-1, scaleby=-1, glow=-1, glowcol=-1,
+                   border=3, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1, scale_x=-1,
+                   scale_y=-1, scale_by=-1, glow=-1, glow_col=-1,
                    runcommandat=1, col=-1, backing_col=-1, button='default', clickablerect=-1,
                    dragable=True, colorkey=(255, 255, 255), backing_draw=-1, borderdraw=-1,
                    slidersize=-1, increment=0, sliderroundedcorners=-1, minp=0, startp=0, direction='horizontal',
@@ -1493,8 +1493,8 @@ class UI:
                      roundedcorners=roundedcorners, bound_items=bound_items, kill_time=kill_time,
                      anchor=anchor, obj_anchor=obj_anchor, center=center, centery=centery, enabled=enabled,
                      border=border, top_border_size=top_border_size, bottom_border_size=bottom_border_size, right_border_size=right_border_size,
-                     left_border_size=left_border_size, scalesize=scalesize, scalex=scalex, scaley=scaley, scaleby=scaleby,
-                     glow=glow, glowcol=glowcol,
+                     left_border_size=left_border_size, scalesize=scalesize, scale_x=scale_x, scale_y=scale_y, scale_by=scale_by,
+                     glow=glow, glow_col=glow_col,
                      command=command, runcommandat=runcommandat, col=col, backing_col=backing_col,
                      clickablerect=clickablerect,
                      dragable=dragable, colorkey=colorkey, backing_draw=backing_draw, borderdraw=borderdraw,
@@ -1511,8 +1511,8 @@ class UI:
     def makewindowedmenu(self, x, y, width, height, menu, behindmenu='main', col=-1, bound_items=[],
                          dragable=False, colorkey=(255, 255, 255), isolated=True, darken=-1, ID='windowedmenu', layer=1,
                          roundedcorners=-1,
-                         anchor=(0, 0), obj_anchor=(0, 0), center=False, centery=-1, enabled=True, glow=-1, glowcol=-1,
-                         scalesize=-1, scalex=-1, scaley=-1, scaleby=-1, command=Utils.emptyFunction, runcommandat=0,
+                         anchor=(0, 0), obj_anchor=(0, 0), center=False, centery=-1, enabled=True, glow=-1, glow_col=-1,
+                         scalesize=-1, scale_x=-1, scale_y=-1, scale_by=-1, command=Utils.emptyFunction, runcommandat=0,
                          refreshbind=[], presskeys=[]):
 
         if col == -1: col = ColEdit.shiftcolor(Style.objectdefaults[WindowedMenu]['col'], -35)
@@ -1523,7 +1523,7 @@ class UI:
         obj = WindowedMenu(ui=self, x=x, y=y, width=width, height=height, menu=menu, ID=ID, layer=layer,
                            roundedcorners=roundedcorners, bound_items=bound_items,
                            anchor=anchor, obj_anchor=obj_anchor, center=center, centery=centery,
-                           scalesize=scalesize, scalex=scalex, scaley=scaley, scaleby=scaleby,
+                           scalesize=scalesize, scale_x=scale_x, scale_y=scale_y, scale_by=scale_by,
                            command=Utils.emptyFunction, runcommandat=runcommandat, col=col,
                            dragable=dragable, colorkey=colorkey, border=0, enabled=enabled,
                            behindmenu=behindmenu, isolated=isolated, darken=darken, refreshbind=refreshbind,
@@ -1532,8 +1532,8 @@ class UI:
 
     def makewindow(self, x, y, width, height, menu='main', col=-1, bound_items=[], colorkey=(255, 255, 255),
                    ID='window', layer=10, roundedcorners=-1, anchor=(0, 0), obj_anchor=(0, 0), isolated=False, darken=-1,
-                   center=False, centery=-1, enabled=False, glow=-1, glowcol=-1, scalesize=-1, scalex=-1, scaley=-1,
-                   scaleby=-1, backing_draw=-1,
+                   center=False, centery=-1, enabled=False, glow=-1, glow_col=-1, scalesize=-1, scale_x=-1, scale_y=-1,
+                   scale_by=-1, backing_draw=-1,
                    refreshbind=[], clickablerect=(0, 0, 'w', 'h'), animationspeed=-1, animationtype='moveup',
                    autoshutwindows=[], presskeys=[]):
 
@@ -1542,7 +1542,7 @@ class UI:
         obj = Window(ui=self, x=x, y=y, width=width, height=height, menu=menu, ID=ID, layer=layer,
                      roundedcorners=roundedcorners, bound_items=bound_items,
                      anchor=anchor, obj_anchor=obj_anchor, center=center, centery=centery, enabled=enabled,
-                     scalesize=scalesize, scalex=scalex, scaley=scaley, scaleby=scaleby, col=col, colorkey=colorkey,
+                     scalesize=scalesize, scale_x=scale_x, scale_y=scale_y, scale_by=scale_by, col=col, colorkey=colorkey,
                      autoshutwindows=autoshutwindows, backing_draw=backing_draw,
                      refreshbind=refreshbind, isolated=isolated, darken=darken, clickablerect=clickablerect,
                      animationspeed=animationspeed, animationtype=animationtype, presskeys=presskeys)
@@ -1551,13 +1551,13 @@ class UI:
     def makerect(self, x, y, width, height, command=Utils.emptyFunction, menu='main', ID='button', layer=1, roundedcorners=-1,
                  bound_items=[], kill_time=-1,
                  anchor=(0, 0), obj_anchor=(0, 0), center=-1, centery=-1, enabled=True,
-                 border=0, scalesize=-1, scalex=-1, scaley=-1, scaleby=-1, glow=-1, glowcol=-1,
+                 border=0, scalesize=-1, scale_x=-1, scale_y=-1, scale_by=-1, glow=-1, glow_col=-1,
                  runcommandat=0, col=-1, dragable=False, backing_draw=-1, refreshbind=[]):
         obj = Rectangle(ui=self, x=x, y=y, command=Utils.emptyFunction, menu=menu, ID=ID, layer=layer,
                    roundedcorners=roundedcorners, bound_items=bound_items, kill_time=kill_time, width=width, height=height,
                    anchor=anchor, obj_anchor=obj_anchor, center=center, centery=centery, enabled=enabled,
-                   border=border, scalesize=scalesize, scalex=scalex, scaley=scaley, scaleby=scaleby, glow=glow,
-                   glowcol=glowcol,
+                   border=border, scalesize=scalesize, scale_x=scale_x, scale_y=scale_y, scale_by=scale_by, glow=glow,
+                   glow_col=glow_col,
                    runcommandat=runcommandat, col=col, dragable=dragable, backing_draw=backing_draw,
                    refreshbind=refreshbind)
         return obj
@@ -1565,14 +1565,14 @@ class UI:
     def makecircle(self, x, y, radius, command=Utils.emptyFunction, menu='main', ID='button', layer=1, roundedcorners=-1,
                    bound_items=[], kill_time=-1,
                    anchor=(0, 0), obj_anchor=(0, 0), center=-1, centery=-1, enabled=True,
-                   border=-1, scalesize=-1, scalex=-1, scaley=-1, scaleby=-1, glow=-1, glowcol=-1,
+                   border=-1, scalesize=-1, scale_x=-1, scale_y=-1, scale_by=-1, glow=-1, glow_col=-1,
                    runcommandat=0, col=-1, dragable=False, backing_draw=-1, refreshbind=[]):
         if roundedcorners == -1: roundedcorners = radius
         obj = self.makerect(x=x, y=y, width=radius * 2, height=radius * 2, command=command, menu=menu, ID=ID,
                             layer=layer, roundedcorners=roundedcorners, bound_items=bound_items, kill_time=kill_time,
                             anchor=anchor, obj_anchor=obj_anchor, center=center, centery=centery, enabled=enabled,
-                            border=border, scalesize=scalesize, scalex=scalex, scaley=scaley, scaleby=scaleby,
-                            glow=glow, glowcol=glowcol,
+                            border=border, scalesize=scalesize, scale_x=scale_x, scale_y=scale_y, scale_by=scale_by,
+                            glow=glow, glow_col=glow_col,
                             runcommandat=runcommandat, col=col, dragable=dragable, backing_draw=backing_draw,
                             refreshbind=refreshbind)
         return obj
@@ -1581,8 +1581,8 @@ class UI:
                       layer=1, roundedcorners=-1, bound_items=[], kill_time=-1, height=-1,
                       anchor=(0, 0), obj_anchor=(0, 0), center=-1, centery=-1, img='none', text_size=-1, font=-1, bold=-1,
                       antialiasing=-1, pregenerated=True, enabled=True,
-                      border=3, top_border_size=-1, bottom_border_size=-1, scalesize=-1, scalex=-1, scaley=-1, scaleby=-1, glow=0,
-                      glowcol=-1,
+                      border=3, top_border_size=-1, bottom_border_size=-1, scalesize=-1, scale_x=-1, scale_y=-1, scale_by=-1, glow=0,
+                      glow_col=-1,
                       runcommandat=0, col=-1, text_col=-1, titletext_col=-1, backing_col=-1, hovercol=-1, clickdownsize=-1,
                       clicktype=0, textoffsetx=-1, textoffsety=-1,
                       colorkey=-1, spacing=-1, verticalspacing=2, horizontalspacing=4, clickablerect=-1,
@@ -1608,26 +1608,26 @@ class UI:
                             col=ColEdit.autoShiftCol(backing_col, col, -20), animationspeed=5)
 
         bsize = height - top_border_size - bottom_border_size
-        search = self.makebutton(-border * 2 - bsize, 0, '{search}', text_size * 0.55, command=command,
-                                 roundedcorners=roundedcorners, width=bsize, height=bsize,
+        search = self.makeButton(-border * 2 - bsize, 0, '{search}', text_size * 0.55, command=command,
+                                 rounded_corners=roundedcorners, width=bsize, height=bsize,
                                  anchor=('w', 'h/2'), obj_anchor=('w', 'h/2'), border=0, col=col, text_col=text_col,
                                  backing_col=backing_col, border_col=col,
                                  clickdownsize=1, textoffsetx=0, textoffsety=0, spacing=2, clickablerect=clickablerect,
                                  hovercol=ColEdit.autoShiftCol(hovercol, col, -6), borderdraw=False)
-        cross = self.makebutton(-border, 0, '{cross}', text_size * 0.5, command=Utils.emptyFunction,
-                                roundedcorners=roundedcorners, width=bsize, height=bsize,
+        cross = self.makeButton(-border, 0, '{cross}', text_size * 0.5, command=Utils.emptyFunction,
+                                rounded_corners=roundedcorners, width=bsize, height=bsize,
                                 anchor=('w', 'h/2'), obj_anchor=('w', 'h/2'), border=0, col=col, text_col=text_col,
                                 backing_col=backing_col, border_col=col,
                                 clickdownsize=1, textoffsetx=1, textoffsety=1, spacing=2, clickablerect=clickablerect,
                                 hovercol=ColEdit.autoShiftCol(hovercol, col, -6), borderdraw=False)
 
-        obj = self.maketextbox(x, y, '', width, lines, menu, command, ID, layer, roundedcorners,
+        obj = self.makeTextbox(x, y, '', width, lines, menu, command, ID, layer, roundedcorners,
                                bound_items + [txt, search, cross], kill_time, height,
                                anchor, obj_anchor, center, centery, img, text_size, font, bold, antialiasing,
                                pregenerated, enabled,
                                border, top_border_size, bottom_border_size, bsize * 2 + border * 3,
-                               txt.textimage.get_width() + border + horizontalspacing * 2, scalesize, scalex, scaley,
-                               scaleby, glow, glowcol,
+                               txt.textimage.get_width() + border + horizontalspacing * 2, scalesize, scale_x, scale_y,
+                               scale_by, glow, glow_col,
                                runcommandat, col, text_col, backing_col, hovercol, clickdownsize, clicktype, textoffsetx,
                                textoffsety,
                                colorkey, spacing, verticalspacing, horizontalspacing, clickablerect, attachscroller,
@@ -1637,7 +1637,7 @@ class UI:
                                allowedcharacters,
                                backing_draw, borderdraw, refreshbind)
 
-        cross.command = lambda: obj.settext('')
+        cross.command = lambda: obj.setText('')
         return obj
 
     def makescrollertable(self, x, y, data=[], titles=[], menu='main', ID='scrollertable', layer=1, roundedcorners=-1,
@@ -1645,7 +1645,7 @@ class UI:
                           anchor=(0, 0), obj_anchor=(0, 0), center=-1, centery=-1, text='', text_size=-1, img='none',
                           font=-1, bold=-1, antialiasing=-1, pregenerated=True, enabled=True,
                           border=3, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1,
-                          scalex=-1, scaley=-1, scaleby=-1, glow=-1, glowcol=-1,
+                          scale_x=-1, scale_y=-1, scale_by=-1, glow=-1, glow_col=-1,
                           command=Utils.emptyFunction, runcommandat=0, col=-1, text_col=-1, backing_col=-1, hovercol=-1,
                           clickdownsize=4, clicktype=0, textoffsetx=-1, textoffsety=-1,
                           dragable=False, colorkey=-1, spacing=-1, verticalspacing=-1, horizontalspacing=-1,
@@ -1663,8 +1663,8 @@ class UI:
                             text_size=text_size, img=img, font=font, bold=bold, antialiasing=antialiasing,
                             pregenerated=pregenerated, enabled=enabled,
                             border=border, top_border_size=top_border_size, bottom_border_size=bottom_border_size, right_border_size=right_border_size,
-                            left_border_size=left_border_size, scalesize=scalesize, scalex=scalex, scaley=scaley, scaleby=scaleby,
-                            glow=glow, glowcol=glowcol,
+                            left_border_size=left_border_size, scalesize=scalesize, scale_x=scale_x, scale_y=scale_y, scale_by=scale_by,
+                            glow=glow, glow_col=glow_col,
                             command=command, runcommandat=runcommandat, col=col, text_col=text_col, backing_col=backing_col,
                             hovercol=hovercol, clickdownsize=clickdownsize, clicktype=clicktype,
                             textoffsetx=textoffsetx, textoffsety=textoffsety,
@@ -1687,8 +1687,8 @@ class UI:
                                      bound_items=bound_items, kill_time=kill_time,
                                      anchor=('w', 0), obj_anchor=(0, 0), enabled=enabled,
                                      border=border, top_border_size=top_border_size, bottom_border_size=bottom_border_size,
-                                     right_border_size=right_border_size, left_border_size=left_border_size, scalesize=scalesize, scalex=scalex,
-                                     scaley=scaley, scaleby=scaleby, glow=glow, glowcol=glowcol,
+                                     right_border_size=right_border_size, left_border_size=left_border_size, scalesize=scalesize, scale_x=scale_x,
+                                     scale_y=scale_y, scale_by=scale_by, glow=glow, glow_col=glow_col,
                                      col=col, backing_col=backing_col, clicktype=clicktype,
                                      backing_draw=backing_draw, borderdraw=borderdraw, clickablerect=-1, scrollbind=[],
                                      screencompressed=screencompressed,
@@ -1696,7 +1696,7 @@ class UI:
                                      pageheight=f'ui.IDs["{obj.ID}"].pageheight')
         scroller.command = lambda: obj.scrollerblocks(scroller)
         obj.refresh_bind.append(scroller.ID)
-        obj.binditem(scroller)
+        obj.bindItem(scroller)
         obj.scroller = scroller
         scroller.resetCords()
         return obj
@@ -1705,8 +1705,8 @@ class UI:
                      roundedcorners=-1, bound_items=[], kill_time=-1, width=-1, height=-1,
                      anchor=(0, 0), obj_anchor=(0, 0), center=-1, centery=-1, img='none', font=-1, bold=-1,
                      antialiasing=-1, pregenerated=True, enabled=True, pageheight=300,
-                     border=3, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1, scalex=-1,
-                     scaley=-1, scaleby=-1, glow=-1, glowcol=-1,
+                     border=3, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1, scale_x=-1,
+                     scale_y=-1, scale_by=-1, glow=-1, glow_col=-1,
                      runcommandat=0, col=-1, text_col=-1, backing_col=-1, border_col=-1, hovercol=-1, clickdownsize=-1,
                      clicktype=-1, textoffsetx=-1, textoffsety=-1, maxwidth=-1,
                      dragable=False, colorkey=-1, toggle=True, toggleable=False, toggletext=-1, toggleimg='none',
@@ -1750,8 +1750,8 @@ class UI:
                        img=img, font=font, bold=bold, antialiasing=antialiasing, pregenerated=pregenerated,
                        enabled=enabled,
                        border=border, top_border_size=top_border_size, bottom_border_size=bottom_border_size, right_border_size=right_border_size,
-                       left_border_size=lborder, scalesize=scalesize, scalex=scalex, scaley=scaley, scaleby=scaleby,
-                       glow=glow, glowcol=glowcol,
+                       left_border_size=lborder, scalesize=scalesize, scale_x=scale_x, scale_y=scale_y, scale_by=scale_by,
+                       glow=glow, glow_col=glow_col,
                        command=command, runcommandat=runcommandat, col=col, text_col=text_col, backing_col=backing_col,
                        hovercol=hovercol, clickdownsize=clickdownsize, clicktype=clicktype, textoffsetx=textoffsetx,
                        textoffsety=textoffsety, maxwidth=maxwidth,
@@ -1778,8 +1778,8 @@ class UI:
             window = self.makewindow(0, obj.height, f'ui.IDs["{obj.ID}"].width',
                                      f'ui.IDs["{table.ID}"].getheight()+{border}*2', menu=menu, enabled=False,
                                      animationspeed=animationspeed, animationtype=animationtype)
-            obj.binditem(window)
-            window.binditem(table)
+            obj.bindItem(window)
+            window.bindItem(table)
             if width == -1:
                 nwidth = (max([a[0].textimage.get_width() for a in table.table]) + (
                             obj.width - obj.left_border_size - obj.right_border_size) + border * 5)
@@ -1812,7 +1812,7 @@ class UI:
                             anchor=(0, 0), obj_anchor=(0, 0), center=False, centery=-1, img='none', font=-1, bold=-1,
                             antialiasing=-1, pregenerated=True, enabled=True,
                             border=4, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scalesize=-1,
-                            scalex=-1, scaley=-1, scaleby=-1, glow=-1, glowcol=-1,
+                            scale_x=-1, scale_y=-1, scale_by=-1, glow=-1, glow_col=-1,
                             runcommandat=0, col=-1, text_col=-1, backing_col=-1, border_col=-1, hovercol=-1,
                             clickdownsize=-1, clicktype=-1, textoffsetx=-1, textoffsety=-1, maxwidth=-1,
                             dragable=False, colorkey=-1, toggle=True, toggleable=True, toggleimg='none', togglecol=-1,
@@ -1833,19 +1833,19 @@ class UI:
         text = self.maketext(tx, 0, text, text_size, menu, ID=ID + 'text',
                              anchor=anch, obj_anchor=objanch, font=font, bold=bold, antialiasing=antialiasing,
                              pregenerated=pregenerated, enabled=enabled,
-                             scalesize=scalesize, scalex=scalex, scaley=scaley, scaleby=scaleby,
+                             scalesize=scalesize, scale_x=scale_x, scale_y=scale_y, scale_by=scale_by,
                              col=col, text_col=text_col, backing_col=backing_col, textoffsetx=textoffsetx,
                              textoffsety=textoffsety,
                              colorkey=colorkey, maxwidth=maxwidth, animationspeed=animationspeed)
 
-        obj = self.makecheckbox(x=x, y=y, width=width, height=height, menu=menu, ID=ID, layer=layer,
+        obj = self.makeCheckbox(x=x, y=y, width=width, height=height, menu=menu, ID=ID, layer=layer,
                                 roundedcorners=roundedcorners, bound_items=bound_items + [text], kill_time=kill_time,
                                 anchor=anchor, obj_anchor=obj_anchor, center=center, centery=centery, text_size=text_size,
                                 img=img, font=font, bold=bold, antialiasing=antialiasing, pregenerated=pregenerated,
                                 enabled=enabled,
                                 border=border, top_border_size=top_border_size, bottom_border_size=bottom_border_size,
-                                right_border_size=right_border_size, left_border_size=left_border_size, scalesize=scalesize, scalex=scalex,
-                                scaley=scaley, scaleby=scaleby, glow=glow, glowcol=glowcol,
+                                right_border_size=right_border_size, left_border_size=left_border_size, scalesize=scalesize, scale_x=scale_x,
+                                scale_y=scale_y, scale_by=scale_by, glow=glow, glow_col=glow_col,
                                 command=command, runcommandat=runcommandat, col=col, text_col=text_col,
                                 backing_col=border_col, hovercol=hovercol, clickdownsize=clickdownsize,
                                 clicktype=clicktype, textoffsetx=textoffsetx, textoffsety=textoffsety,
@@ -1915,7 +1915,7 @@ class UI:
         if length == 'default':
             length = Style.defaults['animation_speed']
         if self.queuedmenumove[0] < 0 or slide == 'none':
-            if (self.activemenu in self.windowedmenunames) and (moveto == self.activemenu) and (
+            if (self.active_menu in self.windowedmenunames) and (moveto == self.active_menu) and (
                     self.queuedmenumove[0] < 0):
                 if slide != 'none':
                     self.menuback(slide + ' flip', length)
@@ -1923,14 +1923,14 @@ class UI:
                     self.menuback()
             else:
                 if backchainadd:
-                    self.backchain.append([self.activemenu, slide, length])
+                    self.backchain.append([self.active_menu, slide, length])
                 if slide == 'none':
-                    self.activemenu = moveto
+                    self.active_menu = moveto
                 else:
-                    self.slidemenu(self.activemenu, moveto, slide, length)
+                    self.slidemenu(self.active_menu, moveto, slide, length)
             for a in self.mouseheld:
                 a[1] -= 1
-        elif self.queuemenumove:
+        elif self.queue_menu_move:
             if ['move', moveto, slide, length] != self.prevmenumove:
                 self.queuedmenumove[1] = ['move', moveto, slide, length]
             self.prevmenumove = self.queuedmenumove[1]
@@ -1938,7 +1938,7 @@ class UI:
     def menuback(self, slide='none', length='default'):
         if len(self.backchain) > 0:
             if slide == 'none' and self.backchain[-1][1] != 'none':
-                if not (self.activemenu in self.windowedmenunames and self.backchain[-1][0] in self.windowedmenunames):
+                if not (self.active_menu in self.windowedmenunames and self.backchain[-1][0] in self.windowedmenunames):
                     slide = self.backchain[-1][1] + ' flip'
                 else:
                     slide = self.backchain[-1][1]
@@ -1948,15 +1948,15 @@ class UI:
         if self.queuedmenumove[0] < 0 or slide == 'none':
             if len(self.backchain) > 0:
                 if slide == 'none':
-                    self.activemenu = self.backchain[-1][0]
+                    self.active_menu = self.backchain[-1][0]
                 else:
-                    self.slidemenu(self.activemenu, self.backchain[-1][0], slide, length)
+                    self.slidemenu(self.active_menu, self.backchain[-1][0], slide, length)
                 del self.backchain[-1]
-            elif self.backquits and self.queuedmenumove[0] < 0:
+            elif self.back_quits and self.queuedmenumove[0] < 0:
                 pygame.event.post(pygame.event.Event(pygame.QUIT))
             for a in self.mouseheld:
                 a[1] -= 1
-        elif self.queuemenumove:
+        elif self.queue_menu_move:
             if ['back', slide, length] != self.prevmenumove:
                 self.queuedmenumove[1] = ['back', slide, length]
             self.prevmenumove = self.queuedmenumove[1]
@@ -2061,7 +2061,7 @@ class UI:
             elif type(self.IDs[ID]) == WindowedMenu:
                 self.windowedmenus.remove(self.IDs[ID])
             del self.IDs[ID]
-            self.refreshitems()
+            self.refreshItems()
             return True
         except Exception as e:
             if failmessage: print('Failed to delete object:', ID, 'Error:', e)
@@ -2070,6 +2070,6 @@ class UI:
     def onmenu(self, menu):
         lis = []
         for b in self.items:
-            if b.getmenu() == menu:
+            if b.getMenu() == menu:
                 lis.append(b)
         return lis

@@ -104,17 +104,20 @@ isolated, darken, hsvashift
 There are several objects that can be made, each being produced through a command in the ui object, then being rendered through the rendergui() function.
 ### Buttons
 A button is simple object that can be clicked on to run a command. Buttons can be made toggleable, meaning they swap between a toggled and not toggled state, its state can be accessed by the variable "toggle".
+
 ```py
 # Creates a button that when clicked deletes itself
-ui.makebutton(20,20,'This Button Deletes Itself',40,lambda: ui.delete('delete button'),ID='delete button',maxwidth=200,spacing=5,roundedcorners=10)
+ui.makeButton(20, 20, 'This Button Deletes Itself', 40, lambda: ui.delete('delete button'), ID='delete button',
+              maxwidth=200, spacing=5, rounded_corners=10)
 ```
 ### Checkbox
 A checkbox is a button with in built defaults to make it into a textbox, it can be treated in the same way a button is.
+
 ```py
 # Makes 3 bound checkboxes, so only 1 can be toggled at once
-ui.makecheckbox(30,110,60,ID='checkbox 1',bindtoggle=['checkbox 2','checkbox 3'],toggle=True)
-ui.makecheckbox(90,110,60,ID='checkbox 2',bindtoggle=['checkbox 1','checkbox 3'],toggle=False)
-ui.makecheckbox(150,110,60,ID='checkbox 3',bindtoggle=['checkbox 1','checkbox 2'],toggle=False)
+ui.makeCheckbox(30, 110, 60, ID='checkbox 1', bindtoggle=['checkbox 2', 'checkbox 3'], toggle=True)
+ui.makeCheckbox(90, 110, 60, ID='checkbox 2', bindtoggle=['checkbox 1', 'checkbox 3'], toggle=False)
+ui.makeCheckbox(150, 110, 60, ID='checkbox 3', bindtoggle=['checkbox 1', 'checkbox 2'], toggle=False)
 ```
 ### Labeled checkbox
 The labeled check box is a combination of the text object and a checkbox, as inputs it takes everything the same as with a checkbox, however the text input now controls the text that is displayed next to it. As input it also takes a textpos variable, which can be either "left" or "right" and controls if the text is put to the left or right of the checkbox. The horizontal spacing variable is used to control how far away from the text is from checkbox.
@@ -126,9 +129,10 @@ ui.maketext(0,0,'Bottom Right',60,anchor=('w-10','h-10'),objanchor=('w','h'),bac
 ```
 ### Textbox
 Textboxes can be typed in, a command can be attached for when keys are pressed, or when enter is pressed. If the end of the textbox is reached a scroller is added to the side. The text in the textbox can be accessed by the variable "text". Textboxes can be given functions to run when either enter is pressed or a key is pressed depending on what is set.
+
 ```py
 # A simple textbox with 2 lines for text
-ui.maketextbox(20,170,'',200,2)
+ui.makeTextbox(20, 170, '', 200, 2)
 ```
 ### Table 
 Tables are grids of objects, they can contain text objects, buttons or textboxes. Tables have a set of row editing functions for efficiency, including: 
@@ -137,35 +141,42 @@ Tables are grids of objects, they can contain text objects, buttons or textboxes
 - table.row_remove(ui,index) deletes a row of a set index from data, giving an index of -1 will delete the title
 - table.row_replace(ui,row,index) deletes the row at the given index, and replaces it with the new row
 Tables can be refreshed through threading, working the same as the refresh function but in a thread: table.threadrefresh()
+
 ```py
 # Makes a table with a variety of different features
-data = [['Test',ui.maketext(0,0,'Colour',textcol=(255,100,0),backingcol=(50,0,255),spacing=5,textcenter=True,roundedcorners=4)],
-        [ui.maketextbox(0,0,textsize=25,spacing=3),'{clock}'],
-        [ui.makebutton(0,0,'Button',border=5,spacing=10),6]]
+data = [['Test', ui.maketext(0, 0, 'Colour', textcol=(255, 100, 0), backingcol=(50, 0, 255), spacing=5, textcenter=True,
+                             roundedcorners=4)],
+        [ui.makeTextbox(0, 0, textsize=25, spacing=3), '{clock}'],
+        [ui.makeButton(0, 0, 'Button', border=5, spacing=10), 6]]
 
-ui.maketable(240,20,data,spacing=10,roundedcorners=4)
+ui.makeTable(240, 20, data, spacing=10, roundedcorners=4)
 ```
 ### Scroller Table
 A table that works nearly exactly like a normal table, however creates a scroller to its right that scrolls the table up and down. The height of the scroller and therefore table is controlled through the pageheight variable. The compress variable is used to shrink the size of the table when the scroller is active, if set to true it will reduce down the columns it can, any column with an automatic width can not be reduced. Setting it to an int will only reduce that column and only if that column can be reduced. Lastly it can be set to a list in which the length has to be equal to the number of columns, and the ratio of the values put in will reduce the columns by the given ratios.
+
 ```py
 # Create some random dummy data to fill the table
-data = [['Test',ui.maketext(0,0,'Colour',textcol=(255,100,0),backingcol=(50,0,255))],
-        [ui.maketextbox(0,0,textsize=25,spacing=3),'{clock}'],
-        [ui.makebutton(0,0,'Button',spacing=4),3]]
+data = [['Test', ui.maketext(0, 0, 'Colour', textcol=(255, 100, 0), backingcol=(50, 0, 255))],
+        [ui.makeTextbox(0, 0, textsize=25, spacing=3), '{clock}'],
+        [ui.makeButton(0, 0, 'Button', spacing=4), 3]]
 # Generate the scroller table, second column will compress_table
-table = ui.makescrollertable(240,20,data,['Text','{shuffle}'],boxwidth=200,compress=1,textcenter=True)
+table = ui.makescrollertable(240, 20, data, ['Text', '{shuffle}'], boxwidth=200, compress=1, textcenter=True)
 # Add new data to the table, forcing the scroller to become active
 for a in range(5):
-    table.row_append(['new line',len(table.table)])
+  table.row_append(['new line', len(table.table)])
 ```
 ### Slider
 Sliders contain a bar that a button is moved back and forth on when clicked and dragged. The amount the slider is slid can be accessed by the "slider" variable.
 --note to self talk about the binding text and textboxes thing
+
 ```py
 # Make slider with a button with text changing depending on the sliders position
 def updatetext():
-    ui.IDs['slider button'].settext(str(ui.IDs['slider'].slider))
-ui.makeslider(30,280,450,20,button=ui.makebutton(0,0,'4',ID='slider button'),command=updatetext,ID='slider',increment=1)
+    ui.IDs['slider button'].setText(str(ui.IDs['slider'].slider))
+
+
+ui.makeslider(30, 280, 450, 20, button=ui.makeButton(0, 0, '4', ID='slider button'), command=updatetext, ID='slider',
+              increment=1)
 ```
 ### Scroller
 Scrollers are similar to sliders, however have a set height of the bar being moved. The bar is not a button object, it is in built into the scroller and therefore is more limiting in terms of design.
@@ -179,15 +190,16 @@ The wave changes how the speed of the animation changes, the waves being "linear
 When giving an animation to an object, it is given in a single string where multiple types of different waves can be given in a string. 
 The string should look like this: "moveup:sinout compressdown:linear moveleft"
 Each animation is seperated by a space, with the wave being after a colon without spaces. If no wave is given, it defaults to "sinout".
+
 ```py
 # Create a window with a textbox on it
-window = ui.makewindow(200,30,200,200,animationtype='compressup moveleft',bounditems=[
-    ui.maketextbox(10,10,width=180,lines=2)])
+window = ui.makewindow(200, 30, 200, 200, animationtype='compressup moveleft', bounditems=[
+  ui.makeTextbox(10, 10, width=180, lines=2)])
 
 # Add a button to the window
-window.binditem(ui.makebutton(10,100,'test'))
+window.bindItem(ui.makeButton(10, 100, 'test'))
 # Make a button to open the menu
-ui.makebutton(20,80,'open menu',40,lambda: window.open())
+ui.makeButton(20, 80, 'open menu', 40, lambda: window.open())
 ```
 ### Rect
 A simple rectangle with no additional function.
@@ -209,11 +221,12 @@ ui.makedropdown(10,10,['Option 1','Option 2','Option 3'],
 Using the ui object, objects can be accessed and deleted.
 To access an object you must give the object an ID when it is generated, and then using the ui.IDs dictionary it can be accessed. The make function also returns the object, meaning it can be stored and used in your code. When objects are changed in any way, eg moving its x and y position or changing the text inside it, the objects refresh function should be used. To delete an object use the ui.delete function, passing in objects ID that is to be deleted. Some functions exist for setting specific values, primarly settext, which allows the refresh function to not be used.
 Example code:
+
 ```py
 ## make a button at x=100,y=200 with the text 'Test Button' 
-button = ui.makebutton(100,200,'Test Button',ID='test button')
+button = ui.makeButton(100, 200, 'Test Button', ID='test button')
 ## update the text on the button
-button.settext('New Text')
+button.setText('New Text')
 ## update the buttons font
 ui.IDs['test button'].font = 'helvetica'
 ui.IDs['test button'].refresh()
@@ -251,10 +264,11 @@ All images can be given:
 -If the entered text is in the form {"text" variables=...} or {'text' variables=....} it will render text allowing for unique colour/size/font etc in the same text object.
 
 Example code:
+
 ```py
-ui.maketext(100,100,'This is a cross {cross}')
-ui.makebutton(100,200,'This is lots of crosses {}{}{}{}{}',img='cross')
-ui.makebutton(100,300,'This is an small arrow pointing up {arrow stick=0.3 up}')
+ui.maketext(100, 100, 'This is a cross {cross}')
+ui.makeButton(100, 200, 'This is lots of crosses {}{}{}{}{}', img='cross')
+ui.makeButton(100, 300, 'This is an small arrow pointing up {arrow stick=0.3 up}')
 ```
 In built images can also be added by the user in code, you can add a pygame.Surface object with a corrisponding name to access it by, allowing with the same syntax that image to be accessed. 
 ```py

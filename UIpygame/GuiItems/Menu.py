@@ -16,7 +16,7 @@ class Menu(GuiItem):
         self.height = self.ui.screenh
         self.refreshBound()
 
-    def child_refreshcords(self):
+    def childRefreshCords(self):
         for a in self.bound_items:
             a.resetCords()
 

@@ -10,7 +10,7 @@ class Text(GuiItem):
         self.resetCords()
         self.refreshCords()
         self.refreshGlow()
-    def child_autoscale(self):
+    def childAutoScale(self):
         if self.start_width == -1:
             self.width = max([a.get_width() for a in self.text_images]) / self.scale + self.horizontal_spacing * 2
         if self.start_height == -1:
@@ -20,7 +20,7 @@ class Text(GuiItem):
         self.draw(screen)
     def draw(self,screen):
         if self.enabled:
-            self.animatetext()
+            self.animateText()
             if self.glow!=0:
                 screen.blit(self.glow_image, (self.x * self.dir_scale[0] - self.glow * self.scale, self.y * self.dir_scale[1] - self.glow * self.scale))
             if self.backing_draw:

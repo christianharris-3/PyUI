@@ -35,11 +35,11 @@ class Window(GuiItem):
 
     def enable(self):
         self.enabled = True
-        self.child_autoscale()
+        self.childAutoScale()
 
     def disable(self):
         self.enabled = False
-        self.child_autoscale()
+        self.childAutoScale()
 
     def open(self, animation='default', animationlength=-1, toggleopen=True):
         if animation == 'default': animation = self.animation_type
@@ -145,24 +145,24 @@ class Window(GuiItem):
         else:
             return progress
 
-    def child_autoscale(self):
-        self.refreshnoclickrect()
-        self.ui.refreshnoclickrects()
+    def childAutoScale(self):
+        self.refreshNoClickRect()
+        self.ui.refreshNoClickRects()
         for a in self.bound_items: a.clickable_rect = self.clickable_rect
 
-    def refreshnoclickrect(self):
+    def refreshNoClickRect(self):
         # Rect,IDs,menu,whitelist (true=all objects in list blocked by no_click_rect)
         if self.enabled:
             self.noclickrect = [(pygame.Rect(self.x * self.dir_scale[0], self.y * self.dir_scale[1],
-                                             self.width * self.scale, self.height * self.scale), self.getchildIDs(),
-                                 self.getmenu(), False)]
+                                             self.width * self.scale, self.height * self.scale), self.getChildIDs(),
+                                 self.getMenu(), False)]
         else:
             self.noclickrect = []
 
-    def binditem(self, obj):
-        super().binditem(obj)
+    def bindItem(self, obj):
+        super().bindItem(obj)
         obj.resetCords()
-        self.child_autoscale()
+        self.childAutoScale()
 
     def render(self, screen):
         if self.isolated:

@@ -22,7 +22,7 @@ class Slider(GuiItem):
         self.refreshGlow()
         self.refreshBound()
 
-    def child_refreshcords(self):
+    def childRefreshCords(self):
         ##        self.
         ##        self.innerrect = pygame.Rect(self.slidercenter[0]-self.slider_size/2+self.border_size,self.slidercenter[1]-self.slider_size/2+self.border_size,self.slider_size-self.border_size*2,self.slider_size-self.border_size*2)
         self.refreshButtonCords()
@@ -37,19 +37,19 @@ class Slider(GuiItem):
         if type(self.data) == Button:
             self.button = self.data
         else:
-            self.button = self.ui.makebutton(0, 0, self.text, self.text_size, Utils.emptyFunction, self.menu,
+            self.button = self.ui.makeButton(0, 0, self.text, self.text_size, Utils.emptyFunction, self.menu,
                                              self.ID + 'button', self.layer + 0.01, self.rounded_corners,
                                              width=self.slider_size, height=self.slider_size, img=self.img,
                                              dragable=self.dragable,
                                              clickdownsize=int(self.slider_size / 15), col=ColEdit.shiftcolor(self.col, -30),
-                                             scaleby=self.scale_by)
+                                             scale_by=self.scale_by)
 
         if self.direction == 'vertical':
             self.button.start_obj_anchor = [self.button.width / 2, self.button.height / 2]
         else:
             self.button.start_obj_anchor = ['w/2', 'h/2']
         self.button.dragable = False
-        self.binditem(self.button)
+        self.bindItem(self.button)
 
     def getSliderCenter(self):
         offset = 0
@@ -73,8 +73,8 @@ class Slider(GuiItem):
 
     def refreshButtonCords(self):
         self.getSliderCenter()
-        self.button.startx = self.slidercenter[0]
-        self.button.starty = self.slidercenter[1]
+        self.button.start_x = self.slidercenter[0]
+        self.button.start_y = self.slidercenter[1]
         self.button.start_anchor = [0, 0]
         self.button.resetCords(False)
 
@@ -84,7 +84,7 @@ class Slider(GuiItem):
 
     def updatetext(self):
         if self.boundtext != -1:
-            self.boundtext.settext(str(self.slider))
+            self.boundtext.setText(str(self.slider))
 
     def child_render(self, screen):
         self.draw(screen)
@@ -122,7 +122,7 @@ class Slider(GuiItem):
             self.slider = self.minp
         self.refreshButtonCords()
 
-    def child_autoscale(self):
+    def childAutoScale(self):
         self.maxp = Utils.relativeToValue(self.startmaxp, self.getMasterWidth() / self.scale,
                                           self.getMasterHeight() / self.scale, self.ui)
         self.minp = Utils.relativeToValue(self.startminp, self.getMasterWidth() / self.scale,

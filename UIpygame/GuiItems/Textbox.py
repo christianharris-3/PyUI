@@ -30,7 +30,7 @@ class Textbox(GuiItem):
         self.previntscrollerhoff = 0
         self.undochain = [(self.text, self.typingcursor)]
 
-    def child_autoscale(self):
+    def childAutoScale(self):
         heightgetter = self.ui.rendertext('Tg', self.text_size, self.text_col, self.font, self.bold)
         if self.height == -1:
             self.startheight = self.top_border_size + self.bottom_border_size + heightgetter.get_height() * self.lines + self.vertical_spacing * 2
@@ -57,7 +57,7 @@ class Textbox(GuiItem):
         if self.scrolleron and self.attach_scroller:
             if self.page_height < (self.max_value - self.min_value):
                 self.scroller.scroll -= (
-                            scroll_size * min((self.scroller.maxp - self.scroller.minp) / 20, self.ui.scrolllimit))
+                            scroll_size * min((self.scroller.maxp - self.scroller.minp) / 20, self.ui.scroll_limit))
                 self.scroller.limitpos()
                 self.scroller.command()
                 return True
@@ -86,7 +86,7 @@ class Textbox(GuiItem):
         if refresh: self.refresh()
         return True
 
-    def settext(self, text=''):
+    def setText(self, text=''):
         self.text = text
         self.refresh()
 
@@ -240,9 +240,9 @@ class Textbox(GuiItem):
                                                  0, self.height - self.top_border_size - self.bottom_border_size, self.height,
                                                  anchor=('w', 0),
                                                  menu=self.menu, roundedcorners=self.rounded_corners, col=self.col,
-                                                 scalesize=self.scale_size, scaley=self.scale_size, scalex=self.scale_size,
-                                                 scaleby=self.scale_by)
-            self.binditem(self.scroller)
+                                                 scalesize=self.scale_size, scale_y=self.scale_size, scale_x=self.scale_size,
+                                                 scale_by=self.scale_by)
+            self.bindItem(self.scroller)
         else:
             self.scroller = Utils.EmptyObject(0, 0, 0, 0)
 
@@ -267,8 +267,8 @@ class Textbox(GuiItem):
             self.scroller.setpageheight(self.height - self.top_border_size - self.bottom_border_size)
             self.scroller.menu = self.menu
             self.scroller.scalesize = self.scale_size
-            self.scroller.scalex = self.scale_size
-            self.scroller.scaley = self.scale_size
+            self.scroller.scale_x = self.scale_size
+            self.scroller.scale_y = self.scale_size
             self.scroller.refresh()
             if (self.scroller.maxp - self.scroller.minp) > self.scroller.pageheight:
                 self.scrolleron = True
@@ -354,7 +354,7 @@ class Textbox(GuiItem):
             else:
                 self.scroller.scroll = self.scroller.minp
 
-    def child_refreshcords(self):
+    def childRefreshCords(self):
         if self.scroller != 0:
             self.refreshscroller()
             self.rect = Utils.roundRect(self.x, self.y, self.width, self.height)

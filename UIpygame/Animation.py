@@ -139,7 +139,7 @@ class Animation:
 
         if self.wait <= 0:
             if self.progress < self.length:
-                self.ui.IDs[self.animateID].smartcords(self.cordlist[self.progress][0], self.cordlist[self.progress][1],
+                self.ui.IDs[self.animateID].smartCords(self.cordlist[self.progress][0], self.cordlist[self.progress][1],
                                                        self.permamove)
                 if type(self.ui.IDs[self.animateID]) in [Table, Textbox, Text, Scroller, Slider, WindowedMenu, Menu]:
                     self.ui.IDs[self.animateID].refreshCords()
@@ -167,7 +167,7 @@ class Animation:
             if self.startpos == 'current':
                 self.startpos = (self.ui.IDs[self.animateID].x, self.ui.IDs[self.animateID].y)
             self.endpos = (self.startpos[0] + self.endpos[0], self.startpos[1] + self.endpos[1])
-        self.ui.IDs[self.animateID].smartcords(self.trueendpos[0], self.trueendpos[1], self.permamove)
+        self.ui.IDs[self.animateID].smartCords(self.trueendpos[0], self.trueendpos[1], self.permamove)
         if (type(self.ui.IDs[self.animateID]) in [Table, Textbox, Text, Scroller, Slider, WindowedMenu,
                                                   Menu]) and self.permamove:
             self.ui.IDs[self.animateID].resetCords()

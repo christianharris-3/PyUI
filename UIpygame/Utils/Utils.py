@@ -98,10 +98,10 @@ class Utils:
             self.active = False
             self.scroll = 0
 
-        def getenabled(self):
+        def getEnabled(self):
             return True
 
-        def getmenu(self):
+        def getMenu(self):
             return 'EMPTY_OBJECT'
 
     class Funcer:

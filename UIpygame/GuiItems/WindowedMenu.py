@@ -12,7 +12,7 @@ class WindowedMenu(GuiItem):
         for a in self.ui.items:
             if a.menu == self.menu and a != self and not (type(a) in [Menu]) and type(a.master[0]) in [Menu,
                                                                                                        WindowedMenu]:
-                self.binditem(a)
+                self.bindItem(a)
                 a.refresh()
         self.ui.delete(f'auto_generated_menu:{self.menu}', False)
         self.bound_items.sort(key=lambda x: x.layer, reverse=False)
@@ -24,7 +24,7 @@ class WindowedMenu(GuiItem):
         self.refreshGlow()
         self.refreshBound()
 
-    def child_refreshcords(self):
+    def childRefreshCords(self):
         for a in self.bound_items:
             a.resetCords()
 
