@@ -2,13 +2,15 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from src.DataClasses.PositionalData import PositionalData
 from src.DataClasses.StyleData import StyleData
+import pygame
 
 if TYPE_CHECKING:
-    import pygame
+    pass
+
 
 
 @dataclass
-class TextData(PositionalData,StyleData):
+class TextData:
     text_col: tuple[int] | pygame.Color = (150, 150, 150)
     text_col_shift: int = 0
     text_size: int = 50

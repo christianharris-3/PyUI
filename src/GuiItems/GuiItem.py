@@ -12,237 +12,259 @@ if TYPE_CHECKING:
 
 
 class GuiItem(ABC):
-    def __init__(self, **args):
-        defaulttype = type(self)
-        if 'defaulttype' in args: defaulttype = args['defaulttype']
-        for var in Style.objectdefaults[defaulttype]:
-            if not (var in args):
-                args[var] = Style.objectdefaults[type(self)][var]
-            elif args[var] == Style.universaldefaults[var]:
-                args[var] = Style.objectdefaults[type(self)][var]
+    def __init__(self, **kwargs):
+        try:
+            self.gui_item_data = self.getDataClass(**kwargs)
+        except TypeError as e:
+            error = TypeError(self.__class__.__name__ + "() {}".format(str(e)[11:]))
+            raise error from None
+        return
+        self.splitDataClasses()
+        self.creationLogic()
 
-        args = Utils.filloutargs(args)
-        ui = args.pop('ui')
-        self.ui = ui
+        if True:
+            defaulttype = type(self)
+            if 'defaulttype' in args: defaulttype = args['defaulttype']
+            for var in Style.objectdefaults[defaulttype]:
+                if not (var in args):
+                    args[var] = Style.objectdefaults[type(self)][var]
+                elif args[var] == Style.universaldefaults[var]:
+                    args[var] = Style.objectdefaults[type(self)][var]
 
-        self.enabled = args['enabled']
-        self.center = args['center']
-        if args['centery'] == -1:
-            self.centery = self.center
-        else:
-            self.centery = args['centery']
-        self.x = args['x']
-        self.y = args['y']
-        self.startx = args['x']
-        self.starty = args['y']
-        self.startanchor = list(args['anchor'])
-        self.startobjanchor = list(args['objanchor'])
-        if self.center and self.startobjanchor[0] == 0: self.startobjanchor[0] = 'w/2'
-        if self.centery and self.startobjanchor[1] == 0: self.startobjanchor[1] = 'h/2'
-        self.scrollcords = args['scrollcords']
-        self.refreshbind = list(args['refreshbind'])[:]
-        if type(args['presskeys']) == list:
-            self.presskeys = args['presskeys'][:]
-        else:
-            self.presskeys = [args['presskeys']]
+            args = Utils.filloutargs(args)
+            ui = args.pop('ui')
+            self.ui = ui
 
-        self.startwidth = args['width']
-        self.startheight = args['height']
-        self.width = Utils.relativetoval(args['width'], ui.screenw, ui.screenh, ui)
-        self.height = Utils.relativetoval(args['height'], ui.screenw, ui.screenh, ui)
-        self.roundedcorners = args['roundedcorners']
-        self.scalesize = args['scalesize']
-        if args['scalex'] == -1:
-            self.scalex = self.scalesize
-        else:
-            self.scalex = args['scalex']
-        if args['scaley'] == -1:
-            self.scaley = self.scalesize
-        else:
-            self.scaley = args['scaley']
-        self.scaleby = args['scaleby']
-        self.glow = args['glow']
-        self.refreshscale()
-        self.border = args['border']
-        if args['upperborder'] == -1:
-            self.upperborder = self.border
-        else:
-            self.upperborder = args['upperborder']
-        if args['lowerborder'] == -1:
-            self.lowerborder = self.border
-        else:
-            self.lowerborder = args['lowerborder']
-        if args['leftborder'] == -1:
-            self.leftborder = self.border
-        else:
-            self.leftborder = args['leftborder']
-        if args['rightborder'] == -1:
-            self.rightborder = self.border
-        else:
-            self.rightborder = args['rightborder']
-
-        self.menu = args['menu']
-        self.truemenu = self.menu
-        if type(self.truemenu) == str: self.truemenu = [self.truemenu]
-        self.behindmenu = args['behindmenu']
-        if args['killtime'] == -1:
-            self.killtime = -1
-        else:
-            self.killtime = time.time() + args['killtime']
-        self.layer = args['layer']
-        if args['ID'] == '': args['ID'] = args['text']
-
-        self.text = str(args['text'])
-        self.textsize = args['textsize']
-        self.img = args['img']
-        self.font = args['font']
-        self.bold = args['bold']
-        self.antialiasing = args['antialiasing']
-        self.pregenerated = args['pregenerated']
-        self.textcenter = args['textcenter']
-        self.startmaxwidth = args['maxwidth']
-        self.maxwidth = args['maxwidth']
-        self.textimages = []
-        self.toggletextimages = []
-
-        self.col = args['col']
-        self.textcol = args['textcol']
-        self.backingcol = ColEdit.autoshiftcol(args['backingcol'], self.col, 20)
-        self.bordercol = self.backingcol
-        self.glowcol = ColEdit.autoshiftcol(args['glowcol'], self.col, -20)
-        self.hovercol = ColEdit.autoshiftcol(args['hovercol'], self.col, -20)
-        self.togglecol = ColEdit.autoshiftcol(args['togglecol'], self.col, -50)
-        self.togglehovercol = ColEdit.autoshiftcol(args['togglehovercol'], self.togglecol, -20)
-        self.selectcol = ColEdit.autoshiftcol(args['selectcol'], self.col, 20)
-        self.scrollercol = ColEdit.autoshiftcol(args['scrollercol'], self.col, -30)
-        self.slidercol = ColEdit.autoshiftcol(args['slidercol'], self.col, -30)
-        self.sliderbordercol = ColEdit.autoshiftcol(args['sliderbordercol'], self.col, -10)
-        self.colorkey = args['colorkey']
-
-        self.clickdownsize = args['clickdownsize']
-        self.textoffsetx = args['textoffsetx']
-        self.textoffsety = args['textoffsety']
-        self.dragable = args['dragable']
-        self.spacing = args['spacing']
-        self.verticalspacing = args['verticalspacing']
-        self.horizontalspacing = args['horizontalspacing']
-        if args['spacing'] != -1:
-            self.verticalspacing = self.spacing
-            self.horizontalspacing = self.spacing
-
-        self.toggle = args['toggle']
-        self.toggleable = args['toggleable']
-        if args['toggletext'] == -1:
-            self.toggletext = args['text']
-        else:
-            self.toggletext = args['toggletext']
-        if args['toggleimg'] == -1:
-            self.toggleimg = args['img']
-        else:
-            self.toggleimg = args['toggleimg']
-        self.bindtoggle = args['bindtoggle']
-
-        self.clicktype = args['clicktype']
-        self.startclickablerect = args['clickablerect']
-        self.clickablerect = args['clickablerect']
-        self.noclickrect = []
-        self.noclickrectsapplied = []
-        self.clickableborder = args['clickableborder']
-        self.clickedon = -1
-        self.holding = False
-        self.forceholding = False
-        self.hovering = False
-        self.animating = False
-        self.animationspeed = args['animationspeed']
-        self.animate = 0
-        self.currentframe = 0
-        self.command = args['command']
-        self.runcommandat = args['runcommandat']
-
-        self.lines = args['lines']
-        self.linelimit = args['linelimit']
-        self.attachscroller = args['attachscroller']
-        if self.linelimit == -1:
-            if self.attachscroller:
-                self.linelimit = 100
+            self.enabled = args['enabled']
+            self.center = args['center']
+            if args['centery'] == -1:
+                self.centery = self.center
             else:
-                self.linelimit = self.lines
-        self.intscroller = args['intscroller']
-        self.intwraparound = args['intwraparound']
-        self.selectbordersize = args['selectbordersize']
-        self.selectshrinksize = args['selectshrinksize']
-        self.cursorsize = args['cursorsize']
-        self.chrlimit = args['chrlimit']
-        self.numsonly = args['numsonly']
-        self.allowedcharacters = args['allowedcharacters']
-        self.enterreturns = args['enterreturns']
-        self.commandifenter = args['commandifenter']
-        self.commandifkey = args['commandifkey']
-        self.imgdisplay = args['imgdisplay']
+                self.centery = args['centery']
+            self.x = args['x']
+            self.y = args['y']
+            self.startx = args['x']
+            self.starty = args['y']
+            self.startanchor = list(args['anchor'])
+            self.startobjanchor = list(args['objanchor'])
+            if self.center and self.startobjanchor[0] == 0: self.startobjanchor[0] = 'w/2'
+            if self.centery and self.startobjanchor[1] == 0: self.startobjanchor[1] = 'h/2'
+            self.scrollcords = args['scrollcords']
+            self.refreshbind = list(args['refreshbind'])[:]
+            if type(args['presskeys']) == list:
+                self.presskeys = args['presskeys'][:]
+            else:
+                self.presskeys = [args['presskeys']]
 
-        self.tableobject = False
-        self.data = args['data']
-        self.titles = args['titles']
-        self.splitcellchar = args['splitcellchar']
-        self.table = 0
-        self.linesize = args['linesize']
-        self.boxwidth = args['boxwidth']
-        self.boxheight = args['boxheight']
-        self.guessheight = args['guessheight']
-        self.guesswidth = args['guesswidth']
-        self.scroller = args['scroller']
-        self.compress = args['compress']
+            self.startwidth = args['width']
+            self.startheight = args['height']
+            self.width = Utils.relativetoval(args['width'], ui.screenw, ui.screenh, ui)
+            self.height = Utils.relativetoval(args['height'], ui.screenw, ui.screenh, ui)
+            self.roundedcorners = args['roundedcorners']
+            self.scalesize = args['scalesize']
+            if args['scalex'] == -1:
+                self.scalex = self.scalesize
+            else:
+                self.scalex = args['scalex']
+            if args['scaley'] == -1:
+                self.scaley = self.scalesize
+            else:
+                self.scaley = args['scaley']
+            self.scaleby = args['scaleby']
+            self.glow = args['glow']
+            self.refreshscale()
+            self.border = args['border']
+            if args['upperborder'] == -1:
+                self.upperborder = self.border
+            else:
+                self.upperborder = args['upperborder']
+            if args['lowerborder'] == -1:
+                self.lowerborder = self.border
+            else:
+                self.lowerborder = args['lowerborder']
+            if args['leftborder'] == -1:
+                self.leftborder = self.border
+            else:
+                self.leftborder = args['leftborder']
+            if args['rightborder'] == -1:
+                self.rightborder = self.border
+            else:
+                self.rightborder = args['rightborder']
 
-        self.animationtype = args['animationtype']
-        self.options = args['options']
-        self.dropsdown = args['dropsdown']
-        if len(self.options) > 0: self.active = self.options[args['startoptionindex']]
+            self.menu = args['menu']
+            self.truemenu = self.menu
+            if type(self.truemenu) == str: self.truemenu = [self.truemenu]
+            self.behindmenu = args['behindmenu']
+            if args['killtime'] == -1:
+                self.killtime = -1
+            else:
+                self.killtime = time.time() + args['killtime']
+            self.layer = args['layer']
+            if args['ID'] == '': args['ID'] = args['text']
 
-        self.backingdraw = args['backingdraw']
-        self.borderdraw = args['borderdraw']
-        self.startpageheight = args['pageheight']
-        self.pageheight = Utils.relativetoval(args['pageheight'], ui.screenw, ui.screenh, ui)
+            self.text = str(args['text'])
+            self.textsize = args['textsize']
+            self.img = args['img']
+            self.font = args['font']
+            self.bold = args['bold']
+            self.antialiasing = args['antialiasing']
+            self.pregenerated = args['pregenerated']
+            self.textcenter = args['textcenter']
+            self.startmaxwidth = args['maxwidth']
+            self.maxwidth = args['maxwidth']
+            self.textimages = []
+            self.toggletextimages = []
 
-        self.startminp = args['minp']
-        self.minp = Utils.relativetoval(args['minp'], ui.screenw, ui.screenh, ui)
-        self.startmaxp = args['maxp']
-        self.maxp = Utils.relativetoval(args['maxp'], ui.screenw, ui.screenh, ui)
-        self.startp = args['startp']
-        self.increment = args['increment']
-        self.containedslider = args['containedslider']
-        if args['slidersize'] == -1:
-            self.slidersize = self.height * 2
-            if self.containedslider: self.slidersize = self.height - self.upperborder - self.lowerborder
-            if args['direction'] == 'vertical':
-                self.slidersize = self.width * 2
-                if self.containedslider: self.slidersize = self.width - self.leftborder - self.rightborder
-        else:
-            self.slidersize = args['slidersize']
-        if args['sliderroundedcorners'] == -1:
-            self.sliderroundedcorners = args['roundedcorners']
-        else:
-            self.sliderroundedcorners = args['sliderroundedcorners']
-        self.direction = args['direction']
-        self.containedslider = args['containedslider']
-        self.movetoclick = args['movetoclick']
-        self.scrollbind = args['scrollbind']
-        self.screencompressed = args['screencompressed']
+            self.col = args['col']
+            self.textcol = args['textcol']
+            self.backingcol = ColEdit.autoshiftcol(args['backingcol'], self.col, 20)
+            self.bordercol = self.backingcol
+            self.glowcol = ColEdit.autoshiftcol(args['glowcol'], self.col, -20)
+            self.hovercol = ColEdit.autoshiftcol(args['hovercol'], self.col, -20)
+            self.togglecol = ColEdit.autoshiftcol(args['togglecol'], self.col, -50)
+            self.togglehovercol = ColEdit.autoshiftcol(args['togglehovercol'], self.togglecol, -20)
+            self.selectcol = ColEdit.autoshiftcol(args['selectcol'], self.col, 20)
+            self.scrollercol = ColEdit.autoshiftcol(args['scrollercol'], self.col, -30)
+            self.slidercol = ColEdit.autoshiftcol(args['slidercol'], self.col, -30)
+            self.sliderbordercol = ColEdit.autoshiftcol(args['sliderbordercol'], self.col, -10)
+            self.colorkey = args['colorkey']
 
-        self.onitem = False
-        self.master = [Utils.EmptyObject(0, 0, ui.screenw, ui.screenh)]
-        self.bounditems = args['bounditems'][:]
-        ui.addid(args['ID'], self)
-        for a in self.bounditems:
-            self.binditem(a)
-        self.empty = False
+            self.clickdownsize = args['clickdownsize']
+            self.textoffsetx = args['textoffsetx']
+            self.textoffsety = args['textoffsety']
+            self.dragable = args['dragable']
+            self.spacing = args['spacing']
+            self.verticalspacing = args['verticalspacing']
+            self.horizontalspacing = args['horizontalspacing']
+            if args['spacing'] != -1:
+                self.verticalspacing = self.spacing
+                self.horizontalspacing = self.spacing
 
-        self.isolated = args['isolated']
-        self.darken = args['darken']
-        self.autoshutwindows = args['autoshutwindows']
-        for a in self.bounditems:
-            self.binditem(a)
-        self.reset()
-        pygame.event.pump()
+            self.toggle = args['toggle']
+            self.toggleable = args['toggleable']
+            if args['toggletext'] == -1:
+                self.toggletext = args['text']
+            else:
+                self.toggletext = args['toggletext']
+            if args['toggleimg'] == -1:
+                self.toggleimg = args['img']
+            else:
+                self.toggleimg = args['toggleimg']
+            self.bindtoggle = args['bindtoggle']
+
+            self.clicktype = args['clicktype']
+            self.startclickablerect = args['clickablerect']
+            self.clickablerect = args['clickablerect']
+            self.noclickrect = []
+            self.noclickrectsapplied = []
+            self.clickableborder = args['clickableborder']
+            self.clickedon = -1
+            self.holding = False
+            self.forceholding = False
+            self.hovering = False
+            self.animating = False
+            self.animationspeed = args['animationspeed']
+            self.animate = 0
+            self.currentframe = 0
+            self.command = args['command']
+            self.runcommandat = args['runcommandat']
+
+            self.lines = args['lines']
+            self.linelimit = args['linelimit']
+            self.attachscroller = args['attachscroller']
+            if self.linelimit == -1:
+                if self.attachscroller:
+                    self.linelimit = 100
+                else:
+                    self.linelimit = self.lines
+            self.intscroller = args['intscroller']
+            self.intwraparound = args['intwraparound']
+            self.selectbordersize = args['selectbordersize']
+            self.selectshrinksize = args['selectshrinksize']
+            self.cursorsize = args['cursorsize']
+            self.chrlimit = args['chrlimit']
+            self.numsonly = args['numsonly']
+            self.allowedcharacters = args['allowedcharacters']
+            self.enterreturns = args['enterreturns']
+            self.commandifenter = args['commandifenter']
+            self.commandifkey = args['commandifkey']
+            self.imgdisplay = args['imgdisplay']
+
+            self.tableobject = False
+            self.data = args['data']
+            self.titles = args['titles']
+            self.splitcellchar = args['splitcellchar']
+            self.table = 0
+            self.linesize = args['linesize']
+            self.boxwidth = args['boxwidth']
+            self.boxheight = args['boxheight']
+            self.guessheight = args['guessheight']
+            self.guesswidth = args['guesswidth']
+            self.scroller = args['scroller']
+            self.compress = args['compress']
+
+            self.animationtype = args['animationtype']
+            self.options = args['options']
+            self.dropsdown = args['dropsdown']
+            if len(self.options) > 0: self.active = self.options[args['startoptionindex']]
+
+            self.backingdraw = args['backingdraw']
+            self.borderdraw = args['borderdraw']
+            self.startpageheight = args['pageheight']
+            self.pageheight = Utils.relativetoval(args['pageheight'], ui.screenw, ui.screenh, ui)
+
+            self.startminp = args['minp']
+            self.minp = Utils.relativetoval(args['minp'], ui.screenw, ui.screenh, ui)
+            self.startmaxp = args['maxp']
+            self.maxp = Utils.relativetoval(args['maxp'], ui.screenw, ui.screenh, ui)
+            self.startp = args['startp']
+            self.increment = args['increment']
+            self.containedslider = args['containedslider']
+            if args['slidersize'] == -1:
+                self.slidersize = self.height * 2
+                if self.containedslider: self.slidersize = self.height - self.upperborder - self.lowerborder
+                if args['direction'] == 'vertical':
+                    self.slidersize = self.width * 2
+                    if self.containedslider: self.slidersize = self.width - self.leftborder - self.rightborder
+            else:
+                self.slidersize = args['slidersize']
+            if args['sliderroundedcorners'] == -1:
+                self.sliderroundedcorners = args['roundedcorners']
+            else:
+                self.sliderroundedcorners = args['sliderroundedcorners']
+            self.direction = args['direction']
+            self.containedslider = args['containedslider']
+            self.movetoclick = args['movetoclick']
+            self.scrollbind = args['scrollbind']
+            self.screencompressed = args['screencompressed']
+
+            self.onitem = False
+            self.master = [Utils.EmptyObject(0, 0, ui.screenw, ui.screenh)]
+            self.bounditems = args['bounditems'][:]
+            ui.addid(args['ID'], self)
+            for a in self.bounditems:
+                self.binditem(a)
+            self.empty = False
+
+            self.isolated = args['isolated']
+            self.darken = args['darken']
+            self.autoshutwindows = args['autoshutwindows']
+            for a in self.bounditems:
+                self.binditem(a)
+            self.reset()
+            pygame.event.pump()
+
+    def getDataClass(self):
+        '''
+        Returns the dataclass which is used for the object
+        '''
+        raise NotImplementedError("Please Implement this method")
+
+    def splitDataClasses(self):
+        print(self.getDataClass().__bases__[0] == object)
+
+    def creationLogic(self):
+        pass
 
     def __str__(self):
         return '<' + str(type(self)).split("'")[1] + f' ID:{self.ID}>'
