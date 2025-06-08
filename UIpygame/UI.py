@@ -34,7 +34,6 @@ class UI:
         pygame.key.set_repeat(350, 31)
         pygame.scrap.init()
         pygame.scrap.set_mode(pygame.SCRAP_CLIPBOARD)
-
         self.scale = scale
         self.dirscale = [1, 1]
         self.mouseheld = [[0, 0], [0, 0], [0, 0]]

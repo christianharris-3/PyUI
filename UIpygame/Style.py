@@ -1,5 +1,8 @@
 import copy
 
+import pygame
+
+
 class Style:
     universaldefaults = {'rounded_corners': 0, 'anchor': (0, 0), 'obj_anchor': (0, 0), 'center': False, 'center_y': -1,
                          'text_size': 50, 'font': 'calibre', 'bold': True,
@@ -38,3 +41,4 @@ class Style:
     objectdefaults = {}
     # for a in [UI.objectkey[o] for o in UI.objectkey]:
     #     objectdefaults[a] = copy.deepcopy(defaults)
+pygame.Blue

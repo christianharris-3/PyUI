@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 import pygame
 
-
 @dataclass
 class TextData:
     text: str = ""

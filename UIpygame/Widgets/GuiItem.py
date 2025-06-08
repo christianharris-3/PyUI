@@ -14,7 +14,15 @@ if TYPE_CHECKING:
 
 
 class GuiItem(ABC):
-    def __init__(self, dataClass):
+    def __init__(self, **kwargs):
+        try:
+            self._gui_item_data = self.getDataClass()(**kwargs)
+        except TypeError as e:
+            error = TypeError(self.__class__.__name__ + "() {}".format(str(e)[11:]))
+            raise error from None
+        return
+        self.splitDataClasses()
+        self.creationLogic()
 
         return
 

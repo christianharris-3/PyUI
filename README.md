@@ -95,9 +95,8 @@ border, upperborder, lowerborder, rightborder, leftborder
 scalesize, scalex, scaley, antialiasing, colorkey, maxwidth
 anchor, objanchor, center, centery, glow, glowcol
 clickdownsize, clicktype, clickableborder, textoffsetx, textoffsety
-lines, selectcol, selectbordersize, selectshrinksize, cursorsize, textcenter
-slidersize, increment, containedslider, movetoclick
-isolated, darken, hsvashift
+lines, selectcol, selectbordersize, selectshrinksize, cursorsize, textcenter, 
+slidersize, increment, containedslider, movetoclick, isolated, darken, hsvashift
 ```
 
 ## Gui Objects
