@@ -1,5 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 import time
+
+import numpy as np
 import pygame
 from UIpygame.Utils.Utils import Utils
 from UIpygame.Utils.ColEdit import ColEdit
@@ -281,144 +283,14 @@ class GuiItem(ABC):
         self.refreshBound()
         self.refreshClickableRect()
 
-    def genText(self):
-        ui = self.ui
-        self.current_frame = 0
-        if type(self.img) != list:
-            imgs = [self.img]
-        else:
-            imgs = self.img
-            if len(imgs) < 1: imgs.append('')
-
-        self.text_images = []
-        for img in imgs:
-            if type(img) == str:
-                if len(imgs) != 1:
-                    txt = img
-                else:
-                    txt = self.text
-                self.text_images.append(
-                    ui.rendertextlined(txt, self.text_size, self.text_col, self.col, self.font, self.max_width, self.bold,
-                                       self.antialiasing, self.text_center, imgin=True, img=img, scale=self.scale,
-                                       linelimit=self.line_limit, cutstartspaces=True))
-            else:
-                self.text_images.append(pygame.transform.scale(img, (
-                img.get_width() * (self.text_size / img.get_height()) * self.scale,
-                img.get_height() * (self.text_size / img.get_height()) * self.scale)))
-            if self.colorkey != -1: self.text_images[-1].set_colorkey(self.colorkey)
-        self.textimage = self.text_images[0]
-        if len(self.text_images) != 1:
-            self.animating = True
-        self.childGenText()
-
-    def refreshGlow(self):
-        if self.glow != 0:
-            self.glow_image = pygame.Surface(
-                ((self.glow * 2 + self.width) * self.scale, (self.glow * 2 + self.height) * self.scale),
-                pygame.SRCALPHA)
-            Draw.glow(self.glow_image, Utils.roundRect(self.glow * self.scale, self.glow * self.scale, self.width * self.scale,
-                                                       self.height * self.scale), int(self.glow * self.scale), self.glow_col)
-
     def refreshBound(self):
         for a in self.refresh_bind:
             if a in self.ui.IDs:
                 self.ui.IDs[a].refresh()
 
-    def animateText(self):
-        if self.animating:
-            self.animate += 1
-            if self.animate % self.animation_speed == 0:
-                self.current_frame += 1
-                if self.current_frame == len(self.text_images):
-                    self.current_frame = 0
-                self.textimage = self.text_images[self.current_frame]
-
-    def resetCords(self, scalereset=True):
-        ui = self.ui
-        if scalereset: self.refreshScale()
-        self.anchor = self.start_anchor[:]
-
-        master = self.master[0]
-        if len(self.master) > 1:
-            if 'animate' in self.true_menu:
-                for a in self.master:
-                    if ui.active_menu in a.truemenu:
-                        master = a
-            else:
-                for a in self.master:
-                    if not (ui.active_menu in a.truemenu):
-                        master = a
-                        break
-
-        w = self.getMasterWidth()
-        h = self.getMasterHeight()
-
-        self.anchor[0] = Utils.relativeToValue(self.anchor[0], w, h, ui)
-        self.anchor[1] = Utils.relativeToValue(self.anchor[1], w, h, ui)
-
-        self.obj_anchor = self.start_obj_anchor[:]
-        self.obj_anchor[0] = Utils.relativeToValue(self.obj_anchor[0], self.width, self.height, ui)
-        self.obj_anchor[1] = Utils.relativeToValue(self.obj_anchor[1], self.width, self.height, ui)
-
-        self.x = int(master.x * master.dirscale[0] + self.anchor[0] + (
-                self.start_x - self.obj_anchor[0] - self.scroll_cords[0]) * self.scale) / self.dir_scale[0]
-        self.y = int(master.y * master.dirscale[1] + self.anchor[1] + (
-                self.start_y - self.obj_anchor[1] - self.scroll_cords[1]) * self.scale) / self.dir_scale[1]
-
-        self.refreshCords()
-        for a in self.bound_items:
-            a.resetCords()
-        self.refreshClickableRect()
-
     def refreshCords(self):
         self.refreshScale()
         self.childRefreshCords()
-
-    def refreshScale(self):
-        if self.scale_by == -1:
-            self.scale = self.ui.scale
-        elif self.scale_by == 'vertical':
-            self.scale = self.ui.dir_scale[1]
-        else:
-            self.scale = self.ui.dir_scale[0]
-
-        self.dir_scale = self.ui.dir_scale[:]
-        if not self.scale_size: self.scale = 1
-        if not self.scale_x: self.dir_scale[0] = 1
-        if not self.scale_y: self.dir_scale[1] = 1
-
-    def autoScale(self):
-        w = self.getMasterWidth() / self.scale
-        h = self.getMasterHeight() / self.scale
-        if self.start_width != -1: self.width = Utils.relativeToValue(self.start_width, w, h, self.ui)
-        if self.start_max_width != -1: self.max_width = Utils.relativeToValue(self.start_max_width, w, h, self.ui)
-        if self.start_height != -1: self.height = Utils.relativeToValue(self.start_height, w, h, self.ui)
-        self.refreshClickableRect()
-        self.childAutoScale()
-
-    def refreshClickableRect(self):
-        w = self.getMasterWidth() / self.scale
-        h = self.getMasterHeight() / self.scale
-        if self.start_clickable_rect != -1:
-            rx, ry, rw, rh = self.start_clickable_rect
-            xstart = self.master[0].x * self.master[0].dirscale[0]
-            ystart = self.master[0].y * self.master[0].dirscale[1]
-            ow = self.getMasterWidth() / self.scale
-            oh = self.getMasterHeight() / self.scale
-            if type(self) == ScrollerTable:
-                self.page_height = Utils.relativeToValue(self.start_page_height, w, h, self.ui)
-                oh = self.page_height
-            if type(self) in [ScrollerTable, Table]:
-                xstart = self.x * self.dir_scale[0]
-                ystart = self.y * self.dir_scale[1]
-                ow = self.width
-                oh = self.height
-            self.clickable_rect = pygame.Rect(xstart + Utils.relativeToValue(rx, w, h, self.ui),
-                                              ystart + Utils.relativeToValue(ry, w, h, self.ui),
-                                              Utils.relativeToValue(rw, ow, oh, self.ui) * self.scale,
-                                              Utils.relativeToValue(rh, ow, oh, self.ui) * self.scale)
-        else:
-            self.clickable_rect = self.start_clickable_rect
 
     def render(self, screen):
         if self.kill_time != -1 and self.kill_time < self.ui.time:
@@ -428,20 +300,6 @@ class GuiItem(ABC):
             for a in [i.ID for i in self.bound_items][:]:
                 if a in self.ui.IDs:
                     self.ui.IDs[a].render(screen)
-
-    def smartCords(self, x=None, y=None, startset=True, accountscroll=False):
-        scr = [0, 0]
-        if accountscroll:
-            scr = self.scroll_cords[:]
-
-        if x is not None:
-            self.x = x
-            if startset: self.start_x = ((self.x + scr[0]) * self.dir_scale[0] + self.obj_anchor[0] * self.scale -
-                                         self.anchor[0]) / self.scale - self.master[0].x
-        if y is not None:
-            self.y = y
-            if startset: self.start_y = ((self.y + scr[1]) * self.dir_scale[1] + self.obj_anchor[1] * self.scale -
-                                         self.anchor[1]) / self.scale - self.master[0].y
 
     def bindItem(self, item, replace=True, resetcords=True):
         if item != self:
@@ -463,57 +321,36 @@ class GuiItem(ABC):
             self.bound_items.sort(key=lambda x: x.layer, reverse=False)
             if resetcords: item.resetCords()
 
-    def setMenu(self, menu):
-        self.menu = menu
-        self.true_menu = self.menu
-        if type(self.true_menu) == str: self.true_menu = [self.true_menu]
-
-        for a in self.master:
-            if type(a) in [WindowedMenu, Menu]:
-                a.bound_items.remove(self)
-        self.master = []
-        for a in self.true_menu:
-            if a in self.ui.windowedmenunames:
-                self.ui.windowedmenus[self.ui.windowedmenunames.index(a)].bindItem(self, False, False)
-        self.ui.refreshItems()
-        self.resetCords()
-
-    def getMenu(self):
-        if type(self.master[0]) in [WindowedMenu, Menu]:
-            return self.master[0].menu
-        else:
-            return self.master[0].getMenu()
-
-    def getMasterWidth(self):
+    def getParentWidth(self):
         w = self.ui.screenw
         if self.onitem:
-            w = self.master[0].width * self.master[0].scale
+            w = self.master.getWidth()
         return w
 
-    def getMasterHeight(self):
+    def getParentHeight(self):
         h = self.ui.screenh
         if self.onitem:
-            h = self.master[0].height * self.master[0].scale
+            h = self.master.getHeight()
         return h
+
+    def getParentDimensions(self):
+        if self.onitem:
+            return self.master.getDimensions()
+        return np.array([self.ui.screenw, self.ui.screenh])
 
     def getChildIDs(self):
         lis = [self.ID]
         lis += sum([a.getChildIDs() for a in self.bound_items], [])
         return lis
 
+    def getChildren(self):
+        return self.bound_items
+
     def getEnabled(self):
         if not self.enabled:
             return False
         else:
             return self.master[0].getEnabled()
-
-    def setText(self, text):
-        self.text = str(text)
-        self.refresh()
-
-    def setTextSize(self, text_size):
-        self.text_size = text_size
-        self.refresh()
 
     def setWidth(self, width):
         self.start_width = width
@@ -523,17 +360,13 @@ class GuiItem(ABC):
         self.start_height = height
         self.autoScale()
 
-    def setTextCol(self, col):
-        self.text_col = col
-        self.refresh()
-
     def enable(self):
         self.enabled = True
 
     def disable(self):
         self.enabled = False
 
-    def enabledToggle(self):
+    def toggleEnabled(self):
         if self.enabled:
             self.disable()
         else:
@@ -557,14 +390,6 @@ class GuiItem(ABC):
     def refreshNoClickRect(self):
         pass
 
-    def press(self):
-        for a in self.bind_toggle:
-            if a != self.ID:
-                self.ui.IDs[a].toggle = False
-        if self.toggleable:
-            self.toggle = not self.toggle
-        self.command()
-
     ##        prevmenu = self.ui.active_menu
     ##        if prevmenu!=self.ui.active_menu:
     ##            temp = self.ui.mprs,self.ui.mpos
@@ -572,61 +397,3 @@ class GuiItem(ABC):
     ##            self.ui.mpos = [-100000,-100000]
     ##            self.render(pygame.Surface((10,10)))
     ##            self.ui.mprs,self.ui.mpos = temp
-
-    def getClickedOn(self, rect='default', runcom=True, drag=True, smartdrag=True):
-        ui = self.ui
-        if rect == 'default':
-            rect = pygame.Rect(self.x * self.dir_scale[0], self.y * self.dir_scale[1], self.width * self.scale,
-                               self.height * self.scale)
-        self.clicked_on = -1
-        self.hovering = False
-        mpos = ui.mpos
-        if self.force_holding:
-            if not self.holding:
-                self.clicked_on = 0
-            else:
-                self.clicked_on = 1
-            self.holding = True
-            return False
-        if rect.collidepoint(mpos) and (self.clickable_rect == -1 or self.clickable_rect.collidepoint(mpos)) and not (
-        Collision.collidepointrects(mpos, self.no_click_rects_applied)):
-            if ui.mprs[self.click_type] and (ui.mouseheld[self.click_type][1] > 0 or self.holding):
-                if ui.mouseheld[self.click_type][1] == ui.buttondowntimer:
-                    self.clicked_on = 0
-                    self.holding = True
-                    self.holding_cords = [(mpos[0]) - rect.x, (mpos[1]) - rect.y]
-                    if self.run_command_at < 2 and runcom:
-                        self.press()
-            else:
-                self.hovering = True
-        if ui.mprs[self.click_type] and self.holding:
-            if self.clicked_on != 0:
-                self.clicked_on = 1
-            if self.dragable and drag:
-                if type(self) == Scroller:
-                    account = [0, -self.border]
-                else:
-                    account = [-rect.x + self.x * self.dir_scale[0], -rect.y + self.y * self.dir_scale[1]]
-                if smartdrag:
-                    self.smartCords((mpos[0] - self.holding_cords[0] + account[0]) / self.dir_scale[0],
-                                    (mpos[1] - self.holding_cords[1] + account[1]) / self.dir_scale[1])
-                else:
-                    self.x = (mpos[0] - self.holding_cords[0] + account[0]) / self.dir_scale[0]
-                    self.y = (mpos[1] - self.holding_cords[1] + account[1]) / self.dir_scale[1]
-                self.centerx = self.x + self.width / 2
-                self.center_y = self.y + self.height / 2
-                for a in self.bound_items:
-                    a.resetCords(ui)
-            if self.run_command_at == 1 and runcom:
-                self.command()
-        elif not ui.mprs[self.click_type]:
-            if self.holding:
-                self.clicked_on = 2
-                if rect.collidepoint(mpos) and self.run_command_at > 0 and runcom:
-                    self.press()
-            self.holding = False
-        return False
-
-    @abstractmethod
-    def getDataClass(self, param):
-        raise NotImplementedError("Need to return dataclass type")

@@ -1,4 +1,4 @@
-from UIpygame.GuiItems.Button import Button
+from UIpygame.Widgets.Button import Button
 from UIpygame.Utils.Utils import Utils
 
 class DropDown(Button):

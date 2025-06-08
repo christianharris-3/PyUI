@@ -1,5 +1,5 @@
-from UIpygame.GuiItems.GuiItem import GuiItem
-from UIpygame.GuiItems.Button import Button
+from UIpygame.Widgets.GuiItem import GuiItem
+from UIpygame.Widgets.Button import Button
 from UIpygame.Utils.Draw import Draw
 from UIpygame.Utils.Utils import Utils
 from UIpygame.Utils.ColEdit import ColEdit

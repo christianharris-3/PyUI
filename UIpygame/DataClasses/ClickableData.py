@@ -10,5 +10,5 @@ class ClickableData:
     clickable: bool = True
     clickable_rect: pygame.Rect | tuple[float, float, float, float] = None
     command: callable = Utils.emptyFunction
-    runCommandAt: int = 0
+    run_command_at: int = 0
 

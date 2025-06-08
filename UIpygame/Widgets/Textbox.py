@@ -1,5 +1,5 @@
 import pygame
-from UIpygame.GuiItems.GuiItem import GuiItem
+from UIpygame.Widgets.GuiItem import GuiItem
 from UIpygame.Utils.Utils import Utils
 from UIpygame.Utils.Draw import Draw
 
