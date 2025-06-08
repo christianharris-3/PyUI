@@ -335,12 +335,12 @@ class GuiItem(ABC):
 
     def getParentDimensions(self):
         if self.onitem:
-            return self.master.getDimensions()
+            return self.master.getDrawDimensions()
         return np.array([self.ui.screenw, self.ui.screenh])
 
-    def getParentPos(self):
+    def getParentDrawPos(self):
         if self.onitem:
-            return self.master.getPos()
+            return self.master.getDrawPos()
         return np.array([0, 0])
 
     def getChildIDs(self):

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from UIpygame.Widgets.GuiItem import GuiItem
 from UIpygame.Utils.Utils import Utils
+from UIpygame.Constants import ScaleBy as ScaleBy
 import numpy as np
 
 class PositionalWidget(GuiItem, ABC):
@@ -13,19 +14,60 @@ class PositionalWidget(GuiItem, ABC):
         self.initial_anchor = self._gui_item_data.anchor
         self.initial_obj_anchor = self._gui_item_data.anchor
 
-    def getDrawRect(self):
-        self.getChildren()
+        self.scale_by = self._gui_item_data.scale_by
 
-    def refreshCords(self):
+        self.refreshCords()
+
+    def refreshScale(self):
+        self.refreshDimensions()
+        self.refreshPos()
+
+    def refreshPos(self):
         parent_dimensions = self.getParentDimensions()
-        self.unscaled_pos = Utils.initialPosToValuePos(self.initial_pos, parent_dimensions, self.ui)
-        self.unscaled_dimensions = Utils.initialPosToValuePos(self.initial_dimensions, parent_dimensions, self.ui)
+
+        unscaled_pos = Utils.initialPosToValuePos(self.initial_pos, parent_dimensions, self.ui)
+        anchor_pixels = Utils.initialPosToValuePos(self.initial_anchor, parent_dimensions, self.ui)
+        obj_anchor_pixels = Utils.initialPosToValuePos(self.initial_obj_anchor, self.getDrawDimensions(), self.ui)
 
 
-        self.anchor_pixels = Utils.initialPosToValuePos(self.initial_anchor, parent_dimensions, self.ui)
-        self.obj_anchor_pixels = Utils.initialPosToValuePos(self.initial_obj_anchor, self.getDimensions(), self.ui)
+        self.draw_pos = (self.getParentDrawPos() + anchor_pixels +
+                         (unscaled_pos - obj_anchor_pixels - self.scroll_cords) @ self.__getPosScalingMatrix())
 
-        self.draw_pos = self.getParentPos()
+        for child in self.getChildren():
+            child.refreshPos()
+
+    def refreshDimensions(self):
+        parent_dimensions = self.getParentDimensions()
+        unscaled_dimensions = Utils.initialPosToValuePos(self.initial_dimensions, parent_dimensions, self.ui)
+        self.draw_dimensions = unscaled_dimensions @ self.__getDimensionsScalingMatrix()
+
+        for child in self.getChildren():
+            child.refreshDimensions()
+
+    def __getPosScalingMatrix(self):
+        if self.scale_size:
+            return self.__getDimensionsScalingMatrix()
+        return np.identity(2)
+
+    def __getDimensionsScalingMatrix(self):
+        if self.do_dimension_scale:
+            return self.__getDirScale()
+        return np.identity(2)
+
+    def __getDirScale(self):
+        match self.scale_by:
+            case ScaleBy.MIN:
+                return np.identity(2) * min(self.ui.dir_scale)
+            case ScaleBy.MAX:
+                return np.identity(2) * max(self.ui.dir_scale)
+            case ScaleBy.HORIZONTAL:
+                return np.identity(2) * self.ui.dir_scale[0]
+            case ScaleBy.VERTICAL:
+                return np.identity(2) * self.ui.dir_scale[1]
+            case ScaleBy.RELATIVE:
+                return np.array([
+                    [self.ui.dir_scale[0], 0],
+                    [0, self.ui.dir_scale[1]]])
 
     def resetCords(self, scalereset=True):
         ui = self.ui
@@ -54,9 +96,9 @@ class PositionalWidget(GuiItem, ABC):
         self.obj_anchor[0] = Utils.relativeToValue(self.obj_anchor[0], self.width, self.height, ui)
         self.obj_anchor[1] = Utils.relativeToValue(self.obj_anchor[1], self.width, self.height, ui)
 
-        self.x = int(master.x * master.dirscale[0] + self.anchor[0] + (
+        self.x = int(master.x * master.dir_scale[0] + self.anchor[0] + (
                 self.start_x - self.obj_anchor[0] - self.scroll_cords[0]) * self.scale) / self.dir_scale[0]
-        self.y = int(master.y * master.dirscale[1] + self.anchor[1] + (
+        self.y = int(master.y * master.dir_scale[1] + self.anchor[1] + (
                 self.start_y - self.obj_anchor[1] - self.scroll_cords[1]) * self.scale) / self.dir_scale[1]
 
         self.refreshCords()
@@ -64,18 +106,6 @@ class PositionalWidget(GuiItem, ABC):
             a.resetCords()
         self.refreshClickableRect()
 
-    def refreshScale(self):
-        if self.scale_by == -1:
-            self.scale = self.ui.scale
-        elif self.scale_by == 'vertical':
-            self.scale = self.ui.dir_scale[1]
-        else:
-            self.scale = self.ui.dir_scale[0]
-
-        self.dir_scale = self.ui.dir_scale[:]
-        if not self.scale_size: self.scale = 1
-        if not self.scale_x: self.dir_scale[0] = 1
-        if not self.scale_y: self.dir_scale[1] = 1
 
     def autoScale(self):
         w = self.getMasterWidth() / self.scale
@@ -103,6 +133,7 @@ class PositionalWidget(GuiItem, ABC):
 
     def setX(self, x: int|float|str):
         self.initial_x = x
+        self.refreshPos()
     def setY(self, y: int|float|str):
         self.initial_y = y
 
@@ -113,5 +144,8 @@ class PositionalWidget(GuiItem, ABC):
     def getY(self) -> int|float:
         return self.pos[1]
 
-    def getDimensions(self):
-        return self.dimensions
+    def getDrawDimensions(self):
+        return self.draw_dimensions
+
+    def getDrawPos(self):
+        return self.draw_pos

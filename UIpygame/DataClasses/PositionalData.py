@@ -16,3 +16,7 @@ class PositionalData:
     obj_anchor: list[int|float|str] = None
     center: bool = False
     scale_by: UIpygame.ScaleBy = UIpygame.ScaleBy.MIN
+    do_dimension_scale: bool = True
+    do_pos_scale: bool = True
+    do_scale_x: bool = True
+    do_scale_y: bool = True
