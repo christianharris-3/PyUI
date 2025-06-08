@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 import time
 import pygame
 from UIpygame.Utils.Utils import Utils
@@ -12,7 +12,15 @@ if TYPE_CHECKING:
 
 
 class GuiItem(ABC):
-    def __init__(self, **args):
+    def __init__(self, **kwargs):
+        try:
+            self._gui_item_data = self.getDataClass()(**kwargs)
+        except TypeError as e:
+            error = TypeError(self.__class__.__name__ + "() {}".format(str(e)[11:]))
+            raise error from None
+        return
+        self.splitDataClasses()
+        self.creationLogic()
 
         return
 
@@ -618,3 +626,7 @@ class GuiItem(ABC):
                     self.press()
             self.holding = False
         return False
+
+    @abstractmethod
+    def getDataClass(self, param):
+        raise NotImplementedError("Need to return dataclass type")
