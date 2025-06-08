@@ -25,6 +25,7 @@ class PositionalWidget(GuiItem, ABC):
         self.anchor_pixels = Utils.initialPosToValuePos(self.initial_anchor, parent_dimensions, self.ui)
         self.obj_anchor_pixels = Utils.initialPosToValuePos(self.initial_obj_anchor, self.getDimensions(), self.ui)
 
+        self.draw_pos = self.getParentPos()
 
     def resetCords(self, scalereset=True):
         ui = self.ui

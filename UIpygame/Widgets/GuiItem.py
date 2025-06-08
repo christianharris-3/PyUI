@@ -330,6 +330,11 @@ class GuiItem(ABC):
             return self.master.getDimensions()
         return np.array([self.ui.screenw, self.ui.screenh])
 
+    def getParentPos(self):
+        if self.onitem:
+            return self.master.getPos()
+        return np.array([0, 0])
+
     def getChildIDs(self):
         lis = [self.ID]
         lis += sum([a.getChildIDs() for a in self.bound_items], [])
