@@ -13,10 +13,19 @@ class PositionalWidget(GuiItem, ABC):
         self.center = self._gui_item_data.center
         self.initial_anchor = self._gui_item_data.anchor
         self.initial_obj_anchor = self._gui_item_data.anchor
-
-        self.scale_by = self._gui_item_data.scale_by
-
         self.refreshCords()
+
+    def setScaling(self):
+        self.scale_pos_by_x = (self._gui_item_data.anchor.do_pos_scale or
+                               (type(self._gui_item_data.anchor.do_pos_scale)==list) and self._gui_item_data.anchor.do_pos_scale[0])
+        self.scale_pos_by_y = (self._gui_item_data.anchor.do_pos_scale or
+                               (type(self._gui_item_data.anchor.do_pos_scale) == list) and
+                               self._gui_item_data.anchor.do_pos_scale[1])
+        self.scale_dim_by_x = (self._gui_item_data.anchor.do_dimension_scale or
+                               (type(self._gui_item_data.anchor.do_dimension_scale)==list) and self._gui_item_data.anchor.do_dimension_scale[0])
+        self.scale_dim_by_x = (self._gui_item_data.anchor.do_dimension_scale or
+                               (type(self._gui_item_data.anchor.do_dimension_scale) == list) and
+                               self._gui_item_data.anchor.do_dimension_scale[1])
 
     def refreshScale(self):
         self.refreshDimensions()
@@ -44,17 +53,22 @@ class PositionalWidget(GuiItem, ABC):
         for child in self.getChildren():
             child.refreshDimensions()
 
-    def __getPosScalingMatrix(self):
-        if self.scale_size:
-            return self.__getDimensionsScalingMatrix()
-        return np.identity(2)
+    def __getPosScalingMatrix(self) -> np.ndarray:
+        scaleMat =  self.__getDimensionsScalingMatrix()
+        if not self.scale_pos_by_x:
+            scaleMat[0] = 1
+        if not self.scale_pos_by_y:
+            scaleMat[0] = 1
+        return scaleMat
 
-    def __getDimensionsScalingMatrix(self):
-        if self.do_dimension_scale:
-            return self.__getDirScale()
-        return np.identity(2)
-
-    def __getDirScale(self):
+    def __getDimensionsScalingMatrix(self) -> np.ndarray:
+        scaleMat =  self.__getDimensionsScalingMatrix()
+        if not self.scale_dim_by_x:
+            scaleMat[0] = 1
+        if not self.scale_dim_by_y:
+            scaleMat[0] = 1
+        return scaleMat
+    def __getDirScale(self)  -> np.ndarray:
         match self.scale_by:
             case ScaleBy.MIN:
                 return np.identity(2) * min(self.ui.dir_scale)
@@ -65,9 +79,7 @@ class PositionalWidget(GuiItem, ABC):
             case ScaleBy.VERTICAL:
                 return np.identity(2) * self.ui.dir_scale[1]
             case ScaleBy.RELATIVE:
-                return np.array([
-                    [self.ui.dir_scale[0], 0],
-                    [0, self.ui.dir_scale[1]]])
+                return np.diag(self.ui.dir_scale)
 
     def resetCords(self, scalereset=True):
         ui = self.ui
