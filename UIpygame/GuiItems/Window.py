@@ -1,15 +1,15 @@
 import pygame
 import math
-from src.GuiItems.GuiItem import GuiItem
-from src.Utils.Draw import Draw
-from src.Utils.Utils import Utils
+from UIpygame.GuiItems.GuiItem import GuiItem
+from UIpygame.Utils.Draw import Draw
+from UIpygame.Utils.Utils import Utils
 
 class Window(GuiItem):
     def reset(self):
-        self.refreshscale()
-        self.autoscale()
-        self.refreshcords()
-        self.resetcords()
+        self.refreshScale()
+        self.autoScale()
+        self.refreshCords()
+        self.resetCords()
         self.refresh()
         self.clearanimations()
         self.opening = self.enabled
@@ -27,26 +27,26 @@ class Window(GuiItem):
                               'compressdown': {'active': False, 'progress': 0, 'wave': 'linear', 'forward': True}}
 
     def refresh(self):
-        self.autoscale()
-        self.refreshscale()
-        self.refreshcords()
-        self.refreshglow()
-        self.refreshbound()
+        self.autoScale()
+        self.refreshScale()
+        self.refreshCords()
+        self.refreshGlow()
+        self.refreshBound()
 
     def enable(self):
         self.enabled = True
-        self.child_autoscale()
+        self.childAutoScale()
 
     def disable(self):
         self.enabled = False
-        self.child_autoscale()
+        self.childAutoScale()
 
     def open(self, animation='default', animationlength=-1, toggleopen=True):
-        if animation == 'default': animation = self.animationtype
-        if animationlength == -1: animationlength = self.animationspeed
+        if animation == 'default': animation = self.animation_type
+        if animationlength == -1: animationlength = self.animation_speed
         if not self.opening:
             self.enable()
-            for a in self.autoshutwindows:
+            for a in self.auto_shut_windows:
                 if self.ui.IDs[a] != self:
                     self.ui.IDs[a].shut()
             self.canclickout = False
@@ -57,15 +57,15 @@ class Window(GuiItem):
 
     def shut(self, animation='default', animationlength=-1):
         if self.opening:
-            if animation == 'default': animation = self.animationtype
-            if animationlength == -1: animationlength = self.animationspeed
+            if animation == 'default': animation = self.animation_type
+            if animationlength == -1: animationlength = self.animation_speed
             self.opening = False
             self.makeanimation(animation, flippable=False)
             if animation == 'none': self.disable()
 
     def makeanimation(self, animation='default', length=-1, forward=True, flippable=True):
-        if animation == 'default': animation = self.animationtype
-        if length == -1: length = self.animationspeed
+        if animation == 'default': animation = self.animation_type
+        if length == -1: length = self.animation_speed
         if animation != 'none':
             self.enable()
             for a in animation.split():
@@ -108,7 +108,7 @@ class Window(GuiItem):
                         yoff -= prog * (self.y + self.height)
                     elif 'down' in a:
                         yoff += prog * (self.ui.screenh / self.scale - self.y)
-                elif 'compress' in a:
+                elif 'compress_table' in a:
                     if 'left' in a:
                         widthoff -= prog * (self.width)
                         objxoff += prog * (self.width)
@@ -145,51 +145,51 @@ class Window(GuiItem):
         else:
             return progress
 
-    def child_autoscale(self):
-        self.refreshnoclickrect()
-        self.ui.refreshnoclickrects()
-        for a in self.bounditems: a.clickablerect = self.clickablerect
+    def childAutoScale(self):
+        self.refreshNoClickRect()
+        self.ui.refreshNoClickRects()
+        for a in self.bound_items: a.clickable_rect = self.clickable_rect
 
-    def refreshnoclickrect(self):
-        # Rect,IDs,menu,whitelist (true=all objects in list blocked by noclickrect)
+    def refreshNoClickRect(self):
+        # Rect,IDs,menu,whitelist (true=all objects in list blocked by no_click_rect)
         if self.enabled:
-            self.noclickrect = [(pygame.Rect(self.x * self.dirscale[0], self.y * self.dirscale[1],
-                                             self.width * self.scale, self.height * self.scale), self.getchildIDs(),
-                                 self.getmenu(), False)]
+            self.noclickrect = [(pygame.Rect(self.x * self.dir_scale[0], self.y * self.dir_scale[1],
+                                             self.width * self.scale, self.height * self.scale), self.getChildIDs(),
+                                 self.getMenu(), False)]
         else:
             self.noclickrect = []
 
-    def binditem(self, obj):
-        super().binditem(obj)
-        obj.resetcords()
-        self.child_autoscale()
+    def bindItem(self, obj):
+        super().bindItem(obj)
+        obj.resetCords()
+        self.childAutoScale()
 
     def render(self, screen):
         if self.isolated:
             if not self.ui.mprs[0]:
                 self.canclickout = True
             if self.canclickout and self.opening:
-                self.getclickedon()
+                self.getClickedOn()
                 if self.ui.mprs[0] and not self.holding:
                     self.shut()
-        if self.forceholding:
+        if self.force_holding:
             self.open()
             self.forceholding = False
         self.moveanimation()
         self.xoff, self.yoff, self.objxoff, self.objyoff, self.widthoff, self.heightoff = self.decodeanimations()
-        if self.killtime != -1 and self.killtime < self.ui.time:
+        if self.kill_time != -1 and self.kill_time < self.ui.time:
             self.ui.delete(self.ID)
         elif self.enabled:
 
             self.child_render(screen)
 
-            self.ui.drawtosurf(screen, [a.ID for a in self.bounditems], self.col,
-                               self.x * self.dirscale[0] + self.xoff * self.scale,
-                               self.y * self.dirscale[1] + self.yoff * self.scale, (
-                               self.x * self.dirscale[0] + self.objxoff * self.scale,
-                               self.y * self.dirscale[1] + self.objyoff * self.scale,
-                               (self.width + self.widthoff) * self.scale, (self.height + self.heightoff) * self.scale),
-                               'render', self.roundedcorners)
+            self.ui.drawtosurf(screen, [a.ID for a in self.bound_items], self.col,
+                               self.x * self.dir_scale[0] + self.xoff * self.scale,
+                               self.y * self.dir_scale[1] + self.yoff * self.scale, (
+                                   self.x * self.dir_scale[0] + self.objxoff * self.scale,
+                                   self.y * self.dir_scale[1] + self.objyoff * self.scale,
+                                   (self.width + self.widthoff) * self.scale, (self.height + self.heightoff) * self.scale),
+                               'render', self.rounded_corners)
 
     def child_render(self, screen):
         self.draw(screen)
@@ -202,11 +202,11 @@ class Window(GuiItem):
                 darkening.fill((0, 0, 0, darken))
                 screen.blit(darkening, (0, 0))
             if self.glow != 0:
-                screen.blit(self.glowimage, (
-                self.x * self.dirscale[0] - self.glow * self.scale, self.y * self.dirscale[1] - self.glow * self.scale))
-            if self.backingdraw:
-                Draw.rect(screen, self.col, Utils.roundrect(self.x * self.dirscale[0] + self.xoff * self.scale,
-                                                      self.y * self.dirscale[1] + self.yoff * self.scale,
-                                                      (self.width + self.widthoff) * self.scale,
-                                                      (self.height + self.heightoff) * self.scale),
-                          border_radius=int(self.roundedcorners * self.scale))
+                screen.blit(self.glow_image, (
+                    self.x * self.dir_scale[0] - self.glow * self.scale, self.y * self.dir_scale[1] - self.glow * self.scale))
+            if self.backing_draw:
+                Draw.rect(screen, self.col, Utils.roundRect(self.x * self.dir_scale[0] + self.xoff * self.scale,
+                                                            self.y * self.dir_scale[1] + self.yoff * self.scale,
+                                                            (self.width + self.widthoff) * self.scale,
+                                                            (self.height + self.heightoff) * self.scale),
+                          border_radius=int(self.rounded_corners * self.scale))

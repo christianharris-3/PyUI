@@ -1,5 +1,5 @@
 import pygame
-from UIpygame import PyUI as pyui
+import UIpygame as pyui
 pygame.init()
 screenw = 1200
 screenh = 900

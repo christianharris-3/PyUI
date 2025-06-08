@@ -1,6 +1,6 @@
-from src.GuiItems.GuiItem import GuiItem
-from src.Utils.Utils import Utils
-from src.Utils.Draw import Draw
+from UIpygame.GuiItems.GuiItem import GuiItem
+from UIpygame.Utils.Utils import Utils
+from UIpygame.Utils.Draw import Draw
 import random
 import threading
 import copy
@@ -13,32 +13,32 @@ class Table(GuiItem):
         self.tableitemID = str(random.randint(1000000, 10000000))
         self.threadactive = False
         self.table = 0
-        self.refreshscale()
-        self.autoscale()
-        self.resetcords()
-        self.refreshscale()
+        self.refreshScale()
+        self.autoScale()
+        self.resetCords()
+        self.refreshScale()
         self.preprocess()
         self.initheightwidth()
         self.estimatewidths()
-        self.gentext()
+        self.genText()
         self.gettablewidths()
         self.gettableheights()
-        self.refreshcords()
-        self.resetcords()
+        self.refreshCords()
+        self.resetCords()
         self.enable()
 
     def refresh(self):
-        self.refreshscale()
-        self.autoscale()
+        self.refreshScale()
+        self.autoScale()
         self.preprocess()
         self.initheightwidth()
         self.estimatewidths()
-        self.gentext()
+        self.genText()
         self.gettablewidths()
         self.gettableheights()
-        self.refreshcords()
-        self.refreshglow()
-        self.refreshclickablerect()
+        self.refreshCords()
+        self.refreshGlow()
+        self.refreshClickableRect()
         self.enable()
         self.threadactive = False
 
@@ -67,15 +67,15 @@ class Table(GuiItem):
                 for b in a:
                     b.enabled = True
 
-    def setwidth(self, width):
+    def setWidth(self, width):
         self.startwidth = width
         self.refresh()
-        self.resetcords()
+        self.resetCords()
 
-    def setheight(self, height):
+    def setHeight(self, height):
         self.startheight = height
         self.refresh()
-        self.resetcords()
+        self.resetCords()
 
     def preprocess(self):
         self.preprocessed = []
@@ -108,12 +108,12 @@ class Table(GuiItem):
 
         self.preprocessed = seperate(self.preprocessed, self.rows, [])
         for a in range(self.rows):
-            self.preprocessed[a] = seperate(self.preprocessed[a], self.columns, self.splitcellchar)
+            self.preprocessed[a] = seperate(self.preprocessed[a], self.columns, self.split_cell_char)
 
         if len(self.preprocessed) > 0 and len(self.preprocessed[0]) > 0:
             grabber = self.preprocessed[0][0]
             pos = [0, 0]
-            while grabber == self.splitcellchar:
+            while grabber == self.split_cell_char:
                 prev = pos[:]
                 pos[0] = (pos[0] + 1)
                 pos[1] += pos[0] // len(self.preprocessed[0])
@@ -123,13 +123,13 @@ class Table(GuiItem):
                 else:
                     grabber = ''
                     pos = prev[:]
-            self.preprocessed[pos[1]][pos[0]] = self.splitcellchar
+            self.preprocessed[pos[1]][pos[0]] = self.split_cell_char
             self.preprocessed[0][0] = grabber
         ##        except Exception as e:
         ##            return
 
         self.cellreferencemap = [
-            [-1 if self.preprocessed[y][x] == self.splitcellchar else (x, y) for x in range(self.columns)] for y in
+            [-1 if self.preprocessed[y][x] == self.split_cell_char else (x, y) for x in range(self.columns)] for y in
             range(self.rows)]
 
         for y in range(self.rows):
@@ -149,13 +149,13 @@ class Table(GuiItem):
                     if self.cellreferencemap[y][x - 1] != self.cellreferencemap[y][x]:
                         raise Exception(f"Invalid Table, ID:{self.ID}, Segment Rectangles Overlap")
 
-    def gentext(self):
+    def genText(self):
         self.enabled = True
         stillactive = []
         for a in self.preprocessed: stillactive += a
-        copy = [a.ID for a in self.bounditems][:]
+        copy = [a.ID for a in self.bound_items][:]
         for a in copy:
-            if self.ui.IDs[a].tableobject and not (self.ui.IDs[a] in stillactive):
+            if self.ui.IDs[a].table_object and not (self.ui.IDs[a] in stillactive):
                 self.ui.delete(a)
         self.table = []
         for a in range(len(self.preprocessed)):
@@ -179,32 +179,32 @@ class Table(GuiItem):
                     obj = b
                 elif type(b) == pygame.Surface:
                     self.ui.delete('tabletext' + self.tableitemID + self.ID + str(a) + '-' + str(i), False)
-                    obj = self.ui.maketext(0, 0, '', self.textsize, self.menu,
+                    obj = self.ui.maketext(0, 0, '', self.text_size, self.menu,
                                            'tabletext' + self.tableitemID + self.ID + str(a) + '-' + str(i),
-                                           self.layer + 0.01, self.roundedcorners, textcenter=self.textcenter, img=b,
+                                           self.layer + 0.01, self.rounded_corners, textcenter=self.text_center, img=b,
                                            maxwidth=self.boxwidth[i],
-                                           scalesize=self.scalesize, scaleby=self.scaleby,
-                                           horizontalspacing=self.horizontalspacing,
-                                           verticalspacing=self.verticalspacing, colorkey=self.colorkey, enabled=False)
+                                           scalesize=self.scale_size, scale_by=self.scale_by,
+                                           horizontalspacing=self.horizontal_spacing,
+                                           verticalspacing=self.vertical_spacing, colorkey=self.colorkey, enabled=False)
                 else:
                     b = str(b)
                     self.ui.delete('tabletext' + self.tableitemID + self.ID + str(a) + '-' + str(i), False)
-                    obj = self.ui.maketext(0, 0, b, self.textsize, self.menu,
+                    obj = self.ui.maketext(0, 0, b, self.text_size, self.menu,
                                            'tabletext' + self.tableitemID + self.ID + str(a) + '-' + str(i), self.layer,
-                                           self.roundedcorners, textcenter=self.textcenter, textcol=self.textcol,
+                                           self.rounded_corners, textcenter=self.text_center, text_col=self.text_col,
                                            font=self.font, bold=self.bold, antialiasing=self.antialiasing,
-                                           pregenerated=self.pregenerated,
-                                           maxwidth=max([self.boxwidth[i] - self.horizontalspacing * 2, -1]),
-                                           scalesize=self.scalesize, scaleby=self.scaleby,
-                                           horizontalspacing=self.horizontalspacing,
-                                           verticalspacing=self.verticalspacing, backingcol=self.col, enabled=False)
+                                           pregenerated=self.pre_generate_text,
+                                           maxwidth=max([self.boxwidth[i] - self.horizontal_spacing * 2, -1]),
+                                           scalesize=self.scale_size, scale_by=self.scale_by,
+                                           horizontalspacing=self.horizontal_spacing,
+                                           verticalspacing=self.vertical_spacing, backing_col=self.col, enabled=False)
                 row.append(obj)
                 self.itemintotable(obj, i, a)
                 if ref:
                     obj.refresh()
         return row
 
-    def child_refreshcords(self):
+    def childRefreshCords(self):
         if self.table != 0:
             repeats = []
             for a in range(len(self.table)):
@@ -213,57 +213,57 @@ class Table(GuiItem):
                         self.itemrefreshcords(b, i, a)
                         repeats.append(self.cellreferencemap[a][i])
             alltable = self.getalltableitems()
-            for a in self.bounditems:
+            for a in self.bound_items:
                 if not a.ID in alltable:
-                    a.resetcords()
+                    a.resetCords()
 
     def itemintotable(self, obj, x, y):
-        self.binditem(obj)
+        self.bindItem(obj)
         self.itemrefreshcords(obj, x, y)
         obj.enabled = True
 
     def itemrefreshcords(self, obj, x, y):
-        obj.startx = (self.linesize * (x + 1) + self.boxwidthsinc[x])
-        obj.starty = (self.linesize * (y + 1) + self.boxheightsinc[y])
+        obj.start_x = (self.line_size * (x + 1) + self.boxwidthsinc[x])
+        obj.start_y = (self.line_size * (y + 1) + self.boxheightsinc[y])
 
         bwidth = self.boxwidths[x]
         rectsize = x + 1
         while rectsize < len(self.boxwidths) and self.cellreferencemap[y][rectsize] == (x, y):
-            bwidth += self.linesize + self.boxwidths[rectsize]
+            bwidth += self.line_size + self.boxwidths[rectsize]
             rectsize += 1
         obj.ontable_tilewidth = rectsize - x
         bheight = self.boxheights[y]
         rectsize = y + 1
         while rectsize < len(self.boxheights) and self.cellreferencemap[rectsize][x] == (x, y):
-            bheight += self.linesize + self.boxheights[rectsize]
+            bheight += self.line_size + self.boxheights[rectsize]
             rectsize += 1
         obj.ontable_tileheight = rectsize - y
 
         if not (type(obj) in [Slider, Table, ScrollerTable]):
             obj.width = bwidth
             obj.height = bheight
-            obj.startwidth = bwidth
-            obj.startheight = bheight
+            obj.start_width = bwidth
+            obj.start_height = bheight
         elif type(obj) in [Table, ScrollerTable]:
             if obj.width < bwidth:
                 obj.width = bwidth
-                obj.startwidth = bwidth
+                obj.start_width = bwidth
             elif obj.height < bheight:
                 obj.height = bheight
-                obj.startheight = bheight
-        obj.backingdraw = self.backingdraw
-        obj.scalex = self.scalesize
-        obj.scaley = self.scalesize
-        obj.scalesize = self.scalesize
-        obj.scaleby = self.scaleby
-        obj.tableobject = True
+                obj.start_height = bheight
+        obj.backing_draw = self.backing_draw
+        obj.scale_x = self.scale_size
+        obj.scale_y = self.scale_size
+        obj.scale_size = self.scale_size
+        obj.scale_by = self.scale_by
+        obj.table_object = True
         obj.layer = self.rows - y
         if type(self) == ScrollerTable:
             if y != 0 or len(self.titles) == 0:
-                obj.startclickablerect = self.startclickablerect
-                obj.clickablerect = self.clickablerect
-        obj.refreshscale()
-        obj.resetcords(False)
+                obj.start_clickable_rect = self.start_clickable_rect
+                obj.clickable_rect = self.clickable_rect
+        obj.refreshScale()
+        obj.resetCords(False)
 
     def getalltableitems(self):
         if len(self.titles) != 0:
@@ -277,8 +277,8 @@ class Table(GuiItem):
         return alltable
 
     def initheightwidth(self):
-        w = self.getmasterwidth()
-        h = self.getmasterheight()
+        w = self.getMasterWidth()
+        h = self.getMasterHeight()
         ##
         ratiowidth = False
         if self.startwidth != -1: ratiowidth = True
@@ -292,7 +292,7 @@ class Table(GuiItem):
             while len(tempboxwidth) < self.columns:
                 tempboxwidth.append(-1)
         if ratiowidth:
-            splitwidth = self.width - self.linesize * (self.columns + 1)
+            splitwidth = self.width - self.line_size * (self.columns + 1)
             count = 0
             for a in tempboxwidth:
                 if a == -1:
@@ -300,21 +300,21 @@ class Table(GuiItem):
                 elif type(a) == int:
                     splitwidth -= a
                 elif type(a) == str:
-                    splitwidth -= Utils.relativetoval(a, w, h, self.ui)
+                    splitwidth -= Utils.relativeToValue(a, w, h, self.ui)
             for i, a in enumerate(tempboxwidth):
                 if a == -1: tempboxwidth[i] = splitwidth / count
 
-        if not (not self.compress and type(self.compress) == bool):
-            if type(self.compress) == bool:
+        if not (not self.compress_table and type(self.compress_table) == bool):
+            if type(self.compress_table) == bool:
                 compress = Utils.normalizelist([1 for a in tempboxwidth])
                 for i in range(len(compress)):
                     if tempboxwidth[i] == -1:
                         compress[i] = 0
-            elif type(self.compress) == int:
+            elif type(self.compress_table) == int:
                 compress = [0 for a in tempboxwidth]
-                compress[self.compress] = 1
+                compress[self.compress_table] = 1
             else:
-                compress = Utils.normalizelist(self.compress[:])
+                compress = Utils.normalizelist(self.compress_table[:])
                 if len(compress) != len(tempboxwidth):
                     raise Exception(f'Wrong length of variable "compress" in object {self.ID}')
             for i in range(len(tempboxwidth)):
@@ -323,10 +323,10 @@ class Table(GuiItem):
                                               i]) + f'-(ui.IDs["{self.ID}"].scroller.width+ui.IDs["{self.ID}"].border)*ui.IDs["{self.ID}"].scroller.active*{compress[i]}'
         self.boxwidth = []
         for a in tempboxwidth:
-            self.boxwidth.append(max(Utils.relativetoval(a, w, h, self.ui), -1))
+            self.boxwidth.append(max(Utils.relativeToValue(a, w, h, self.ui), -1))
         ##
         if self.startboxheight == -1 and self.startheight != -1:
-            tempboxheight = [(self.height - self.linesize * (self.rows + 1)) / self.rows for a in range(self.rows)]
+            tempboxheight = [(self.height - self.line_size * (self.rows + 1)) / self.rows for a in range(self.rows)]
         elif type(self.startboxheight) == int:
             if self.rows == 0:
                 tempboxheight = []
@@ -340,22 +340,22 @@ class Table(GuiItem):
                 del tempboxheight[-1]
         self.boxheight = []
         for a in tempboxheight:
-            self.boxheight.append(Utils.relativetoval(a, w, h, self.ui))
+            self.boxheight.append(Utils.relativeToValue(a, w, h, self.ui))
 
     def gettablewidths(self):
         self.boxwidthsinc = []
         self.boxwidths = []
 
         def factor_tilewidth(w, obj):
-            return (w - (obj.ontable_tilewidth - 1) * self.linesize) / obj.ontable_tilewidth
+            return (w - (obj.ontable_tilewidth - 1) * self.line_size) / obj.ontable_tilewidth
 
         for a in range(len(self.boxwidth)):
             if self.boxwidth[a] == -1:
                 minn = 0
                 for b in [self.table[c][a] for c in range(len(self.table))]:
                     if type(b) in [Button, Text]:
-                        if minn < factor_tilewidth(b.textimage.get_width() + b.horizontalspacing * 2 * self.scale, b):
-                            minn = factor_tilewidth(b.textimage.get_width() + b.horizontalspacing * 2 * self.scale, b)
+                        if minn < factor_tilewidth(b.textimage.get_width() + b.horizontal_spacing * 2 * self.scale, b):
+                            minn = factor_tilewidth(b.textimage.get_width() + b.horizontal_spacing * 2 * self.scale, b)
                     elif type(b) in [Table, ScrollerTable, Slider]:
                         if minn < factor_tilewidth(b.width * b.scale, b):
                             minn = factor_tilewidth(b.width * b.scale, b)
@@ -368,22 +368,22 @@ class Table(GuiItem):
                 self.boxwidthsinc.append(sum(self.boxwidths))
                 self.boxwidths.append(self.boxwidth[a])
         self.boxwidthtotal = sum(self.boxwidths)
-        self.width = self.boxwidthtotal + self.linesize * (self.columns + 1)
+        self.width = self.boxwidthtotal + self.line_size * (self.columns + 1)
 
     def gettableheights(self):
         self.boxheightsinc = []
         self.boxheights = []
 
         def factor_tileheight(w, obj):
-            return (w - (obj.ontable_tileheight - 1) * self.linesize) / obj.ontable_tileheight
+            return (w - (obj.ontable_tileheight - 1) * self.line_size) / obj.ontable_tileheight
 
         for a in range(len(self.boxheight)):
             if self.boxheight[a] == -1:
                 minn = 0
                 for b in [self.table[a][c] for c in range(len(self.table[0]))]:
                     if type(b) in [Button, Text]:
-                        if minn < factor_tileheight(b.textimage.get_height() + b.verticalspacing * 2 * self.scale, b):
-                            minn = factor_tileheight(b.textimage.get_height() + b.verticalspacing * 2 * self.scale, b)
+                        if minn < factor_tileheight(b.textimage.get_height() + b.vertical_spacing * 2 * self.scale, b):
+                            minn = factor_tileheight(b.textimage.get_height() + b.vertical_spacing * 2 * self.scale, b)
                     elif type(b) in [Table, ScrollerTable, Slider]:
                         if minn < factor_tileheight(b.height * b.scale, b):
                             minn = factor_tileheight(b.height * b.scale, b)
@@ -396,7 +396,7 @@ class Table(GuiItem):
                 self.boxheightsinc.append(sum(self.boxheights))
                 self.boxheights.append(self.boxheight[a])
         self.boxheighttotal = sum(self.boxheights)
-        self.height = self.boxheighttotal + self.linesize * (self.rows + 1)
+        self.height = self.boxheighttotal + self.line_size * (self.rows + 1)
 
     def estimatewidths(self):
         self.boxheightsinc = []
@@ -404,7 +404,7 @@ class Table(GuiItem):
         for a in self.boxheight:
             self.boxheightsinc.append(sum(self.boxheights))
             if a == -1:
-                self.boxheights.append(self.guessheight)
+                self.boxheights.append(self.box_guess_height)
             else:
                 self.boxheights.append(a)
         self.boxwidthsinc = []
@@ -412,7 +412,7 @@ class Table(GuiItem):
         for a in self.boxwidth:
             self.boxwidthsinc.append(sum(self.boxwidths))
             if a == -1:
-                self.boxwidths.append(self.guesswidth)
+                self.boxwidths.append(self.box_guess_width)
             else:
                 self.boxwidths.append(a)
 
@@ -431,16 +431,16 @@ class Table(GuiItem):
     def draw(self, screen):
         if self.enabled:
             if self.glow != 0:
-                screen.blit(self.glowimage, (
-                self.x * self.dirscale[0] - self.glow * self.scale, self.y * self.dirscale[1] - self.glow * self.scale))
-            if self.borderdraw:
+                screen.blit(self.glow_image, (
+                    self.x * self.dir_scale[0] - self.glow * self.scale, self.y * self.dir_scale[1] - self.glow * self.scale))
+            if self.border_draw:
                 if type(self) == ScrollerTable:
-                    h = min(self.height, self.scroller.pageheight)
+                    h = min(self.height, self.scroller.page_height)
                 else:
                     h = self.height
-                Draw.rect(screen, self.bordercol,
-                          Utils.roundrect(self.x * self.dirscale[0], self.y * self.dirscale[1], self.width * self.scale,
-                                    (h) * self.scale), border_radius=int(self.roundedcorners * self.scale))
+                Draw.rect(screen, self.border_col,
+                          Utils.roundRect(self.x * self.dir_scale[0], self.y * self.dir_scale[1], self.width * self.scale,
+                                          (h) * self.scale), border_radius=int(self.rounded_corners * self.scale))
 
     def getat(self, row, column):
         return self.table[row + 1][column]
@@ -495,7 +495,7 @@ class Table(GuiItem):
                 self.gettableheights()
                 for a in range(index, len(self.table)):
                     for i, b in enumerate(self.table[a]):
-                        self.ui.reID('tabletext' + self.tableitemID + self.ID + str(a) + '-' + str(i), b)
+                        self.ui.setObjectID('tabletext' + self.tableitemID + self.ID + str(a) + '-' + str(i), b)
                         self.itemrefreshcords(b, i, a)
             self.small_refresh()
             return True
@@ -511,7 +511,7 @@ class Table(GuiItem):
         self.estimatewidths()
         for a in range(len(self.table) - 1, index - 1, -1):
             for i, b in enumerate(self.table[a]):
-                self.ui.reID('tabletext' + self.tableitemID + self.ID + str(a + 1) + '-' + str(i), b)
+                self.ui.setObjectID('tabletext' + self.tableitemID + self.ID + str(a + 1) + '-' + str(i), b)
         self.table.insert(index, self.row_gentext(index))
         self.gettableheights()
         for a in range(index, len(self.table)):
@@ -520,11 +520,11 @@ class Table(GuiItem):
         self.small_refresh()
 
     def small_refresh(self):
-        self.autoscale()
+        self.autoScale()
         self.initheightwidth()
-        self.refreshglow()
+        self.refreshGlow()
         self.gettablewidths()
         self.gettableheights()
-        self.refreshclickablerect()
-        self.refreshcords()
-        self.refreshbound()
+        self.refreshClickableRect()
+        self.refreshCords()
+        self.refreshBound()
