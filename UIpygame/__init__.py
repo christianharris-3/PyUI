@@ -4,7 +4,6 @@ from UIpygame.Utils.Draw import Draw
 from UIpygame.Utils.Utils import Utils
 
 from UIpygame.UI import UI
-from UIpygame.Style import Style
 
 from UIpygame.Constants import *
 

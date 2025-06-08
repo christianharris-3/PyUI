@@ -97,10 +97,10 @@ class Draw:
         pygame.gfxdraw.filled_polygon(surf, points, col)
 
     @staticmethod
-    def glow(surf, rect, distances, col, scale=1, detail=-1, shade=100, roundedcorners=-1):
+    def glow(surf, rect, distances, col, scale=1, detail=-1, shade=100, rounded_corners=-1):
         if distances != 0:
             if type(distances) == int: distances = [distances for a in range(4)]
-            if roundedcorners == -1: roundedcorners = max(distances)
+            if rounded_corners == -1: rounded_corners = max(distances)
             colorkey = (255, 255, 255)
             if col == colorkey: colorkey = (0, 0, 0)
 
@@ -124,7 +124,7 @@ class Draw:
                 h = rect.height + (a / detail) * (distances[0] + distances[2])
                 rec = pygame.Surface((w, h), pygame.SRCALPHA)
                 pygame.draw.rect(rec, col, pygame.Rect(0, 0, w, h), 0,
-                                 int(roundedcorners - (1 - a / detail) * distances[0]))
+                                 int(rounded_corners - (1 - a / detail) * distances[0]))
                 ##                print(rec,(rect.x-(a/detail)*distances[3],rect.y-(a/detail)*distances[0]))
                 surf.blit(rec, (rect.x - (a / detail) * distances[3], rect.y - (a / detail) * distances[0]))
 
@@ -148,12 +148,12 @@ class Draw:
             Draw.polygon(surf, col, poly)
 
     @staticmethod
-    def blitroundedcorners(surf, surfto, x, y, roundedcorners, area=None):
+    def blitrounded_corners(surf, surfto, x, y, rounded_corners, area=None):
         if area == None:
             area = surf.get_rect()
         area.normalize()
         mask = pygame.Surface(area.size, pygame.SRCALPHA)
-        Draw.rect(mask, (255, 255, 255), (0, 0, area.width, area.height), border_radius=roundedcorners)
+        Draw.rect(mask, (255, 255, 255), (0, 0, area.width, area.height), border_radius=rounded_corners)
         nsurf = pygame.Surface(surf.get_size(), pygame.SRCALPHA)
         nsurf.blit(surf, (0, 0))
         nsurf.blit(mask, (area.x, area.y), special_flags=pygame.BLEND_RGBA_MIN)

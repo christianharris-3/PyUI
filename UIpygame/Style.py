@@ -29,11 +29,11 @@ class Style:
 
     defaults = copy.deepcopy(universaldefaults)
 
-    wallpapercol = (255, 255, 255)
+    wallpaper_col = (255, 255, 255)
 
-    # UI.objectkey = {'button': Button, 'text': Text, 'textbox': Textbox, 'table': Table, 'scrollertable': ScrollerTable,
-    #                 'dropdown': DropDown, 'slider': Slider, 'scroller': Scroller, 'menu': MENU,
-    #                 'windowedmenu': WindowedMenu, 'window': Window, 'rect': Rectangle}
+    UI.objectkey = {'button': Button, 'text': Text, 'textbox': Textbox, 'table': Table, 'scrollertable': ScrollerTable,
+                    'dropdown': DropDown, 'slider': Slider, 'scroller': Scroller, 'menu': MENU,
+                    'windowedmenu': WindowedMenu, 'window': Window, 'rect': Rectangle}
 
     objectdefaults = {}
     # for a in [UI.objectkey[o] for o in UI.objectkey]:

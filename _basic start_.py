@@ -14,7 +14,7 @@ while not done:
     for event in ui.loadtickdata():
         if event.type == pygame.QUIT:
             done = True
-    screen.fill(pyui.Style.wallpapercol)
+    screen.fill(pyui.Style.wallpaper_col)
     
     ui.rendergui(screen)
     pygame.display.flip()

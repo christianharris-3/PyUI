@@ -239,7 +239,7 @@ class Textbox(GuiItem):
                                                  self.height - self.top_border_size - self.bottom_border_size, Utils.emptyFunction, 15,
                                                  0, self.height - self.top_border_size - self.bottom_border_size, self.height,
                                                  anchor=('w', 0),
-                                                 menu=self.menu, roundedcorners=self.rounded_corners, col=self.col,
+                                                 menu=self.menu, rounded_corners=self.rounded_corners, col=self.col,
                                                  scalesize=self.scale_size, scale_y=self.scale_size, scale_x=self.scale_size,
                                                  scale_by=self.scale_by)
             self.bindItem(self.scroller)
