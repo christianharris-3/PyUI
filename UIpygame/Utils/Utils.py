@@ -1,3 +1,4 @@
+import numpy as np
 import pygame, sys, os
 
 class Utils:
@@ -58,6 +59,13 @@ class Utils:
             return returnedexecvalue
         else:
             return st
+
+    @staticmethod
+    def initialPosToValuePos(pos, parent_dimensions, ui) -> np.array:
+        return np.array([
+            Utils.relativeToValue(pos[0], parent_dimensions[0], parent_dimensions[1], ui),
+            Utils.relativeToValue(pos[1], parent_dimensions[0], parent_dimensions[1], ui)
+        ])
 
     @staticmethod
     def smartreplace(st, char, replace):

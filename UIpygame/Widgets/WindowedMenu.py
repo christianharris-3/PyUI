@@ -1,8 +1,8 @@
 from UIpygame.Utils.Draw import Draw
 from UIpygame.Utils import Utils
 import pygame
-from UIpygame.GuiItems.GuiItem import GuiItem
-from UIpygame.GuiItems.Menu import Menu
+from UIpygame.Widgets.GuiItem import GuiItem
+from UIpygame.Widgets.Menu import Menu
 
 class WindowedMenu(GuiItem):
     def reset(self):

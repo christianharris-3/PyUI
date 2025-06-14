@@ -1,4 +1,4 @@
-from UIpygame.GuiItems.Table import Table
+from UIpygame.Widgets.Table import Table
 
 class ScrollerTable(Table):
     def render(self, screen):

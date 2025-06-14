@@ -1,13 +1,13 @@
 import math
 import pygame
 from UIpygame.Utils.Utils import Utils
-from UIpygame.GuiItems.Table import Table
-from UIpygame.GuiItems.Textbox import Textbox
-from UIpygame.GuiItems.Text import Text
-from UIpygame.GuiItems.Scroller import Scroller
-from UIpygame.GuiItems.Slider import Slider
-from UIpygame.GuiItems.Menu import Menu
-from UIpygame.GuiItems.WindowedMenu import WindowedMenu
+from UIpygame.Widgets.Table import Table
+from UIpygame.Widgets.Textbox import Textbox
+from UIpygame.Widgets.Text import Text
+from UIpygame.Widgets.Scroller import Scroller
+from UIpygame.Widgets.Slider import Slider
+from UIpygame.Widgets.Menu import Menu
+from UIpygame.Widgets.WindowedMenu import WindowedMenu
 
 
 class Animation:

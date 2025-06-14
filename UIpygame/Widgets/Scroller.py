@@ -1,4 +1,4 @@
-from UIpygame.GuiItems.GuiItem import GuiItem
+from UIpygame.Widgets.GuiItem import GuiItem
 import pygame
 from UIpygame.Utils.Utils import Utils
 from UIpygame.Utils.Draw import Draw

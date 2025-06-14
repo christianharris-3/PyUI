@@ -12,18 +12,18 @@ from UIpygame.Utils.Draw import Draw
 from UIpygame.Utils.ColEdit import ColEdit
 from UIpygame.Utils.Collision import Collision
 
-from UIpygame.GuiItems.Button import Button
-from UIpygame.GuiItems.DropDown import DropDown
-from UIpygame.GuiItems.Table import Table
-from UIpygame.GuiItems.Textbox import Textbox
-from UIpygame.GuiItems.Text import Text
-from UIpygame.GuiItems.Scroller import Scroller
-from UIpygame.GuiItems.Slider import Slider
-from UIpygame.GuiItems.Menu import Menu
-from UIpygame.GuiItems.Window import Window
-from UIpygame.GuiItems.Rectangle import Rectangle
-from UIpygame.GuiItems.WindowedMenu import WindowedMenu
-from UIpygame.GuiItems.ScrollerTable import ScrollerTable
+from UIpygame.Widgets.Button import Button
+from UIpygame.Widgets.DropDown import DropDown
+from UIpygame.Widgets.Table import Table
+from UIpygame.Widgets.Textbox import Textbox
+from UIpygame.Widgets.Text import Text
+from UIpygame.Widgets.Scroller import Scroller
+from UIpygame.Widgets.Slider import Slider
+from UIpygame.Widgets.Menu import Menu
+from UIpygame.Widgets.Window import Window
+from UIpygame.Widgets.Rectangle import Rectangle
+from UIpygame.Widgets.WindowedMenu import WindowedMenu
+from UIpygame.Widgets.ScrollerTable import ScrollerTable
 from UIpygame.Animation import Animation
 
 from UIpygame.Constants import ClickType
@@ -1949,7 +1949,7 @@ class UI:
                     slide = self.backchain[-1][1]
             length = self.backchain[-1][2]
         if length == 'default':
-            length = Style.defaults['animation_speed']
+            length = self.styleGet("animation_speed")
         if self.queuedmenumove[0] < 0 or slide == 'none':
             if len(self.backchain) > 0:
                 if slide == 'none':
