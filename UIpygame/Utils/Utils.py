@@ -1,5 +1,9 @@
 import numpy as np
 import pygame, sys, os
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from UIpygame.UI import UI
 
 class Utils:
 
@@ -61,11 +65,47 @@ class Utils:
             return st
 
     @staticmethod
-    def initialPosToValuePos(pos, parent_dimensions, ui) -> np.array:
+    def initialPosToValuePos(
+            pos: list[int|float|str, int|float|str],
+            parent_dimensions: list[int|float, int|float],
+            ui: UI,
+    ) -> np.array:
+        """
+        Converts a list of 2 pos strings into real positions.
+        :param pos: The position, list of 2 items each of which can be ints or pos strings
+        :param parent_dimensions: a list of 2 items, storing the width and height of the parent pos
+        :param ui: The main instances of the ui object
+        :return: np.array storing the true int/float x and y pos
+        """
         return np.array([
             Utils.relativeToValue(pos[0], parent_dimensions[0], parent_dimensions[1], ui),
             Utils.relativeToValue(pos[1], parent_dimensions[0], parent_dimensions[1], ui)
         ])
+
+    @staticmethod
+    def getBaseDirScaleValue(
+            dir_scale: list[float, float] ,
+            do_scaling: bool|list[bool, bool]
+    ) -> list[float, float]:
+        """
+        Converts a do_scaling var and a base dir_scale var into an output dir_scale value
+        e.g. dir_scale = [1.5, 2.0], do_scale=[False,True], return = [1.0, 2.0]
+        :param dir_scale: the base dir_scale value
+        :param do_scaling: a bool or 2 bools that controls if scaling will be applied
+        :return: the output 2 item list, the new dir_scale
+        """
+        if isinstance(do_scaling, bool):
+            do_scaling = [do_scaling, do_scaling]
+
+        output_dir_scale = [1, 1]
+
+        if do_scaling[0]:
+            output_dir_scale[0] = dir_scale[0]
+        if do_scaling[1]:
+            output_dir_scale[1] = dir_scale[1]
+
+        return output_dir_scale
+
 
     @staticmethod
     def smartreplace(st, char, replace):

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-import UIpygame
+from UIpygame.Constants import ScaleBy
 
 
 @dataclass
@@ -15,6 +15,6 @@ class PositionalData:
     anchor: list[int|float|str] = None
     obj_anchor: list[int|float|str] = None
     center: bool = False
-    scale_by: UIpygame.ScaleBy = UIpygame.ScaleBy.MIN
-    do_dimension_scale: bool|list[bool,bool] = True
-    do_pos_scale: bool|list[bool,bool] = True
+    scale_by: ScaleBy = ScaleBy.MIN
+    do_dimensions_scaling: bool|list[bool,bool] = True
+    do_pos_scaling: bool|list[bool,bool] = True

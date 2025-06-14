@@ -13,19 +13,10 @@ class PositionalWidget(GuiItem, ABC):
         self.center = self._gui_item_data.center
         self.initial_anchor = self._gui_item_data.anchor
         self.initial_obj_anchor = self._gui_item_data.anchor
+        self.do_pos_scaling = self._gui_item_data.do_pos_scaling
+        self.do_dimensions_scaling = self._gui_item_data.do_dimensions_scaling
+        
         self.refreshCords()
-
-    def setScaling(self):
-        self.scale_pos_by_x = (self._gui_item_data.anchor.do_pos_scale or
-                               (type(self._gui_item_data.anchor.do_pos_scale)==list) and self._gui_item_data.anchor.do_pos_scale[0])
-        self.scale_pos_by_y = (self._gui_item_data.anchor.do_pos_scale or
-                               (type(self._gui_item_data.anchor.do_pos_scale) == list) and
-                               self._gui_item_data.anchor.do_pos_scale[1])
-        self.scale_dim_by_x = (self._gui_item_data.anchor.do_dimension_scale or
-                               (type(self._gui_item_data.anchor.do_dimension_scale)==list) and self._gui_item_data.anchor.do_dimension_scale[0])
-        self.scale_dim_by_x = (self._gui_item_data.anchor.do_dimension_scale or
-                               (type(self._gui_item_data.anchor.do_dimension_scale) == list) and
-                               self._gui_item_data.anchor.do_dimension_scale[1])
 
     def refreshScale(self):
         self.refreshDimensions()
@@ -48,38 +39,46 @@ class PositionalWidget(GuiItem, ABC):
     def refreshDimensions(self):
         parent_dimensions = self.getParentDimensions()
         unscaled_dimensions = Utils.initialPosToValuePos(self.initial_dimensions, parent_dimensions, self.ui)
-        self.draw_dimensions = unscaled_dimensions @ self.__getDimensionsScalingMatrix()
+        self.draw_dimensions = self.__getDimensionsScalingMatrix() @ unscaled_dimensions
 
         for child in self.getChildren():
             child.refreshDimensions()
 
     def __getPosScalingMatrix(self) -> np.ndarray:
-        scaleMat =  self.__getDimensionsScalingMatrix()
-        if not self.scale_pos_by_x:
-            scaleMat[0] = 1
-        if not self.scale_pos_by_y:
-            scaleMat[0] = 1
-        return scaleMat
+        return self.__getDirScale(
+            Utils.getBaseDirScaleValue(
+                self.ui.dir_scale,
+                self.do_pos_scaling
+            )
+        )
 
     def __getDimensionsScalingMatrix(self) -> np.ndarray:
-        scaleMat =  self.__getDimensionsScalingMatrix()
-        if not self.scale_dim_by_x:
-            scaleMat[0] = 1
-        if not self.scale_dim_by_y:
-            scaleMat[0] = 1
-        return scaleMat
-    def __getDirScale(self)  -> np.ndarray:
+        return self.__getDirScale(
+            Utils.getBaseDirScaleValue(
+                self.ui.dir_scale,
+                self.do_dimensions_scaling,
+            )
+        )
+    def __getDirScale(self, ui_dir_scale=None)  -> np.ndarray:
+        """
+        returns a matrix to multiply position values by
+        :param ui_dir_scale: ui.dir_scale value, leave as none to assign to ui.dir_scale, can be overwritten to custom value
+        :return: 2x2 np.array, matrix to multiply position by
+        """
+        if ui_dir_scale is None:
+            ui_dir_scale = self.ui.dir_scale
         match self.scale_by:
             case ScaleBy.MIN:
-                return np.identity(2) * min(self.ui.dir_scale)
+                return np.identity(2) * min(ui_dir_scale)
             case ScaleBy.MAX:
-                return np.identity(2) * max(self.ui.dir_scale)
+                return np.identity(2) * max(ui_dir_scale)
             case ScaleBy.HORIZONTAL:
-                return np.identity(2) * self.ui.dir_scale[0]
+                return np.identity(2) * ui_dir_scale[0]
             case ScaleBy.VERTICAL:
-                return np.identity(2) * self.ui.dir_scale[1]
+                return np.identity(2) * ui_dir_scale[1]
             case ScaleBy.RELATIVE:
-                return np.diag(self.ui.dir_scale)
+                return np.diag(ui_dir_scale)
+        raise Exception(f"Unrecognised value of scale_by in object {self}")
 
     def resetCords(self, scalereset=True):
         ui = self.ui
