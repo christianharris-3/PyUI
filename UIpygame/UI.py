@@ -6,6 +6,7 @@ import threading
 
 from UIpygame.ObjectParameters.AllObjParams import AllObjParams
 from UIpygame.ObjectParameters.TextObjParams import TextObjParams
+from UIpygame.ObjectParameters.ButtonObjParams import ButtonObjParams
 
 from UIpygame.Utils.Utils import Utils
 from UIpygame.Utils.Draw import Draw
@@ -40,15 +41,15 @@ class UI:
 
         self.defaults = {
             'Text': TextObjParams(),
-            'Button': None,
-            'Textbox': None,
-            'Table': None,
-            'ScrollerTable': None,
-            'Rectangle': None,
-            'DropDown': None,
-            'Slider': None,
-            'Scroller': None,
-            'Window': None,
+            'Button': ButtonObjParams,
+            # 'Textbox': None,
+            # 'Table': None,
+            # 'ScrollerTable': None,
+            # 'Rectangle': None,
+            # 'DropDown': None,
+            # 'Slider': None,
+            # 'Scroller': None,
+            # 'Window': None,
             'All': AllObjParams()
         }
 
@@ -147,7 +148,6 @@ class UI:
         for arg in kwargs:
             # args can be in form "Button_border_size", which would set the border_size for only text
             object_type, parameter = self.__splitDefaultParameterName(arg)
-            print(arg,"split too ->",object_type,"+", parameter)
             if object_type == "All":
                 # No specific object given (border_size)
                 for object_type_iterated in self.defaults:

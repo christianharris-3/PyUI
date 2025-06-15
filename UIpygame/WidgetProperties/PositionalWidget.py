@@ -15,7 +15,7 @@ class PositionalWidget(GuiItem, ABC):
         self.initial_obj_anchor = self._gui_item_data.anchor
         self.do_pos_scaling = self._gui_item_data.do_pos_scaling
         self.do_dimensions_scaling = self._gui_item_data.do_dimensions_scaling
-        
+
         self.refreshCords()
 
     def refreshScale(self):
@@ -80,52 +80,52 @@ class PositionalWidget(GuiItem, ABC):
                 return np.diag(ui_dir_scale)
         raise Exception(f"Unrecognised value of scale_by in object {self}")
 
-    def resetCords(self, scalereset=True):
-        ui = self.ui
-        if scalereset: self.refreshScale()
-        self.anchor = self.start_anchor[:]
+    # def resetCords(self, scalereset=True):
+    #     ui = self.ui
+    #     if scalereset: self.refreshScale()
+    #     self.anchor = self.start_anchor[:]
+    #
+    #     master = self.master[0]
+    #     if len(self.master) > 1:
+    #         if 'animate' in self.true_menu:
+    #             for a in self.master:
+    #                 if ui.active_menu in a.truemenu:
+    #                     master = a
+    #         else:
+    #             for a in self.master:
+    #                 if not (ui.active_menu in a.truemenu):
+    #                     master = a
+    #                     break
+    #
+    #     w = self.getParentWidth()
+    #     h = self.getParentHeight()
+    #
+    #     self.anchor[0] = Utils.relativeToValue(self.anchor[0], w, h, ui)
+    #     self.anchor[1] = Utils.relativeToValue(self.anchor[1], w, h, ui)
+    #
+    #     self.obj_anchor = self.start_obj_anchor[:]
+    #     self.obj_anchor[0] = Utils.relativeToValue(self.obj_anchor[0], self.width, self.height, ui)
+    #     self.obj_anchor[1] = Utils.relativeToValue(self.obj_anchor[1], self.width, self.height, ui)
+    #
+    #     self.x = int(master.x * master.dir_scale[0] + self.anchor[0] + (
+    #             self.start_x - self.obj_anchor[0] - self.scroll_cords[0]) * self.scale) / self.dir_scale[0]
+    #     self.y = int(master.y * master.dir_scale[1] + self.anchor[1] + (
+    #             self.start_y - self.obj_anchor[1] - self.scroll_cords[1]) * self.scale) / self.dir_scale[1]
+    #
+    #     self.refreshCords()
+    #     for a in self.bound_items:
+    #         a.resetCords()
+    #     self.refreshClickableRect()
 
-        master = self.master[0]
-        if len(self.master) > 1:
-            if 'animate' in self.true_menu:
-                for a in self.master:
-                    if ui.active_menu in a.truemenu:
-                        master = a
-            else:
-                for a in self.master:
-                    if not (ui.active_menu in a.truemenu):
-                        master = a
-                        break
 
-        w = self.getMasterWidth()
-        h = self.getMasterHeight()
-
-        self.anchor[0] = Utils.relativeToValue(self.anchor[0], w, h, ui)
-        self.anchor[1] = Utils.relativeToValue(self.anchor[1], w, h, ui)
-
-        self.obj_anchor = self.start_obj_anchor[:]
-        self.obj_anchor[0] = Utils.relativeToValue(self.obj_anchor[0], self.width, self.height, ui)
-        self.obj_anchor[1] = Utils.relativeToValue(self.obj_anchor[1], self.width, self.height, ui)
-
-        self.x = int(master.x * master.dir_scale[0] + self.anchor[0] + (
-                self.start_x - self.obj_anchor[0] - self.scroll_cords[0]) * self.scale) / self.dir_scale[0]
-        self.y = int(master.y * master.dir_scale[1] + self.anchor[1] + (
-                self.start_y - self.obj_anchor[1] - self.scroll_cords[1]) * self.scale) / self.dir_scale[1]
-
-        self.refreshCords()
-        for a in self.bound_items:
-            a.resetCords()
-        self.refreshClickableRect()
-
-
-    def autoScale(self):
-        w = self.getMasterWidth() / self.scale
-        h = self.getMasterHeight() / self.scale
-        if self.start_width != -1: self.width = Utils.relativeToValue(self.start_width, w, h, self.ui)
-        if self.start_max_width != -1: self.max_width = Utils.relativeToValue(self.start_max_width, w, h, self.ui)
-        if self.start_height != -1: self.height = Utils.relativeToValue(self.start_height, w, h, self.ui)
-        self.refreshClickableRect()
-        self.childAutoScale()
+    # def autoScale(self):
+    #     w = self.getMasterWidth() / self.scale
+    #     h = self.getMasterHeight() / self.scale
+    #     if self.start_width != -1: self.width = Utils.relativeToValue(self.start_width, w, h, self.ui)
+    #     if self.start_max_width != -1: self.max_width = Utils.relativeToValue(self.start_max_width, w, h, self.ui)
+    #     if self.start_height != -1: self.height = Utils.relativeToValue(self.start_height, w, h, self.ui)
+    #     self.refreshClickableRect()
+    #     self.childAutoScale()
 
     def smartCords(self, x=None, y=None, startset=True, accountscroll=False):
         scr = [0, 0]
@@ -147,13 +147,13 @@ class PositionalWidget(GuiItem, ABC):
         self.refreshPos()
     def setY(self, y: int|float|str):
         self.initial_y = y
-
+        self.refreshPos()
 
     def getX(self) -> int|float:
-        return self.pos[0]
+        return self.draw_pos[0]
 
     def getY(self) -> int|float:
-        return self.pos[1]
+        return self.draw_pos[1]
 
     def getDrawDimensions(self):
         return self.draw_dimensions

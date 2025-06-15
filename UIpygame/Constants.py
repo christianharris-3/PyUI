@@ -15,3 +15,13 @@ class ScaleBy(Enum):
     RELATIVE: str = 'relative'
     MIN: str = 'min'
     MAX: str = 'min'
+
+class RunCommandAt(Enum):
+    START_OF_CLICK = 'start_of_click'
+    REPEAT_WHILE_CLICKED = 'repeat_while_clicked'
+    END_OF_CLICK = 'end_of_click'
+
+class MouseButton(Enum):
+    LEFT_CLICK = 0
+    MIDDLE_CLICK = 1
+    RIGHT_CLICK = 2

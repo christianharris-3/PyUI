@@ -68,7 +68,7 @@ class Utils:
     def initialPosToValuePos(
             pos: list[int|float|str, int|float|str],
             parent_dimensions: list[int|float, int|float],
-            ui: UI,
+            ui: 'UI',
     ) -> np.array:
         """
         Converts a list of 2 pos strings into real positions.
