@@ -9,5 +9,5 @@ from UIpygame.DataClasses.TextData import TextData
 
 
 @dataclass
-class SliderTableObjParams(BorderData, ClickableData, ObjectData, PositionalData, StyleData, TextData):
+class SliderObjParams(BorderData, ClickableData, ObjectData, PositionalData, StyleData, TextData):
     pass

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -23,7 +24,7 @@ class ButtonObjParams(BorderData, ClickableData, ObjectData, PositionalData, Sty
     toggle_backing_col: int | tuple[int] | pygame.Color = -50 # int offset from backing_col
     toggle_hover_backing_col: int | tuple[int] | pygame.Color = -20 # int offset from toggle_backing_col
 
-    bind_toggle: list['GuiItem' | str] = None
+    bind_toggle: list[GuiItem | str] = None
 
     click_down_size: int = 4
     expand_click_hitbox: int = 0

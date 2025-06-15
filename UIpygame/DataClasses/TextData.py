@@ -16,6 +16,7 @@ class TextData:
     text_center: bool = False
     spacing: int | float | list[int|float, int|float] = 5
     text_max_width: int = None
+    image_display: bool = True
 
 
 

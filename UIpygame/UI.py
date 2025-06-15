@@ -5,8 +5,17 @@ import ctypes
 import threading
 
 from UIpygame.ObjectParameters.AllObjParams import AllObjParams
-from UIpygame.ObjectParameters.TextObjParams import TextObjParams
 from UIpygame.ObjectParameters.ButtonObjParams import ButtonObjParams
+from UIpygame.ObjectParameters.DropDownObjParams import DropDownObjParams
+from UIpygame.ObjectParameters.RectangleObjParams import RectangleObjParams
+from UIpygame.ObjectParameters.ScrollerObjParams import ScrollerObjParams
+from UIpygame.ObjectParameters.ScrollerTableObjParams import ScrollerTableObjParams
+from UIpygame.ObjectParameters.SliderObjParams import SliderObjParams
+from UIpygame.ObjectParameters.TableObjParams import TableObjParams
+from UIpygame.ObjectParameters.TextboxObjParams import TextboxObjParams
+from UIpygame.ObjectParameters.TextObjParams import TextObjParams
+from UIpygame.ObjectParameters.WindowObjParams import WindowObjParams
+
 
 from UIpygame.Utils.Utils import Utils
 from UIpygame.Utils.Draw import Draw
@@ -41,15 +50,15 @@ class UI:
 
         self.defaults = {
             'Text': TextObjParams(),
-            'Button': ButtonObjParams,
-            # 'Textbox': None,
-            # 'Table': None,
-            # 'ScrollerTable': None,
-            # 'Rectangle': None,
-            # 'DropDown': None,
-            # 'Slider': None,
-            # 'Scroller': None,
-            # 'Window': None,
+            'Button': ButtonObjParams(),
+            'Textbox': TextboxObjParams(),
+            'Table': TableObjParams(),
+            'ScrollerTable': ScrollerTableObjParams(),
+            'Rectangle': RectangleObjParams(),
+            'DropDown': DropDownObjParams(),
+            'Slider': SliderObjParams(),
+            'Scroller': ScrollerObjParams(),
+            'Window': WindowObjParams(),
             'All': AllObjParams()
         }
 
@@ -175,10 +184,9 @@ class UI:
                       textcenter=False, linesize=2, backing_draw=True, borderdraw=True,
                       animationspeed=30, containedslider=False, movetoclick=True, isolated=True, darken=60,
                       window_darken=0, text_col=(0, 0, 0), verticalspacing=2, horizontalspacing=8,
-                      Text_animationspeed=5, Text_backing_draw=False, Text_borderdraw=False, Text_verticalspacing=3,
-                      Text_horizontalspacing=3, DropDown_animationspeed=15,
-                      Textbox_verticalspacing=2, Textbox_horizontalspacing=6, Table_textcenter=True,
-                      Button_text_center=True, guesswidth=100, guessheight=100)
+                      text_animation_speed=5, Text_backing_draw=False, Text_border_draw=False, Text_spacing=3,
+                      DropDown_animation_speed=15, Textbox_spacing=(4, 2),
+                      Table_text_center=True, Button_text_center=True, guess_width=100, guess_height=100)
 
     def styleload_black(self):
         self.styleSet(text_col=(0, 0, 0), backing_col=(0, 0, 0), hovercol=(255, 255, 255), border_col=(0, 0, 0),

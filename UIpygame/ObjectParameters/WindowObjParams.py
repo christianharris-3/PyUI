@@ -9,5 +9,5 @@ from UIpygame.DataClasses.TextData import TextData
 
 
 @dataclass
-class WindowTableObjParams(BorderData, ObjectData, PositionalData, StyleData, TextData):
+class WindowObjParams(BorderData, ObjectData, PositionalData, StyleData, TextData):
     pass
