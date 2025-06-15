@@ -1,13 +1,24 @@
 from dataclasses import dataclass
 
-from UIpygame.DataClasses.BorderData import BorderData
 from UIpygame.DataClasses.ClickableData import ClickableData
 from UIpygame.DataClasses.ObjectData import ObjectData
 from UIpygame.DataClasses.PositionalData import PositionalData
 from UIpygame.DataClasses.StyleData import StyleData
 from UIpygame.DataClasses.TextData import TextData
 
+from UIpygame.Widgets.Button import Button
+from UIpygame.Constants import Direction
+
 
 @dataclass
-class SliderObjParams(BorderData, ClickableData, ObjectData, PositionalData, StyleData, TextData):
-    pass
+class SliderObjParams(ObjectData, PositionalData, ClickableData, StyleData, TextData):
+    start_value: int | float = 0
+    min_value: int | float = 0
+    max_value: int | float = 100
+
+    slider_increment: int | float = 0
+    slider_size: int | float = None
+    slider_button: Button = None
+    direction: Direction = Direction.HORIZONTAL
+    contained_slider: bool = False
+    move_to_click: bool = True

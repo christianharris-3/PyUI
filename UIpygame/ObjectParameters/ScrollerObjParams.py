@@ -1,13 +1,16 @@
 from dataclasses import dataclass
 
-from UIpygame.DataClasses.BorderData import BorderData
 from UIpygame.DataClasses.ClickableData import ClickableData
 from UIpygame.DataClasses.ObjectData import ObjectData
 from UIpygame.DataClasses.PositionalData import PositionalData
 from UIpygame.DataClasses.StyleData import StyleData
-from UIpygame.DataClasses.TextData import TextData
 
 
 @dataclass
-class ScrollerObjParams(BorderData, ClickableData, ObjectData, PositionalData, StyleData, TextData):
-    pass
+class ScrollerObjParams(ObjectData, PositionalData, ClickableData, StyleData):
+    start_value: int | float = 0
+    min_value: int | float = 0
+    max_value: int | float = 100
+
+    page_height: int | float = 15
+    scroll_bind_list: list[str] = None
