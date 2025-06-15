@@ -1,13 +1,10 @@
 from dataclasses import dataclass
 
-from UIpygame.DataClasses.BorderData import BorderData
-from UIpygame.DataClasses.ClickableData import ClickableData
-from UIpygame.DataClasses.ObjectData import ObjectData
-from UIpygame.DataClasses.PositionalData import PositionalData
-from UIpygame.DataClasses.StyleData import StyleData
-from UIpygame.DataClasses.TextData import TextData
-
+from UIpygame.ObjectParameters.TableObjParams import TableObjParams
 
 @dataclass
-class ScrollerTableObjParams(BorderData, ClickableData, ObjectData, PositionalData, StyleData, TextData):
-    pass
+class ScrollerTableObjParams(TableObjParams):
+    page_height: int = None
+    compress_width: bool | list[int] = True
+    scroller_width: int = 15
+    screen_cut_off: bool | int = 5
