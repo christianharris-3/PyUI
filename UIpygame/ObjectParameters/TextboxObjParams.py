@@ -21,6 +21,7 @@ class TextboxObjParams(ObjectData, PositionalData, StyleData, BorderData, Clicka
     cursor_height: int = None
     char_limit: int = math.inf
     nums_only: bool = False
+    allowed_characters: str = ''
     enter_returns: bool = False
     command_if_enter: bool = True
     command_if_key: bool = False
