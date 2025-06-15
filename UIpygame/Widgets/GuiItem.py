@@ -19,7 +19,7 @@ class GuiItem(ABC):
             self._gui_item_data = self.getDataClass()(**kwargs)
         except TypeError as e:
             error = TypeError(self.__class__.__name__ + "() {}".format(str(e)[11:]))
-            raise error from None
+            raise error
         return
         self.splitDataClasses()
         self.creationLogic()

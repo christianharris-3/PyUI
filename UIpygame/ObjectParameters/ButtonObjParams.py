@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from UIpygame.Widgets.GuiItem import GuiItem
 
 @dataclass
-class ButtonObjParams(ObjectData, PositionalData, StyleData, TextData, BorderData, ClickableData):
+class ButtonObjParams(ObjectData, PositionalData, StyleData, BorderData, ClickableData, TextData):
     ID: str = 'Button'
     hover_backing_col: int | tuple[int] | pygame.Color = -20  # int offset from backing_col
 

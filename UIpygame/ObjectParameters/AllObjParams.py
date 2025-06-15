@@ -13,7 +13,7 @@ import pygame
 
 
 @dataclass
-class AllObjParams(ButtonObjParams, DropDownObjParams, RectangleObjParams, ScrollerObjParams,
+class AllObjParams(DropDownObjParams, ButtonObjParams, RectangleObjParams, ScrollerObjParams,
                    ScrollerTableObjParams, SliderObjParams, TableObjParams, TextboxObjParams,
                    TextObjParams, WindowObjParams):
     wallpaper_col: pygame.Color | tuple[int] = (255, 255, 255)

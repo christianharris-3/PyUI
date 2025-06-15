@@ -12,7 +12,7 @@ import math
 
 
 @dataclass
-class TextboxObjParams(ObjectData, PositionalData, BorderData, ClickableData, StyleData, TextData):
+class TextboxObjParams(ObjectData, PositionalData, StyleData, BorderData, ClickableData, TextData):
     ID = 'Textbox'
     text_lines: int = 1
     line_limit: int = math.inf

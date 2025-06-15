@@ -6,7 +6,7 @@ class ObjectData:
     """
     Dataclass containing data used by all children of GuiItem.
     """
-    ID: str = None
+    ID: str = "Object"
     layer: int = None
     bound_items: list = None
     kill_time: int | float = None

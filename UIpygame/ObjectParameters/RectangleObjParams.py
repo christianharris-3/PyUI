@@ -9,5 +9,5 @@ from UIpygame.DataClasses.StyleData import StyleData
 
 
 @dataclass
-class RectangleObjParams(ObjectData, PositionalData, BorderData, StyleData, ClickableData):
+class RectangleObjParams(ObjectData, PositionalData, StyleData, BorderData, ClickableData):
     ID = 'Rectangle'

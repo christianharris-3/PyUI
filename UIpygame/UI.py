@@ -165,6 +165,7 @@ class UI:
             else:
                 # Specific object given (Button_border_size)
                 if parameter not in self.defaults[object_type].__dict__:
+                    print(self.defaults[object_type].__dict__)
                     raise Exception(f"invalid variable name {arg}")
                 self.defaults[object_type].__setattr__(parameter, kwargs[arg])
 
