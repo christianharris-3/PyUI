@@ -6,11 +6,9 @@ from UIpygame.Utils.Utils import Utils
 from UIpygame.ObjectParameters.ButtonObjParams import ButtonObjParams
 
 class Button(ClickableWidget, PositionalWidget):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, obj_params):
+        super().__init__(obj_params)
 
-    def getDataClass(self):
-        return ButtonObjParams
 
     def childGenText(self):
         if (self.img != self.toggle_img) or (self.text != self.toggle_text):

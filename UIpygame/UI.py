@@ -3,6 +3,7 @@ import time
 import math
 import ctypes
 import threading
+import dataclasses
 
 from UIpygame.ObjectParameters.AllObjParams import AllObjParams
 from UIpygame.ObjectParameters.ButtonObjParams import ButtonObjParams
@@ -1313,37 +1314,13 @@ class UI:
                 ndepths.append(self.getTreeDepth(a, depth))
         return max(ndepths)
 
-    def makeButton(self, x, y, text, text_size=-1, command=Utils.emptyFunction, menu='main', ID='button', layer=1,
-                   rounded_corners=-1, bound_items=[], kill_time=-1, width=-1, height=-1,
-                   anchor=(0, 0), obj_anchor=(0, 0), center=-1, centery=-1, img='none', font=-1, bold=-1,
-                   antialiasing=-1, pregenerated=True, enabled=True,
-                   border_size=-1, top_border_size=-1, bottom_border_size=-1, right_border_size=-1, left_border_size=-1, scale_size=-1, scale_x=-1,
-                   scale_y=-1, scale_by=-1, glow=-1, glow_col=-1,
-                   runcommandat=0, col=-1, text_col=-1, backing_col=-1, border_col=-1, hovercol=-1, clickdownsize=-1,
-                   clicktype: ClickType=-1, textoffsetx=-1, textoffsety=-1, maxwidth=-1,
-                   dragable=False, colorkey=-1, toggle=True, toggleable=False, toggletext=-1, toggleimg='none',
-                   togglecol=-1, togglehovercol=-1, bindtoggle=[], spacing=-1, verticalspacing=-1, horizontalspacing=-1,
-                   clickablerect=-1, clickableborder=-1,
-                   backing_draw=-1, borderdraw=-1, animationspeed=-1, linelimit=1000, refreshbind=[], presskeys=[]):
-        if maxwidth == -1: maxwidth = width
-        if backing_col == -1: backing_col = border_col
-        obj = Button(ui=self, x=x, y=y, width=width, height=height, menu=menu, ID=ID, layer=layer,
-                     rounded_corners=rounded_corners, bound_items=bound_items, kill_time=kill_time,
-                     anchor=anchor, obj_anchor=obj_anchor, center=center, centery=centery, text=str(text),
-                     text_size=text_size, img=img, font=font, bold=bold, antialiasing=antialiasing,
-                     pregenerated=pregenerated, enabled=enabled,
-                     border_size=border_size, top_border_size=top_border_size, bottom_border_size=bottom_border_size, right_border_size=right_border_size,
-                     left_border_size=left_border_size, scale_size=scale_size, scale_x=scale_x, scale_y=scale_y, scale_by=scale_by,
-                     glow=glow, glow_col=glow_col,
-                     command=command, runcommandat=runcommandat, col=col, text_col=text_col, backing_col=backing_col,
-                     hovercol=hovercol, clickdownsize=clickdownsize, clicktype=clicktype, textoffsetx=textoffsetx,
-                     textoffsety=textoffsety, maxwidth=maxwidth,
-                     dragable=dragable, colorkey=colorkey, toggle=toggle, toggleable=toggleable, toggletext=toggletext,
-                     toggleimg=toggleimg, togglecol=togglecol, togglehovercol=togglehovercol, bindtoggle=bindtoggle,
-                     spacing=spacing, verticalspacing=verticalspacing, horizontalspacing=horizontalspacing,
-                     clickablerect=clickablerect, clickableborder=clickableborder,
-                     animationspeed=animationspeed, backing_draw=backing_draw, borderdraw=borderdraw, linelimit=linelimit,
-                     refreshbind=refreshbind, presskeys=presskeys)
+    def addObject(self, obj):
+        pass
+
+    def makeButton(self, button_obj_params=None, **kwargs):
+        obj = Button(
+            Utils.generateParamObject(self, ButtonObjParams, button_obj_params, kwargs)
+        )
         return obj
 
     def makeCheckbox(self, x, y, text_size=None, command=Utils.emptyFunction, menu='main', ID='checkbox', text='{tick}', layer=1,

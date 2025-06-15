@@ -5,8 +5,6 @@ import numpy as np
 import pygame
 from UIpygame.Utils.Utils import Utils
 from UIpygame.Utils.ColEdit import ColEdit
-from UIpygame.Utils.Draw import Draw
-from UIpygame.Utils.Collision import Collision
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -14,7 +12,34 @@ if TYPE_CHECKING:
 
 
 class GuiItem(ABC):
-    def __init__(self, **kwargs):
+    def __init__(self, obj_params):
+        self.ui = obj_params.ui
+        self.ID = obj_params.ID
+        self.layer = obj_params.layer
+        self.bound_items = Utils.toList(obj_params.bound_items)
+        self.refresh_bind = Utils.toList(obj_params.refresh_bind)
+        self.enabled = obj_params.enabled
+
+        if obj_params.kill_time is None:
+            self.kill_time = None
+        else:
+            self.kill_time = time.time() + obj_params.kill_time
+
+        self.ui.addObject(self)
+
+
+
+
+
+
+
+
+
+
+
+
+        return
+
         try:
             self._gui_item_data = self.getDataClass()(**kwargs)
         except TypeError as e:

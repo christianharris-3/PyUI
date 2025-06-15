@@ -1,3 +1,5 @@
+import dataclasses
+
 import numpy as np
 import pygame, sys, os
 from typing import TYPE_CHECKING
@@ -106,6 +108,37 @@ class Utils:
 
         return output_dir_scale
 
+    @staticmethod
+    def generateParamObject(
+            ui,
+            data_class,
+            passed_obj_params,
+            passed_kwargs):
+        """
+        Acts between a makeObject function in UI, and instantiating a GuiItem Object
+        :param ui: The main UI instance, as it always gets attached to the dataclass
+        :param data_class: The base class, e.g. the UIpygame.ObjectParameters.ButtonObjParams class
+        :param passed_obj_params: An instance of the data_class that was passed into the makeObject
+        :param passed_kwargs: the **kwargs passed into the makeObject function
+        :return: an output instance of the data_class
+        """
+        if passed_obj_params is None:
+            obj_params = data_class(**passed_kwargs)
+        else:
+            obj_params = dataclasses.replace(passed_obj_params, **passed_kwargs)
+        obj_params.ui = ui
+        return obj_params
+
+    @staticmethod
+    def toList(var) -> list:
+        """
+        Ensures the passed list is not None, and blocks errors to do with immutable lists being defaults
+        :param var: if list, return a shallow copy of list
+        :return: a copy of the input list, or empty list if null
+        """
+        if var is None:
+            return []
+        return var[:]
 
     @staticmethod
     def smartreplace(st, char, replace):

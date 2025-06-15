@@ -5,16 +5,16 @@ from UIpygame.Constants import ScaleBy as ScaleBy
 import numpy as np
 
 class PositionalWidget(GuiItem, ABC):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.initial_pos = np.array([self._gui_item_data.x, self._gui_item_data.y])
-        self.initial_dimensions = np.array([self._gui_item_data.width, self._gui_item_data.height])
+    def __init__(self, obj_params):
+        super().__init__(obj_params)
+        self.initial_pos = np.array([obj_params.x, obj_params.y])
+        self.initial_dimensions = np.array([obj_params.width, obj_params.height])
 
-        self.center = self._gui_item_data.center
-        self.initial_anchor = self._gui_item_data.anchor
-        self.initial_obj_anchor = self._gui_item_data.anchor
-        self.do_pos_scaling = self._gui_item_data.do_pos_scaling
-        self.do_dimensions_scaling = self._gui_item_data.do_dimensions_scaling
+        self.center = obj_params.center
+        self.initial_anchor = obj_params.anchor
+        self.initial_obj_anchor = obj_params.anchor
+        self.do_pos_scaling = obj_params.do_pos_scaling
+        self.do_dimensions_scaling = obj_params.do_dimensions_scaling
 
         self.refreshCords()
 
