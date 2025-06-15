@@ -4,6 +4,7 @@ from UIpygame.ObjectParameters.TableObjParams import TableObjParams
 
 @dataclass
 class ScrollerTableObjParams(TableObjParams):
+    ID = "ScrollerTable"
     page_height: int = None
     compress_width: bool | list[int] = True
     scroller_width: int = 15

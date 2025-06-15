@@ -13,6 +13,7 @@ import math
 
 @dataclass
 class TextboxObjParams(ObjectData, PositionalData, BorderData, ClickableData, StyleData, TextData):
+    ID = 'Textbox'
     text_lines: int = 1
     line_limit: int = math.inf
     selected_highlight_col:  int | tuple[int] | pygame.Color = 20 # int offset from backing_col

@@ -5,17 +5,15 @@ from UIpygame.DataClasses.ObjectData import ObjectData
 from UIpygame.DataClasses.PositionalData import PositionalData
 from UIpygame.DataClasses.StyleData import StyleData
 from UIpygame.DataClasses.TextData import TextData
+from UIpygame.DataClasses.SlideData import SlideData
 
 from UIpygame.Widgets.Button import Button
 from UIpygame.Constants import Direction
 
 
 @dataclass
-class SliderObjParams(ObjectData, PositionalData, ClickableData, StyleData, TextData):
-    start_value: int | float = 0
-    min_value: int | float = 0
-    max_value: int | float = 100
-
+class SliderObjParams(ObjectData, PositionalData, ClickableData, StyleData, SlideData):
+    ID = "Slider"
     slider_increment: int | float = 0
     slider_size: int | float = None
     slider_button: Button = None
