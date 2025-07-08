@@ -5,12 +5,12 @@ from UIpygame.Widgets.GuiItem import GuiItem
 import pygame
 
 class ClickableWidget(PositionalWidget, GuiItem, ABC):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.clickable = self._gui_item_data.clickable
-        self.clickable_rect = self._gui_item_data.clickable_rect
-        self.command = self._gui_item_data.command
-        self.run_command_at = self._gui_item_data.run_command_at
+    def __init__(self, obj_params):
+        super().__init__(obj_params)
+        self.clickable = obj_params.clickable
+        self.clickable_rect = obj_params.clickable_rect
+        self.command = obj_params.command
+        self.run_command_at = obj_params.run_command_at
 
     def press(self):
         for a in self.bind_toggle:

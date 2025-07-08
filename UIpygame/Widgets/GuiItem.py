@@ -19,6 +19,7 @@ class GuiItem(ABC):
         self.bound_items = Utils.toList(obj_params.bound_items)
         self.refresh_bind = Utils.toList(obj_params.refresh_bind)
         self.enabled = obj_params.enabled
+        self.on_item = False
 
         if obj_params.kill_time is None:
             self.kill_time = None
@@ -268,7 +269,7 @@ class GuiItem(ABC):
         self.scroll_bind = args['scroll_bind']
         self.screen_compressed = args['screen_compressed']
 
-        self.onitem = False
+        self.on_item = False
         self.master = [Utils.EmptyObject(0, 0, ui.screenw, ui.screenh)]
         self.bound_items = args['bound_items'][:]
         ui.addid(args['ID'], self)
@@ -331,14 +332,14 @@ class GuiItem(ABC):
             for a in item.master:
                 if type(a) == Utils.EmptyObject:
                     item.master.remove(a)
-            if item.onitem and replace:
+            if item.on_item and replace:
                 for a in item.master:
                     if type(a) != Utils.EmptyObject:
                         if item in a.bound_items:
                             a.bound_items.remove(item)
             if not (item in self.bound_items):
                 self.bound_items.append(item)
-            item.onitem = True
+            item.on_item = True
             if replace:
                 item.master = [self]
             else:
@@ -348,23 +349,23 @@ class GuiItem(ABC):
 
     def getParentWidth(self):
         w = self.ui.screenw
-        if self.onitem:
+        if self.on_item:
             w = self.master.getWidth()
         return w
 
     def getParentHeight(self):
         h = self.ui.screenh
-        if self.onitem:
+        if self.on_item:
             h = self.master.getHeight()
         return h
 
     def getParentDimensions(self):
-        if self.onitem:
+        if self.on_item:
             return self.master.getDrawDimensions()
         return np.array([self.ui.screenw, self.ui.screenh])
 
     def getParentDrawPos(self):
-        if self.onitem:
+        if self.on_item:
             return self.master.getDrawPos()
         return np.array([0, 0])
 
